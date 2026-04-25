@@ -1,0 +1,96 @@
+// lib/auth/get-session.ts
+//
+// Two helpers used inside API route handlers:
+//
+//  getAuthUser(req)
+//    → Returns the logged-in user from their session cookie.
+//    → Use this at the top of any organizer-only route.
+//    → Returns null if not logged in.
+//
+//  requireOrganizerRole(req, eventId, allowedRoles)
+//    → Confirms the logged-in user is an organizer of the given event
+//      with one of the allowed roles.
+//    → Returns { user, organizerRole } on success.
+//    → Returns { error, status } on failure — return that directly from
+//      your route handler.
+//
+// Usage example in an API route:
+//
+//   const auth = await requireOrganizerRole(req, eventId, ['owner', 'sub_admin'])
+//   if ('error' in auth) {
+//     return NextResponse.json({ data: null, error: auth.error }, { status: auth.status })
+//   }
+//   // auth.user and auth.organizerRole are now available
+
+import { createSessionClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
+import type { NextRequest } from 'next/server'
+
+type OrganizerRole = 'owner' | 'sub_admin' | 'judge'
+
+// ── Get the current logged-in user ───────────────────────────
+export async function getAuthUser() {
+    try {
+        const supabase = await createSessionClient()
+        const { data: { user }, error } = await supabase.auth.getUser()
+        if (error || !user) return null
+        return user
+    } catch {
+        return null
+    }
+}
+
+// ── Require organizer role on a specific event ───────────────
+export async function requireOrganizerRole(
+    eventId: string,
+    allowedRoles: OrganizerRole[]
+): Promise<
+    | { user: { id: string; email: string }; organizerRole: OrganizerRole }
+    | { error: string; status: number }
+> {
+    const user = await getAuthUser()
+
+    if (!user) {
+        return { error: 'Not authenticated', status: 401 }
+    }
+
+    const admin = createAdminClient()
+
+    // Check if this user is a superadmin — superadmins bypass role checks
+    const { data: profile } = await admin
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    if (profile?.role === 'superadmin') {
+        return {
+            user: { id: user.id, email: user.email! },
+            organizerRole: 'owner', // treat superadmin as owner for permission purposes
+        }
+    }
+
+    // Check event_organizers table
+    const { data: organizer, error } = await admin
+        .from('event_organizers')
+        .select('role')
+        .eq('event_id', eventId)
+        .eq('profile_id', user.id)
+        .single()
+
+    if (error || !organizer) {
+        return { error: 'You are not an organizer for this event', status: 403 }
+    }
+
+    if (!allowedRoles.includes(organizer.role as OrganizerRole)) {
+        return {
+            error: `This action requires one of these roles: ${allowedRoles.join(', ')}`,
+            status: 403,
+        }
+    }
+
+    return {
+        user: { id: user.id, email: user.email! },
+        organizerRole: organizer.role as OrganizerRole,
+    }
+}

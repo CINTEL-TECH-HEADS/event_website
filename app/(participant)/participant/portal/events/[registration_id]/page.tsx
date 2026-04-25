@@ -1,0 +1,162 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import Link from 'next/link'
+import { formatEventDate } from '@/lib/utils'
+import { QrCode, Users, Award, ArrowLeft, MapPin, Calendar, Hash } from 'lucide-react'
+
+export default function RegistrationDetailPage() {
+  const { registration_id } = useParams<{ registration_id: string }>()
+  const [reg, setReg]         = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch(`/api/participant/registrations/${registration_id}`)
+      .then(r => r.json())
+      .then(({ data }) => { setReg(data); setLoading(false) })
+  }, [registration_id])
+
+  if (loading) return (
+    <div className="flex items-center justify-center py-32">
+      <div className="w-10 h-10 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
+    </div>
+  )
+
+  if (!reg) return (
+    <div className="flex items-center justify-center py-32">
+      <p className="text-red-400">Registration not found</p>
+    </div>
+  )
+
+  const event    = reg.events
+  const attended = Array.isArray(reg.attendance) ? reg.attendance.length > 0 : !!reg.attendance?.id
+  const hasCert  = Array.isArray(reg.certificates) ? reg.certificates.length > 0 : !!reg.certificates?.id
+
+  return (
+    <div className="max-w-xl mx-auto px-4 py-8">
+      <Link href="/participant/portal" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors mb-6">
+        <ArrowLeft size={14} /> Back to My Events
+      </Link>
+
+      {/* Event Info */}
+      <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-6 mb-4">
+        <span className="text-xs font-bold text-amber-400 uppercase tracking-widest mb-2 block">
+          {event?.event_type}
+        </span>
+        <h1 className="text-2xl font-black text-white mb-4">{event?.title}</h1>
+
+        <div className="space-y-2">
+          {event?.starts_at && (
+            <div className="flex items-center gap-2 text-sm text-slate-300">
+              <Calendar size={14} className="text-amber-400 shrink-0" />
+              {formatEventDate(event.starts_at)}
+            </div>
+          )}
+          {event?.venue && (
+            <div className="flex items-center gap-2 text-sm text-slate-300">
+              <MapPin size={14} className="text-amber-400 shrink-0" />
+              {event.venue}
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-sm text-slate-300">
+            <Hash size={14} className="text-amber-400 shrink-0" />
+            <span className="font-mono font-bold text-white">{reg.display_id}</span>
+          </div>
+        </div>
+
+        {/* Status badges */}
+        <div className="flex flex-wrap gap-2 mt-4">
+          {reg.status === 'waitlisted' && (
+            <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
+              ⏳ Waitlisted — position #{reg.waitlist_position}
+            </span>
+          )}
+          {reg.status === 'confirmed' && !attended && (
+            <span className="text-xs font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full">
+              ✓ Confirmed
+            </span>
+          )}
+          {attended && (
+            <span className="text-xs font-bold text-green-400 bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-full">
+              ✓ Attended
+            </span>
+          )}
+          {hasCert && (
+            <span className="text-xs font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-3 py-1 rounded-full">
+              🎓 Certificate Ready
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <Link
+          href={`/participant/portal/events/${registration_id}/qr`}
+          className="bg-white text-slate-950 rounded-xl p-4 text-center font-bold hover:bg-slate-100 transition-colors flex flex-col items-center gap-2"
+        >
+          <QrCode size={22} className="text-amber-500" />
+          <span className="text-sm">My QR Code</span>
+        </Link>
+
+        {reg.registration_type === 'team' && reg.is_leader && (
+          <Link
+            href={`/participant/portal/events/${registration_id}/team`}
+            className="bg-slate-800 border border-white/10 text-white rounded-xl p-4 text-center font-bold hover:bg-slate-700 transition-colors flex flex-col items-center gap-2"
+          >
+            <Users size={22} className="text-blue-400" />
+            <span className="text-sm">Manage Team</span>
+          </Link>
+        )}
+
+        <Link
+          href={`/participant/portal/events/${registration_id}/certificate`}
+          className={`bg-slate-800 border rounded-xl p-4 text-center font-bold transition-colors flex flex-col items-center gap-2 ${
+            hasCert ? 'border-purple-500/30 text-purple-300 hover:bg-slate-700' : 'border-white/10 text-slate-300 hover:bg-slate-700'
+          }`}
+        >
+          <Award size={22} className={hasCert ? 'text-purple-400' : 'text-slate-500'} />
+          <span className="text-sm">Certificate</span>
+        </Link>
+      </div>
+
+      {/* Registration Answers */}
+      {reg.answers?.length > 0 && (
+        <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-6 mb-4">
+          <h2 className="font-black text-white mb-4">Your Answers</h2>
+          <div className="space-y-4">
+            {reg.answers.map((a: any) => (
+              <div key={a.id} className="border-b border-white/5 pb-3 last:border-0 last:pb-0">
+                <p className="text-xs text-slate-500 mb-1">{a.form_fields?.label}</p>
+                <p className="text-sm text-white font-medium">{a.answer}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Team Members */}
+      {reg.members?.length > 0 && (
+        <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-6">
+          <h2 className="font-black text-white mb-4">Team Members</h2>
+          <div className="space-y-3">
+            {reg.members.map((m: any) => (
+              <div key={m.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                <div>
+                  <p className="text-sm font-bold text-white">
+                    {m.full_name}
+                    {m.is_leader && (
+                      <span className="ml-2 text-xs text-amber-400 font-bold">Leader</span>
+                    )}
+                  </p>
+                  <p className="text-xs text-slate-400">{m.email}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

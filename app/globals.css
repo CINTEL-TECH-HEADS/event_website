@@ -1,0 +1,435 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 5 5 5;
+    --background-soft: 15 15 15;
+    --foreground: 226 232 240;
+    --foreground-soft: 148 163 184;
+    --border: 30 41 59;
+    --panel: 15 23 42;
+    --panel-muted: 10 15 30;
+    --brand: 245 158 11;
+    --brand-strong: 251 191 36;
+    --brand-soft: 120 53 15;
+    --brand-ring: 245 158 11;
+    --success: 16 185 129;
+    --success-soft: 6 78 59;
+    --warning: 245 158 11;
+    --warning-soft: 120 53 15;
+    --danger: 239 68 68;
+    --danger-soft: 127 29 29;
+    --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 10px 40px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 20px 50px rgba(245, 158, 11, 0.15);
+  }
+
+  html {
+    min-height: 100%;
+    background-color: #020617;
+  }
+
+  * {
+    box-sizing: border-box;
+    border-color: rgb(var(--border) / 0.5);
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
+    background-image: 
+      radial-gradient(ellipse at top center, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+      linear-gradient(to bottom, #020617 0%, rgb(15 23 42) 100%);
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Subtle retro grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-size: 50px 50px;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    pointer-events: none;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  ::selection {
+    background: rgba(245, 158, 11, 0.3);
+    color: #fff;
+  }
+}
+
+@layer components {
+  .app-shell {
+    position: relative;
+    min-height: 100vh;
+  }
+
+  .app-main {
+    position: relative;
+    min-height: 100vh;
+  }
+
+  .app-panel {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.4);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .app-panel-muted {
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: rgba(15, 23, 42, 0.2);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .app-card-hover {
+    transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .app-card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+    background: rgba(15, 23, 42, 0.6);
+  }
+
+  .app-heading {
+    font-size: clamp(2rem, 1.8rem + 2vw, 3.5rem);
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: #fff;
+  }
+
+  .app-subheading {
+    color: rgb(var(--foreground-soft));
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+
+  .app-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.1);
+    padding: 0.35rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-strong));
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+  }
+
+  .app-button-primary,
+  .app-button-secondary,
+  .app-button-danger,
+  .app-button-success {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: all 250ms ease;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  .app-button-primary {
+    background: rgb(var(--brand));
+    color: #000;
+    text-shadow: none;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    border: 1px solid rgba(251, 191, 36, 0.8);
+  }
+
+  .app-button-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.7);
+    background: rgb(var(--brand-strong));
+  }
+
+  .app-button-secondary {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.03);
+    color: #fff;
+    backdrop-filter: blur(8px);
+  }
+
+  .app-button-secondary:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .app-button-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .app-button-danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.6);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+  }
+
+  .app-button-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+
+  .app-button-success:hover {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.6);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+  }
+
+  .app-button-primary:disabled,
+  .app-button-secondary:disabled,
+  .app-button-danger:disabled,
+  .app-button-success:disabled {
+    transform: none;
+    cursor: not-allowed;
+    opacity: 0.5;
+    box-shadow: none;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .app-input,
+  .app-select,
+  .app-textarea {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    color: #fff;
+    transition: all 200ms ease;
+  }
+
+  .app-input::placeholder,
+  .app-textarea::placeholder {
+    color: rgba(148, 163, 184, 0.5);
+  }
+
+  .app-input:focus,
+  .app-select:focus,
+  .app-textarea:focus {
+    outline: none;
+    border-color: rgb(var(--brand));
+    background: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 0 1px rgb(var(--brand)), 0 0 15px rgba(16, 185, 129, 0.15);
+  }
+
+  .app-stat-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.4);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(12px);
+  }
+
+  .app-stat-card::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 2px;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, rgb(var(--brand)), transparent);
+  }
+
+  .app-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .app-badge-brand {
+    background: rgba(16, 185, 129, 0.15);
+    color: rgb(var(--brand-strong));
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+
+  .app-badge-success {
+    background: rgba(251, 191, 36, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+  }
+
+  .app-badge-warning {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+  }
+
+  .app-badge-danger {
+    background: rgba(248, 113, 113, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.3);
+  }
+
+  .app-badge-neutral {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .app-table-wrap {
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.4);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(12px);
+  }
+
+  .app-table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .app-table-wrap thead {
+    background: rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .app-table-wrap th {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+    text-align: left;
+  }
+
+  .app-table-wrap th,
+  .app-table-wrap td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .app-table-row-interactive {
+    transition: background-color 150ms ease;
+  }
+
+  .app-table-row-interactive:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .app-empty-state {
+    border-radius: 1rem;
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 3rem 2rem;
+    text-align: center;
+    color: rgb(var(--foreground-soft));
+  }
+
+  .app-alert-info,
+  .app-alert-success,
+  .app-alert-warning {
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+    backdrop-filter: blur(8px);
+  }
+
+  .app-alert-info {
+    border-color: rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+  }
+
+  .app-alert-success {
+    border-color: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+  }
+
+  .app-alert-warning {
+    border-color: rgba(245, 158, 11, 0.3);
+    background: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+  }
+}
+
+@layer utilities {
+  .app-fade-in {
+    animation: appFadeIn 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .app-fade-in-delayed {
+    animation: appFadeIn 600ms cubic-bezier(0.16, 1, 0.3, 1) 150ms both;
+  }
+
+  .app-pulse-soft {
+    animation: appPulseSoft 3s ease-in-out infinite alternate;
+  }
+
+  .app-shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
+    background-size: 200% 100%;
+    animation: appShimmer 2s linear infinite;
+  }
+  
+  .glass-blur {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+}
+
+@keyframes appFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes appPulseSoft {
+  from {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+  to {
+    box-shadow: 0 0 20px 0 rgba(16, 185, 129, 0.15);
+  }
+}
+
+@keyframes appShimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
