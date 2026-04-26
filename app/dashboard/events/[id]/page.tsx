@@ -103,8 +103,10 @@ export default function EventDetailPage() {
       })
 
       if (!res.ok) {
-        throw new Error('Failed to toggle publish')
-      }
+  const text = await res.text()
+  console.log(text)
+  throw new Error(text || 'Failed to toggle publish')
+}
 
       const { data } = await res.json()
       setEvent(data)
@@ -170,8 +172,8 @@ export default function EventDetailPage() {
             onClick={() => setTab(item.key)}
             className={`rounded-xl px-4 py-3 text-sm font-bold tracking-widest uppercase transition-all border ${
               tab === item.key
-                ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
-                : 'bg-black/20 text-slate-500 border-white/5 hover:text-amber-400 hover:border-amber-500/20'
+               ? 'bg-[#F5E62D] text-[#0B1736] border-[#FFF27A] shadow-[0_0_18px_rgba(245,230,45,0.18)]'
+               : 'bg-[#10224A] text-slate-300 border-[#243B72] hover:text-white hover:border-[#F5E62D]'
             }`}
           >
             {item.label}
@@ -186,8 +188,8 @@ export default function EventDetailPage() {
             href={`/dashboard/events/${id}/${item.path}`}
             className={`rounded-xl border px-3 mt-2 py-2 text-xs font-bold tracking-widest uppercase transition-all ${
               pathname.includes(item.path)
-                ? 'border-amber-500/30 bg-amber-500/5 text-amber-400'
-                : 'border-white/5 bg-transparent text-slate-500 hover:border-amber-500/20 hover:text-amber-400'
+             ? 'border-[#FFF27A] bg-[#F5E62D] text-[#0B1736]'
+             : 'border-[#243B72] bg-[#10224A] text-slate-300 hover:border-[#F5E62D] hover:text-white'
             }`}
           >
             {item.label}
@@ -199,15 +201,15 @@ export default function EventDetailPage() {
         <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
           <section className="app-panel rounded-[1.8rem] p-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-slate-950">Event details</h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <h2 className="text-xl font-semibold text-white">Event details</h2>
+              <p className="mt-1 text-sm text-slate-400">
                 Update the core information organizers and attendees rely on.
               </p>
             </div>
 
             <div className="grid gap-5">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Event Name</label>
+                <label className="mb-2 block text-sm font-semibold text-slate-300">Event Name</label>
                 <input
                   type="text"
                   value={formData.title}
@@ -217,7 +219,7 @@ export default function EventDetailPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Description</label>
+                <label className="mb-2 block text-sm font-semibold text-slate-300">Description</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -228,7 +230,7 @@ export default function EventDetailPage() {
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">Capacity</label>
+                  <label className="mb-2 block text-sm font-semibold text-slate-300">Capacity</label>
                   <input
                     type="number"
                     value={formData.capacity}
@@ -239,7 +241,7 @@ export default function EventDetailPage() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  <label className="mb-2 block text-sm font-semibold text-slate-300">
                     Registration Mode
                   </label>
                   <select
@@ -259,7 +261,7 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end border-t border-slate-200/70 pt-5">
+              <div className="flex justify-end border-t border-[#243B72] pt-5">
                 <button onClick={handleSaveEvent} disabled={saving} className="app-button-primary">
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -267,9 +269,9 @@ export default function EventDetailPage() {
             </div>
           </section>
 
-          <aside className="app-panel rounded-[1.8rem] p-6 border-white/5 bg-black/40 h-fit">
-            <div className="mb-6 flex items-center gap-3 border-b border-white/5 pb-4">
-              <span className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-2 text-amber-400 shrink-0">
+          <aside className="app-panel rounded-[1.8rem] p-6 h-fit">
+            <div className="mb-6 flex items-center gap-3 border-b border-[#243B72] pb-4">
+              <span className="rounded-xl border border-[#243B72] bg-[#0B1736] p-2 text-[#F5E62D] shrink-0">
                 <Users size={16} />
               </span>
               <div>
@@ -278,14 +280,14 @@ export default function EventDetailPage() {
               </div>
             </div>
             <div className="space-y-2 text-xs font-mono text-slate-400">
-              <div className="rounded-xl border border-white/5 bg-black/40 px-4 py-3">
-                Protocol: <span className="font-bold text-amber-400 tracking-wider">{(event.registration_mode).toUpperCase()}</span>
+              <div className="rounded-xl border border-[#243B72] bg-[#0B1736] px-4 py-3">
+                Protocol: <span className="font-bold text-[#F5E62D] tracking-wider">{(event.registration_mode ?? 'both').toUpperCase()}</span>
               </div>
-              <div className="rounded-xl border border-white/5 bg-black/40 px-4 py-3">
-                Capacity: <span className="font-bold text-cyan-400 tracking-wider">{event.capacity ?? 'UNRESTRICTED'}</span>
+              <div className="rounded-xl border border-[#243B72] bg-[#0B1736] px-4 py-3">
+                Capacity: <span className="font-bold text-[#93C5FD] tracking-wider">{event.capacity ?? 'UNRESTRICTED'}</span>
               </div>
-              <div className="rounded-xl border border-white/5 bg-black/40 px-4 py-3">
-                State: <span className="font-bold text-amber-400 tracking-wider">{event.is_published ? 'LIVE_STREAM' : 'DORMANT'}</span>
+              <div className="rounded-xl border border-[#243B72] bg-[#0B1736] px-4 py-3">
+                State: <span className="font-bold text-[#F5E62D] tracking-wider">{event.is_published ? 'LIVE_STREAM' : 'DORMANT'}</span>
               </div>
             </div>
           </aside>

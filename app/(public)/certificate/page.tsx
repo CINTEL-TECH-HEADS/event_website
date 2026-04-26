@@ -1,166 +1,185 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { FileBadge, ShieldAlert, CheckCircle2 } from 'lucide-react'
+import type { Event } from '@/types'
+
+type CertificateState = 'idle' | 'loading' | 'ready' | 'not_found' | 'not_attended' | 'not_ready'
+type PublicEvent = Event & {
+  confirmed_count: number
+  waitlist_count?: number
+}
+
+function normalizeConfirmedCount(value: unknown): number {
+  if (typeof value === 'number') return value
+  if (Array.isArray(value) && value[0] && typeof value[0] === 'object' && 'count' in value[0]) {
+    const count = (value[0] as { count?: unknown }).count
+    return typeof count === 'number' ? count : 0
+  }
+  return 0
+}
+
+function normalizeEvent(event: PublicEvent): PublicEvent {
+  return {
+    ...event,
+    confirmed_count: normalizeConfirmedCount((event as PublicEvent & { confirmed_count: unknown }).confirmed_count),
+  }
+}
 
 export default function CertificatePage() {
   const [email, setEmail] = useState('')
   const [eventId, setEventId] = useState('')
-  const [events, setEvents] = useState<any[]>([])
-
-  const [status, setStatus] =
-    useState<'idle' | 'loading' | 'ready' | 'not_found' | 'not_attended'>('idle')
-
+  const [events, setEvents] = useState<PublicEvent[]>([])
+  const [status, setStatus] = useState<CertificateState>('idle')
   const [downloadUrl, setDownloadUrl] = useState('')
+  const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadEvents() {
       try {
         const res = await fetch('/api/events')
-        if (!res.ok) throw new Error('Failed to fetch events')
         const { data } = await res.json()
-        setEvents(data ?? [])
+        setEvents(((data ?? []) as PublicEvent[]).map(normalizeEvent))
       } catch (err) {
         console.error(err)
       }
     }
+
     loadEvents()
   }, [])
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-
-    if (!eventId) {
-      setStatus('not_found')
-      return
-    }
-
     setStatus('loading')
     setDownloadUrl('')
+    setMessage(null)
 
     try {
       const res = await fetch(
         `/api/certificates/download?email=${encodeURIComponent(email)}&event_id=${eventId}`
       )
-
-      if (!res.ok) {
-        throw new Error('Request failed')
-      }
-
       const { data, error } = await res.json()
 
       if (error) {
-        setStatus('not_found')
-      } else if (!data?.url) {
-        setStatus('not_attended')
-      } else {
-        setDownloadUrl(data.url)
-        setStatus('ready')
+        const lower = String(error).toLowerCase()
+        if (lower.includes('attendance')) {
+          setStatus('not_attended')
+        } else if (lower.includes('generated yet')) {
+          setStatus('not_ready')
+        } else {
+          setStatus('not_found')
+        }
+        setMessage(error)
+        return
       }
+
+      if (!data?.downloadUrl) {
+        setStatus('not_ready')
+        setMessage('Certificate download is not ready yet.')
+        return
+      }
+
+      setDownloadUrl(data.downloadUrl)
+      setMessage(`Certificate ready for ${data.name}. Link expires in ${data.expiresIn}.`)
+      setStatus('ready')
     } catch {
       setStatus('not_found')
+      setMessage('Unable to fetch certificate details right now.')
     }
   }
 
   return (
-    <div className="app-shell flex items-center justify-center px-4 py-20 relative overflow-hidden">
-      
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-amber-500/10 blur-[120px] rounded-full pointer-events-none" />
-
-      <div className="w-full max-w-lg app-panel rounded-[2rem] p-8 md:p-10 relative z-10 app-fade-in shadow-[0_0_50px_rgba(16,185,129,0.05)] border-amber-500/20">
-
-        {/* Header */}
-        <div className="text-center space-y-3 mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 mb-2 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-            <FileBadge size={32} />
+    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="overflow-hidden border border-white/10 bg-[#0a1629]">
+        <div className="border-b border-white/10 bg-[#112240] p-8">
+          <div className="max-w-2xl space-y-3">
+            <span className="inline-flex rounded-full border border-amber-300/20 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-amber-200">
+              Certificate Download
+            </span>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Download your event certificate</h1>
+            <p className="text-sm leading-6 text-slate-300 sm:text-base">
+              Certificates are available for attendees with recorded attendance. Select the event, enter your registered email, and we&apos;ll show the current status.
+            </p>
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tight">
-            Certificate Portal
-          </h1>
-          <p className="text-sm font-medium text-slate-400">
-            Verify attendance and download encrypted certificates.
-          </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="p-8">
+          <form onSubmit={handleSubmit} className="grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div>
+              <label htmlFor="certificate-email" className="block text-sm font-medium text-slate-300">
+                Registered email
+              </label>
+              <input
+                id="certificate-email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/15"
+                placeholder="you@example.com"
+              />
+            </div>
 
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">Participant Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="operator@cintel.in"
-              required
-              className="app-input"
-            />
-          </div>
+            <div>
+              <label htmlFor="certificate-event" className="block text-sm font-medium text-slate-300">
+                Event
+              </label>
+              <select
+                id="certificate-event"
+                value={eventId}
+                onChange={e => setEventId(e.target.value)}
+                required
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-600/15"
+              >
+                <option value="">Select an event</option>
+                {events.map(event => (
+                  <option key={event.id} value={event.id}>
+                    {event.title} - {event.event_type}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">Registered Event</label>
-            <select
-              value={eventId}
-              onChange={e => setEventId(e.target.value)}
-              required
-              className="app-input text-slate-300"
+            <button
+              type="submit"
+              disabled={status === 'loading'}
+              className="inline-flex items-center justify-center border border-amber-300/20 bg-amber-300 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-slate-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-white"
             >
-              <option value="" className="bg-[#020617]">Select Target Event</option>
-              {events.map(event => (
-                <option key={event.id} value={event.id} className="bg-[#020617]">
-                  {event.title}
-                </option>
-              ))}
-            </select>
-          </div>
+              {status === 'loading' ? 'Checking...' : 'Check Certificate'}
+            </button>
+          </form>
 
-          <button
-            type="submit"
-            disabled={status === 'loading'}
-            className="app-button-primary w-full py-4 text-base font-bold shadow-[0_0_20px_rgba(16,185,129,0.3)] mt-4"
-          >
-            {status === 'loading' ? 'Authenticating...' : 'Fetch Certificate'}
-          </button>
-        </form>
-
-        {/* States Box */}
-        <div className="mt-8">
-          {status === 'ready' && (
-            <div className="app-fade-in text-center space-y-4 pt-6 border-t border-white/10">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 mb-2">
-                 <CheckCircle2 size={24} />
-              </div>
-              <p className="text-amber-400 font-bold tracking-wide">Verification Successful</p>
+          {status === 'ready' && downloadUrl ? (
+            <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-4">
+              <p className="text-sm text-emerald-200">{message}</p>
               <a
                 href={downloadUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block w-full app-button-success py-3 text-sm"
+                className="mt-4 inline-flex items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#059669,#10b981)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
               >
-                Download PDF
+                Download Certificate
               </a>
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-2">
-                Secure Link Expires in 7 Days
-              </p>
             </div>
-          )}
+          ) : null}
 
-          {status === 'not_attended' && (
-            <div className="app-fade-in app-alert-warning flex items-center gap-3">
-              <ShieldAlert size={20} className="shrink-0" />
-              <p className="text-sm">Attendance not confirmed for this event.</p>
+          {status === 'not_attended' ? (
+            <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              {message}
             </div>
-          )}
+          ) : null}
 
-          {status === 'not_found' && (
-            <div className="app-fade-in app-alert-danger text-red-400 border border-red-500/30 bg-red-500/10 rounded-lg p-4 flex items-center gap-3">
-              <ShieldAlert size={20} className="shrink-0" />
-              <p className="text-sm font-medium">Record not found. Check parameters.</p>
+          {status === 'not_ready' ? (
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              {message}
             </div>
-          )}
+          ) : null}
+
+          {status === 'not_found' ? (
+            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {message}
+            </div>
+          ) : null}
         </div>
-
       </div>
     </div>
   )

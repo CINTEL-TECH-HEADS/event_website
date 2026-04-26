@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
   PlusCircle,
   LogOut,
-  TerminalSquare
+  ShieldCheck,
 } from 'lucide-react'
 
 type Profile = {
@@ -32,106 +32,165 @@ export function Sidebar({
   profile,
   events = [],
 }: SidebarProps) {
-  const pathname = usePathname()
+  const pathname =
+    usePathname()
 
-  async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    window.location.href = '/login'
-  }
+  const navClass = (
+    active: boolean
+  ) =>
+    `flex items-center gap-3 border px-4 py-3 text-sm font-semibold transition rounded-sm ${
+      active
+        ? 'border-[#FFF27A] bg-[#F5E62D] text-[#0B1736] shadow-[0_0_18px_rgba(245,230,45,0.18)]'
+        : 'border-transparent text-slate-300 hover:border-[#243B72] hover:bg-[#132B59] hover:text-white'
+    }`
 
   return (
-    <aside className="w-72 border-r border-white/5 bg-[#020617] min-h-screen p-5 flex flex-col justify-between z-20">
+    <aside className="flex min-h-screen w-64 flex-col justify-between border-r border-[#243B72] bg-[#0B1736] p-5 text-white shadow-2xl">
+
       <div>
+
         {/* Brand */}
-        <div className="mb-8 rounded-2xl border border-white/5 bg-black/40 p-5 shadow-[0_0_20px_rgba(16,185,129,0.03)] focus-within:border-amber-500/20 transition-all app-fade-in relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 blur-[30px] rounded-full pointer-events-none" />
-          
-          <h1 className="text-xl font-black text-white flex items-center gap-2 tracking-tight">
-            <TerminalSquare size={18} className="text-amber-500" />
+        <div className="mb-8 border border-[#2A4580] bg-[#10224A] p-5 rounded-sm">
+
+          <h1 className="flex items-center gap-2 text-xl font-bold">
+            <ShieldCheck
+              size={18}
+              className="text-[#F5E62D]"
+            />
             Cintel Admin
           </h1>
-          <p className="mt-1 text-[0.65rem] uppercase tracking-widest text-slate-500 font-bold">
+
+          <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-slate-400">
             Organizer Workspace
           </p>
 
-          <div className="mt-5 rounded-xl border border-white/5 bg-white/5 p-3 backdrop-blur-md">
-            <p className="font-semibold text-amber-400 tracking-wide text-sm">
-              {profile?.full_name ?? 'ROOT_USER'}
+          <div className="mt-5 border border-[#243B72] bg-[#0B1736] p-3 rounded-sm">
+
+            <p className="text-sm font-semibold text-white">
+              {profile?.full_name ??
+                'Organizer'}
             </p>
-            <p className="text-xs text-slate-500 truncate font-mono mt-0.5">
-              {profile?.email ?? 'sysadmin@cintel.in'}
+
+            <p className="mt-1 truncate text-xs text-slate-400">
+              {profile?.email ??
+                'admin@cintel.in'}
             </p>
+
           </div>
+
         </div>
 
         {/* Navigation */}
-        <nav className="space-y-2 app-fade-in-delayed">
+        <nav className="space-y-2">
+
           <Link
             href="/dashboard"
-            className={`flex items-center gap-3 rounded-xl px-4 py-3 border transition-all text-sm font-semibold tracking-wide ${
-              pathname === '/dashboard'
-                ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
-                : 'text-slate-400 border-transparent hover:bg-white/5 hover:text-white'
-            }`}
+            className={navClass(
+              pathname ===
+                '/dashboard'
+            )}
           >
-            <LayoutDashboard size={18} />
-            <span>Dashboard</span>
+            <LayoutDashboard
+              size={18}
+            />
+            Dashboard
           </Link>
 
           <Link
             href="/dashboard/events/new"
-            className={`flex items-center gap-3 rounded-xl px-4 py-3 border transition-all text-sm font-semibold tracking-wide ${
-              pathname === '/dashboard/events/new'
-                ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
-                : 'text-slate-400 border-transparent hover:bg-white/5 hover:text-white'
-            }`}
+            className={navClass(
+              pathname ===
+                '/dashboard/events/new'
+            )}
           >
-            <PlusCircle size={18} />
-            <span>New Event</span>
+            <PlusCircle
+              size={18}
+            />
+            New Event
           </Link>
+
         </nav>
 
         {/* Events */}
-        <div className="mt-10 app-fade-in-delayed">
-          <div className="mb-4 flex items-center justify-between text-[0.65rem] tracking-widest uppercase font-bold text-slate-500 px-1">
-            <span>Assigned Target Data</span>
-            <span className="flex items-center justify-center w-5 h-5 rounded bg-white/5 text-amber-500 border border-white/5">
+        <div className="mt-10">
+
+          <div className="mb-4 flex items-center justify-between px-1 text-[11px] uppercase tracking-[0.18em] text-[#F5E62D]">
+
+            <span>
+              Managed Events
+            </span>
+
+            <span className="flex h-6 w-6 items-center justify-center border border-[#FFF27A] bg-[#F5E62D] text-xs font-bold text-[#0B1736] rounded-sm">
               {events.length}
             </span>
+
           </div>
 
           <div className="space-y-2">
-            {events.map((event) => (
-              <Link
-                key={event.id}
-                href={`/dashboard/events/${event.id}`}
-                className="block rounded-xl border border-white/5 bg-black/20 p-4 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all group"
-              >
-                <p className="font-semibold text-slate-300 group-hover:text-amber-400 transition-colors text-sm truncate">
-                  {event.title}
-                </p>
-                <div className="mt-1 flex items-center justify-between text-xs font-mono text-slate-500">
-                  <span className="truncate max-w-[120px]">{event.venue}</span>
-                  <span className="text-amber-500/70 border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 rounded ml-2">
-                    {event.confirmed_count}
-                  </span>
-                </div>
-              </Link>
-            ))}
+
+            {events.map(
+              (event) => (
+                <Link
+                  key={
+                    event.id
+                  }
+                  href={`/dashboard/events/${event.id}`}
+                  className="block border border-[#243B72] bg-[#10224A] p-4 transition rounded-sm hover:border-[#F5E62D] hover:bg-[#132B59]"
+                >
+
+                  <p className="truncate text-sm font-semibold text-white">
+                    {
+                      event.title
+                    }
+                  </p>
+
+                  <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+
+                    <span className="max-w-[120px] truncate">
+                      {
+                        event.venue
+                      }
+                    </span>
+
+                    <span className="border border-[#FFF27A] bg-[#F5E62D] px-2 py-0.5 font-semibold text-[#0B1736] rounded-sm">
+                      {
+                        event.confirmed_count
+                      }
+                    </span>
+
+                  </div>
+
+                </Link>
+              )
+            )}
+
           </div>
+
         </div>
+
       </div>
 
-      {/* Bottom */}
-      <div className="pt-6 app-fade-in-delayed mt-auto">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 rounded-xl border border-red-500/30 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:shadow-[0_0_15px_rgba(239,68,68,0.2)] transition-all text-sm font-bold tracking-wide"
+      {/* Logout */}
+      <div className="pt-6">
+
+        <button 
+          onClick={async () => {
+            await fetch('/api/auth/logout', { method: 'POST' })
+            window.location.href = '/login'
+          }}
+          className="flex w-full items-center justify-center gap-2 border border-[#243B72] bg-[#10224A] px-4 py-3 text-sm font-semibold text-slate-300 transition rounded-sm hover:border-red-500 hover:bg-red-500 hover:text-white"
         >
-          <LogOut size={16} />
-          Terminate Session
+
+          <LogOut
+            size={16}
+          />
+
+          Logout
+
         </button>
+
       </div>
+
     </aside>
   )
 }

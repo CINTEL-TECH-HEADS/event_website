@@ -1,42 +1,9 @@
-// Owner: FE1 — QR Display (Premium UI)
-
-type Props = {
-  qrCodeUrl: string
-}
-
-export function QRDisplay({ qrCodeUrl }: Props) {
+export function QRDisplay({ qrCodeUrl }: { qrCodeUrl: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 text-center space-y-4">
-      
-      {/* Header */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-800">
-          Check-in QR Code
-        </h3>
-        <p className="text-xs text-gray-500 mt-1">
-          Present this at the event entrance
-        </p>
+    <div className="inline-block rounded-3xl border border-white/10 bg-[#101b33] p-5">
+      <div className="rounded-[1.35rem] border border-amber-300/20 bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.16),transparent_55%),rgba(255,255,255,0.98)] p-3">
+        <img src={qrCodeUrl} alt="Check-in QR" className="h-52 w-52 rounded-2xl border border-slate-200 bg-white object-contain" />
       </div>
-
-      {/* QR Image */}
-      <div className="flex justify-center">
-        {qrCodeUrl ? (
-          <img
-            src={qrCodeUrl}
-            alt="QR Code"
-            className="w-52 h-52 object-contain rounded-xl border"
-          />
-        ) : (
-          <div className="w-52 h-52 flex items-center justify-center bg-gray-50 border rounded-xl text-gray-400 text-sm">
-            Generating QR...
-          </div>
-        )}
-      </div>
-
-      {/* Footer hint */}
-      <p className="text-xs text-gray-400">
-        Keep this page or screenshot for quick access
-      </p>
     </div>
   )
 }

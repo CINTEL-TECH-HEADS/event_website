@@ -17,11 +17,11 @@ function generateInviteCode(): string {
 export async function POST(req: NextRequest) {
   try {
     const sessionSupa = await createSessionClient()
-    const { data: { session } } = await sessionSupa.auth.getSession()
-    if (!session) return apiError('Unauthorised', 401)
+    const { data: { user } } = await sessionSupa.auth.getUser()
+    if (!user) return apiError('Unauthorised', 401)
 
     const { registration_id, max_uses = 1 } = await req.json()
-    const email = session.user.email!
+    const email = user.email!
     const admin = createAdminClient()
 
     // Verify requester is the leader

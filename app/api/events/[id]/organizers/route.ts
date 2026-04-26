@@ -2,82 +2,101 @@
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
-import { requireOrganizerRole } from '@/lib/auth/get-session'
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireOrganizerRole(params.id, ['owner', 'sub_admin', 'judge'])
-  if ('error' in auth) return apiError(auth.error, auth.status)
+export async function GET(
+  req: NextRequest,
+  context: {
+    params: Promise<{
+      id: string
+    }>
+  }
+) {
+  try {
+    const { id } =
+      await context.params
 
-  const supabase = createAdminClient()
+    const supabase =
+      createAdminClient()
 
-  const { data, error } = await supabase
-    .from('event_organizers')
-    .select(`
-      id,
-      event_id,
-      role,
-      profile:profiles (
-        id,
-        full_name,
-        email
+    const { data, error } =
+      await supabase
+        .from(
+          'event_organizers'
+        )
+        .select(`
+          role,
+          profiles(
+            id,
+            full_name,
+            email
+          )
+        `)
+        .eq('event_id', id)
+
+    if (error)
+      return apiError(
+        error.message,
+        500
       )
-    `)
-    .eq('event_id', params.id)
 
-  if (error) return apiError(error.message, 500)
-  return apiSuccess(data)
+    return apiSuccess(
+      data ?? []
+    )
+  } catch {
+    return apiError(
+      'Internal server error',
+      500
+    )
+  }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireOrganizerRole(params.id, ['owner'])
-  if ('error' in auth) return apiError(auth.error, auth.status)
-
+export async function POST(
+  req: NextRequest,
+  context: {
+    params: Promise<{
+      id: string
+    }>
+  }
+) {
   try {
-    const { email, role } = await req.json()
-    const supabase = createAdminClient()
+    const { id } =
+      await context.params
 
-    // Find profile by email (case insensitive)
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .ilike('email', email.trim())
-      .single()
+    const body =
+      await req.json()
 
-    if (profileError || !profileData) {
-      return apiError('User not found. They must create an account first.', 404)
-    }
+    const supabase =
+      createAdminClient()
 
-    const { error } = await supabase
-      .from('event_organizers')
-      .insert({
-        event_id: params.id,
-        profile_id: profileData.id,
-        role: role
-      })
-
-    if (error) {
-      if (error.code === '23505') {
-        return apiError('User is already assigned to this event.', 400)
-      }
-      return apiError(error.message, 500)
-    }
-
-    const { data: allData } = await supabase
-      .from('event_organizers')
-      .select(`
-        id,
-        event_id,
-        role,
-        profile:profiles (
-          id,
-          full_name,
-          email
+    const { data, error } =
+      await supabase
+        .from(
+          'event_organizers'
         )
-      `)
-      .eq('event_id', params.id)
+        .insert([
+          {
+            event_id: id,
+            profile_id:
+              body.profile_id,
+            role:
+              body.role ??
+              'manager',
+          },
+        ])
+        .select()
+        .single()
 
-    return apiSuccess(allData)
-  } catch (err: any) {
-    return apiError(err.message || 'Payload error', 400)
+    if (error)
+      return apiError(
+        error.message,
+        500
+      )
+
+    return apiSuccess(data)
+  } catch {
+    return apiError(
+      'Internal server error',
+      500
+    )
   }
 }

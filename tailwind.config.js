@@ -1,64 +1,61 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ['class'],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          300: '#6ee7b7',
-          400: '#34d399',
-          500: '#10b981', // Neonish teal-green
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
-          950: '#022c22',
-        },
         background: 'rgb(var(--background) / <alpha-value>)',
+        'background-soft': 'rgb(var(--background-soft) / <alpha-value>)',
         foreground: 'rgb(var(--foreground) / <alpha-value>)',
+        'foreground-soft': 'rgb(var(--foreground-soft) / <alpha-value>)',
         border: 'rgb(var(--border) / <alpha-value>)',
-        accent: {
-          blue: '#3b82f6',
-          purple: '#8b5cf6',
-          pink: '#ec4899',
-        }
+        panel: 'rgb(var(--panel) / <alpha-value>)',
+        'panel-muted': 'rgb(var(--panel-muted) / <alpha-value>)',
+        brand: 'rgb(var(--brand) / <alpha-value>)',
+        'brand-strong': 'rgb(var(--brand-strong) / <alpha-value>)',
+        'brand-soft': 'rgb(var(--brand-soft) / <alpha-value>)',
+        accent: 'rgb(var(--accent) / <alpha-value>)',
+        'accent-soft': 'rgb(var(--accent-soft) / <alpha-value>)',
+        success: 'rgb(var(--success) / <alpha-value>)',
+        warning: 'rgb(var(--warning) / <alpha-value>)',
+        danger: 'rgb(var(--danger) / <alpha-value>)',
+      },
+      boxShadow: {
+        'sm': 'var(--shadow-sm)',
+        'md': 'var(--shadow-md)',
+        'lg': 'var(--shadow-lg)',
       },
       borderRadius: {
-        lg: '1rem',
-        md: '0.75rem',
-        sm: '0.5rem',
+        'luxury': '1.4rem',
       },
-      backgroundImage: {
-        'glow-gradient': 'linear-gradient(180deg, rgba(16, 185, 129, 0.15), transparent)',
-      },
-      animation: {
-        'float': 'float 6s ease-in-out infinite',
-        'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-        'glow': 'glow 3s ease-in-out infinite alternate',
+      fontFamily: {
+        outfit: ['var(--font-outfit)', 'sans-serif'],
       },
       keyframes: {
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
+        'fade-in': {
+          'from': {
+            'opacity': '0',
+            'transform': 'translateY(12px)',
+          },
+          'to': {
+            'opacity': '1',
+            'transform': 'translateY(0)',
+          },
         },
-        fadeInUp: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+        'shimmer': {
+          'to': {
+            'background-position': '-200% 0',
+          },
         },
-        glow: {
-          '0%': { boxShadow: '0 0 10px rgba(16, 185, 129, 0.2)' },
-          '100%': { boxShadow: '0 0 25px rgba(16, 185, 129, 0.6)' },
-        }
-      }
+      },
+      animation: {
+        'fade-in': 'fade-in 0.45s ease both',
+        'shimmer': 'shimmer 1.8s linear infinite',
+      },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [],
 }
