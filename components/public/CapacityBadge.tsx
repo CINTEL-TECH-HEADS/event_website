@@ -1,32 +1,23 @@
-// Owner: FE1 — Capacity Badge (Premium UI)
+import type { Event } from '@/types'
+import { spotsLeft } from '@/lib/utils'
 
-type Props = {
-  capacity: number
-  confirmed: number
+type PublicEvent = Event & {
+  confirmed_count: number
+  waitlist_count?: number
 }
 
-export function CapacityBadge({ capacity, confirmed }: Props) {
-  const remaining = capacity - confirmed
+export function CapacityBadge({ event }: { event: PublicEvent }) {
+  const spots = spotsLeft(event.capacity, event.confirmed_count)
 
-  let color = 'text-green-700 bg-green-50 border-green-200'
-  let label = 'Available'
+  if (spots === null) return null
 
-  if (remaining <= 0) {
-    color = 'text-red-700 bg-red-50 border-red-200'
-    label = 'Full'
-  } else if (remaining <= 10) {
-    color = 'text-amber-700 bg-amber-50 border-amber-200'
-    label = 'Almost Full'
+  if (spots === 0) {
+    return <span className="text-sm font-semibold text-rose-300">Full - join waitlist</span>
   }
 
-  return (
-    <div
-      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-semibold ${color}`}
-    >
-      <span>{label}</span>
-      <span className="opacity-70">
-        {remaining > 0 ? `${remaining} spots left` : 'No spots left'}
-      </span>
-    </div>
-  )
+  if (spots <= 10) {
+    return <span className="text-sm font-semibold text-amber-200">Only {spots} spots left</span>
+  }
+
+  return <span className="text-sm font-semibold text-blue-200">{spots} spots remaining</span>
 }

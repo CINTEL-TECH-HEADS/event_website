@@ -1,105 +1,176 @@
 // Owner: FE2 - Certificates page
 'use client'
+
 import { useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { Check, FileBadge2, Loader2, Mail, Upload } from 'lucide-react'
+import {
+  Check,
+  Loader2,
+  Mail,
+  Upload,
+  Award,
+} from 'lucide-react'
 
 export default function CertificatesPage() {
-  const { id } = useParams<{ id: string }>()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [uploading, setUploading] = useState(false)
-  const [templateUploaded, setTemplateUploaded] = useState(false)
-  const [generating, setGenerating] = useState(false)
-  const [releasing, setReleasing] = useState(false)
-  const [generatedCount, setGeneratedCount] = useState(0)
+  const { id } =
+    useParams<{ id: string }>()
 
-  const handleUploadTemplate = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) {
-      return
-    }
+  const fileInputRef =
+    useRef<HTMLInputElement>(
+      null
+    )
+
+  const [uploading, setUploading] =
+    useState(false)
+
+  const [
+    templateUploaded,
+    setTemplateUploaded,
+  ] = useState(false)
+
+  const [
+    generating,
+    setGenerating,
+  ] = useState(false)
+
+  const [
+    releasing,
+    setReleasing,
+  ] = useState(false)
+
+  const [
+    generatedCount,
+    setGeneratedCount,
+  ] = useState(0)
+
+  async function handleUploadTemplate(
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const file =
+      e.target.files?.[0]
+
+    if (!file) return
 
     setUploading(true)
+
     try {
-      const formData = new FormData()
-      formData.append('action', 'upload')
-      formData.append('file', file)
-      formData.append('event_id', id)
+      const formData =
+        new FormData()
 
-      const res = await fetch('/api/certificates', {
-        method: 'POST',
-        body: formData,
-      })
+      formData.append(
+        'file',
+        file
+      )
 
-      if (!res.ok) {
-        throw new Error('Failed to upload template')
-      }
+      formData.append(
+        'event_id',
+        id
+      )
 
-      setTemplateUploaded(true)
-    } catch (error) {
-      console.error('Upload failed:', error)
-      alert('Failed to upload template. Please check the file format.')
+      const res = await fetch(
+        '/api/certificates/upload-template',
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
+
+      if (!res.ok)
+        throw new Error()
+
+      setTemplateUploaded(
+        true
+      )
+    } catch {
+      alert(
+        'Failed to upload template.'
+      )
     } finally {
       setUploading(false)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
+
+      if (
+        fileInputRef.current
+      ) {
+        fileInputRef.current.value =
+          ''
       }
     }
   }
 
-  const handleGenerateCertificates = async () => {
-    if (!confirm('Generate certificates for all attendees?')) {
+  async function handleGenerateCertificates() {
+    if (
+      !confirm(
+        'Generate certificates for all attendees?'
+      )
+    )
       return
-    }
 
     setGenerating(true)
+
     try {
-      const res = await fetch('/api/certificates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'generate', event_id: id }),
-      })
+      const res = await fetch(
+        '/api/certificates/generate',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type':
+              'application/json',
+          },
+          body: JSON.stringify(
+            {
+              event_id:
+                id,
+            }
+          ),
+        }
+      )
 
-      if (!res.ok) {
-        throw new Error('Failed to generate certificates')
-      }
+      const { count } =
+        await res.json()
 
-      const responseBody = await res.json()
-      if (responseBody.error) {
-        throw new Error(responseBody.error)
-      }
-
-      const generated = responseBody.data?.generated || 0
-      setGeneratedCount(generated)
-    } catch (error: any) {
-      console.error('Generation failed:', error)
-      alert('Failed to generate certificates: ' + error.message)
+      setGeneratedCount(
+        count || 0
+      )
+    } catch {
+      alert(
+        'Failed to generate certificates.'
+      )
     } finally {
       setGenerating(false)
     }
   }
 
-  const handleReleaseCertificates = async () => {
-    if (!confirm('Send certificates to all attendees via email?')) {
+  async function handleReleaseCertificates() {
+    if (
+      !confirm(
+        'Send certificates to all attendees?'
+      )
+    )
       return
-    }
 
     setReleasing(true)
+
     try {
-      const res = await fetch('/api/certificates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'release', event_id: id }),
-      })
-
-      if (!res.ok) {
-        throw new Error('Failed to release certificates')
-      }
-
-      await res.json()
-    } catch (error) {
-      console.error('Release failed:', error)
-      alert('Failed to release certificates.')
+      await fetch(
+        '/api/certificates/release',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type':
+              'application/json',
+          },
+          body: JSON.stringify(
+            {
+              event_id:
+                id,
+            }
+          ),
+        }
+      )
+    } catch {
+      alert(
+        'Failed to release certificates.'
+      )
     } finally {
       setReleasing(false)
     }
@@ -107,104 +178,229 @@ export default function CertificatesPage() {
 
   return (
     <div className="space-y-6">
-      <section className="app-panel rounded-[2rem] px-6 py-7 sm:px-8">
-        <span className="app-kicker">
-          <FileBadge2 size={14} />
+
+      {/* Hero */}
+      <section className="app-panel rounded-[2rem] px-6 py-7 shadow-xl sm:px-8">
+
+        <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
+          <Award size={14} />
           Certificates
         </span>
-        <h1 className="app-heading mt-4">Template, generate, release.</h1>
-        <p className="app-subheading mt-3 max-w-2xl">
-          Move attendees from completed check-in to finished certificate delivery with one clean
-          workflow.
+
+        <h1 className="mt-5 text-3xl font-bold text-white">
+          Template, generate,
+          release.
+        </h1>
+
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
+          Deliver certificates
+          in one clean workflow
+          after attendance
+          completion.
         </p>
+
       </section>
 
-      <div className="grid gap-4">
-        <section className="app-panel rounded-[1.8rem] p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <span className="app-badge app-badge-brand">Step 1</span>
-              <h2 className="mt-3 text-lg font-semibold text-white">Upload a PDF template</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                This template will be used for every generated certificate.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf"
-                onChange={handleUploadTemplate}
-                disabled={uploading}
-                className="hidden"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="app-button-primary"
-              >
-                {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-                {uploading ? 'Uploading...' : 'Choose PDF'}
-              </button>
-              {templateUploaded && (
-                <span className="app-badge app-badge-success">
-                  <Check size={14} />
-                  Template ready
-                </span>
-              )}
-            </div>
-          </div>
-        </section>
+      {/* Step 1 */}
+      <section className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl transition-all duration-300 hover:-translate-y-1">
 
-        <section className="app-panel rounded-[1.8rem] p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <span className="app-badge app-badge-success">Step 2</span>
-              <h2 className="mt-3 text-lg font-semibold text-white">Generate certificates</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Certificates are generated only for attendees marked as present.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={handleGenerateCertificates}
-                disabled={generating || !templateUploaded}
-                className="app-button-success"
-              >
-                {generating ? <Loader2 size={16} className="animate-spin" /> : null}
-                {generating ? 'Generating...' : 'Generate Now'}
-              </button>
-              {generatedCount > 0 && (
-                <span className="app-badge app-badge-brand">{generatedCount} generated</span>
-              )}
-            </div>
-          </div>
-        </section>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-        <section className="app-panel rounded-[1.8rem] p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <span className="app-badge app-badge-warning">Step 3</span>
-              <h2 className="mt-3 text-lg font-semibold text-white">Release by email</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Send generated certificates to attendees when you&apos;re ready.
-              </p>
-            </div>
+          <div>
+
+            <span className="rounded-full bg-[#0B1736] px-3 py-1 text-xs font-semibold text-[#F5E62D]">
+              Step 1
+            </span>
+
+            <h2 className="mt-3 text-lg font-semibold text-white">
+              Upload Certificate
+              Template
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-400">
+              Upload your PDF
+              design template.
+            </p>
+
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+
+            <input
+              ref={
+                fileInputRef
+              }
+              type="file"
+              accept=".pdf"
+              onChange={
+                handleUploadTemplate
+              }
+              className="hidden"
+            />
+
             <button
-              onClick={handleReleaseCertificates}
-              disabled={releasing || generatedCount === 0}
-              className="app-button-primary"
+              onClick={() =>
+                fileInputRef.current?.click()
+              }
+              disabled={
+                uploading
+              }
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#F5E62D] px-5 py-3 text-sm font-semibold text-[#0B1736] hover:bg-[#FFF27A]"
             >
-              {releasing ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
-              {releasing ? 'Sending...' : 'Send Certificates'}
+              {uploading ? (
+                <Loader2
+                  size={16}
+                  className="animate-spin"
+                />
+              ) : (
+                <Upload size={16} />
+              )}
+
+              {uploading
+                ? 'Uploading...'
+                : 'Choose PDF'}
             </button>
+
+            {templateUploaded && (
+              <span className="rounded-full bg-green-500/10 px-4 py-2 text-sm font-semibold text-green-400">
+                <Check
+                  size={14}
+                  className="mr-1 inline"
+                />
+                Ready
+              </span>
+            )}
+
           </div>
-        </section>
+
+        </div>
+
+      </section>
+
+      {/* Step 2 */}
+      <section className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl transition-all duration-300 hover:-translate-y-1">
+
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+          <div>
+
+            <span className="rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-400">
+              Step 2
+            </span>
+
+            <h2 className="mt-3 text-lg font-semibold text-white">
+              Generate
+              Certificates
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-400">
+              Creates
+              certificates for
+              all attendees.
+            </p>
+
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+
+            <button
+              onClick={
+                handleGenerateCertificates
+              }
+              disabled={
+                generating ||
+                !templateUploaded
+              }
+              className="inline-flex items-center gap-2 rounded-2xl bg-green-500 px-5 py-3 text-sm font-semibold text-white hover:bg-green-400 disabled:opacity-50"
+            >
+              {generating && (
+                <Loader2
+                  size={16}
+                  className="animate-spin"
+                />
+              )}
+
+              {generating
+                ? 'Generating...'
+                : 'Generate Now'}
+            </button>
+
+            {generatedCount >
+              0 && (
+              <span className="rounded-full bg-[#0B1736] px-4 py-2 text-sm font-semibold text-[#F5E62D]">
+                {
+                  generatedCount
+                }{' '}
+                Generated
+              </span>
+            )}
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* Step 3 */}
+      <section className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl transition-all duration-300 hover:-translate-y-1">
+
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+          <div>
+
+            <span className="rounded-full bg-[#0B1736] px-3 py-1 text-xs font-semibold text-[#93C5FD]">
+              Step 3
+            </span>
+
+            <h2 className="mt-3 text-lg font-semibold text-white">
+              Release by Email
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-400">
+              Send generated
+              certificates to
+              attendees.
+            </p>
+
+          </div>
+
+          <button
+            onClick={
+              handleReleaseCertificates
+            }
+            disabled={
+              releasing ||
+              generatedCount ===
+                0
+            }
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#1E3A8A] px-5 py-3 text-sm font-semibold text-white hover:bg-[#2563EB] disabled:opacity-50"
+          >
+            {releasing ? (
+              <Loader2
+                size={16}
+                className="animate-spin"
+              />
+            ) : (
+              <Mail size={16} />
+            )}
+
+            {releasing
+              ? 'Sending...'
+              : 'Send Certificates'}
+          </button>
+
+        </div>
+
+      </section>
+
+      {/* Note */}
+      <div className="rounded-2xl border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
+        Ensure all eligible
+        participants are marked
+        attended before
+        generating certificates.
       </div>
 
-      <div className="app-alert-warning">
-        Make sure everyone who needs a certificate has been marked as attended before generating.
-      </div>
     </div>
   )
 }

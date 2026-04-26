@@ -2,42 +2,123 @@
 // GET  /api/events/[id]/form-fields — fetch form fields for an event (used by FE1 registration form)
 // POST /api/events/[id]/form-fields — save/replace form fields for an event (used by FE2 form builder)
 import { NextRequest } from 'next/server'
-import { apiSuccess, apiError } from '@/lib/utils'
-import { createAdminClient } from '@/lib/supabase/server'
-import { formFieldsPayloadSchema } from '@/lib/validators/form-fields'
+import {
+  apiSuccess,
+  apiError,
+} from '@/lib/utils'
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createAdminClient()
+import {
+  createAdminClient,
+} from '@/lib/supabase/server'
 
-  const { data, error } = await supabase
+import {
+  formFieldsPayloadSchema,
+} from '@/lib/validators/form-fields'
+
+export async function GET(
+  req: NextRequest,
+  context: {
+    params: Promise<{
+      id: string
+    }>
+  }
+) {
+  const { id } =
+    await context.params
+
+  const supabase =
+    createAdminClient()
+
+  const {
+    data,
+    error,
+  } = await supabase
     .from('form_fields')
     .select('*')
-    .eq('event_id', params.id)
-    .order('sort_order', { ascending: true })
+    .eq('event_id', id)
+    .order('sort_order', {
+      ascending: true,
+    })
 
-  if (error) return apiError(error.message, 500)
-  return apiSuccess(data ?? [])
+  if (error)
+    return apiError(
+      error.message,
+      500
+    )
+
+  return apiSuccess(
+    data ?? []
+  )
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  // TODO BE2: Validate organizer owns this event before allowing field changes
-  const body = await req.json()
-  const parsed = formFieldsPayloadSchema.safeParse({ event_id: params.id, fields: body.fields })
-  if (!parsed.success) return apiError(parsed.error.errors[0].message)
+export async function POST(
+  req: NextRequest,
+  context: {
+    params: Promise<{
+      id: string
+    }>
+  }
+) {
+  const { id } =
+    await context.params
 
-  const supabase = createAdminClient()
+  const body =
+    await req.json()
 
-  // Replace all fields for this event (delete + re-insert to handle reordering cleanly)
-  await supabase.from('form_fields').delete().eq('event_id', params.id)
+  const parsed =
+    formFieldsPayloadSchema.safeParse(
+      {
+        event_id: id,
+        fields:
+          body.fields,
+      }
+    )
 
-  const rows = parsed.data.fields.map((f, i) => ({
-    ...f,
-    event_id: params.id,
-    sort_order: i,
-  }))
+  if (!parsed.success) {
+    return apiError(
+      parsed.error.errors[0]
+        .message
+    )
+  }
 
-  const { error } = await supabase.from('form_fields').insert(rows)
-  if (error) return apiError(error.message, 500)
+  const supabase =
+    createAdminClient()
 
-  return apiSuccess({ message: `${rows.length} fields saved` })
+  await supabase
+    .from('form_fields')
+    .delete()
+    .eq('event_id', id)
+
+  const rows =
+    parsed.data.fields.map(
+      (f, i) => ({
+        ...f,
+        event_id: id,
+        sort_order: i,
+      })
+    )
+
+  const { error } =
+    await supabase
+      .from('form_fields')
+      .insert(rows as any)
+
+  if (error)
+    return apiError(
+      error.message,
+      500
+    )
+
+  const { data } =
+    await supabase
+      .from('form_fields')
+      .select('*')
+      .eq('event_id', id)
+      .order('sort_order', {
+        ascending: true,
+      })
+
+  return apiSuccess(
+    data ?? []
+  )
 }

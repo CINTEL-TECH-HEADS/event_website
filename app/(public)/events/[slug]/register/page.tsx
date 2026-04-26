@@ -1,34 +1,49 @@
-// Owner: FE1 — Registration Page (Neon Cyberpunk UI)
-
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import Link from 'next/link'
-import type { EventWithStats } from '@/types'
+import type { EventWithFields } from '@/types'
 import { RegistrationForm } from '@/components/public/RegistrationForm'
-import { Terminal, ArrowLeft } from 'lucide-react'
+import { isPast } from '@/lib/utils'
+
+function normalizeCount(value: unknown): number {
+  if (typeof value === 'number') return value
+  if (Array.isArray(value) && value[0] && typeof value[0] === 'object' && 'count' in value[0]) {
+    const count = (value[0] as { count?: unknown }).count
+    return typeof count === 'number' ? count : 0
+  }
+  return 0
+}
+
+function normalizeEvent(event: EventWithFields): EventWithFields {
+  return {
+    ...event,
+    confirmed_count: normalizeCount((event as EventWithFields & { confirmed_count: unknown }).confirmed_count),
+    waitlist_count: normalizeCount((event as EventWithFields & { waitlist_count: unknown }).waitlist_count),
+    form_fields: event.form_fields ?? [],
+  }
+}
 
 export default function RegisterPage() {
   const { slug } = useParams<{ slug: string }>()
-  const [event, setEvent] = useState<EventWithStats | null>(null)
+  const [event, setEvent] = useState<EventWithFields | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadEvent() {
       try {
-        const res = await fetch(`/api/events?slug=${slug}`)
+        const res = await fetch(`/api/events/${slug}`)
         const { data, error } = await res.json()
 
         if (error) {
           setError(error)
-        } else {
-          const item = Array.isArray(data) ? data[0] : data
-          setEvent(item)
+          return
         }
+
+        setEvent(normalizeEvent(data as EventWithFields))
       } catch {
-        setError('Failed to load event data stream')
+        setError('Failed to load event')
       } finally {
         setLoading(false)
       }
@@ -39,62 +54,52 @@ export default function RegisterPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-amber-500 font-mono text-sm tracking-widest uppercase app-pulse-soft">
-        <div className="w-10 h-10 border-2 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
-        INITIALIZING FORM MODULE...
+      <div className="mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4">
+        <div className="rounded-3xl border border-white/10 bg-white/5 px-8 py-10 text-center shadow-sm backdrop-blur">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+          <p className="mt-4 text-sm text-slate-400">Loading registration form...</p>
+        </div>
       </div>
     )
   }
 
   if (error || !event) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
-        <div className="text-red-500 font-bold bg-red-500/10 px-6 py-4 rounded-xl border border-red-500/30">
-          {error ?? '404 - EVENT CONTEXT NOT FOUND'}
+      <div className="mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4">
+        <div className="w-full rounded-3xl border border-red-200 bg-red-50 p-8 text-center text-red-700">
+          {error ?? 'Event not found'}
         </div>
-        <Link href="/" className="text-slate-400 hover:text-amber-400 transition-colors uppercase text-xs font-bold tracking-widest">
-          Return to Events
-        </Link>
       </div>
     )
   }
 
+  const closed = isPast(event.registration_closes_at)
+
   return (
-    <div className="app-shell flex flex-col items-center px-4 py-16 relative overflow-hidden">
-      
-      {/* Background FX */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-amber-500/10 blur-[150px] rounded-[100%] pointer-events-none" />
-
-      <div className="w-full max-w-2xl relative z-10 app-fade-in space-y-6">
-        
-        <Link href={`/events/${slug}`} className="inline-flex items-center text-xs text-slate-400 hover:text-amber-400 transition-colors tracking-widest font-bold uppercase group">
-          <ArrowLeft size={14} className="mr-2 group-hover:-translate-x-1 transition-transform" /> 
-          Abort Registration
-        </Link>
-
-        {/* Header Block */}
-        <div className="app-panel rounded-t-[2rem] rounded-b-xl p-8 md:p-10 text-center border-b-0">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-black/50 text-amber-500 border border-amber-500/30 mb-6 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-            <Terminal size={28} />
+    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="space-y-6 border border-white/10 bg-[#0a1629] p-6 sm:p-8">
+        <div className="space-y-3">
+          <span className="inline-flex rounded-full border border-amber-300/25 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-amber-200">
+            Registration
+          </span>
+          <div className="h-px w-24 bg-[linear-gradient(90deg,rgba(245,158,11,0.8),rgba(245,158,11,0))]" />
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Register for {event.title}
+            </h1>
+            <p className="max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+              Enter your details below. The form adjusts automatically based on this event&apos;s registration mode and custom fields.
+            </p>
           </div>
-          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2">
-            Register: {event.title}
-          </h1>
-          <p className="text-sm font-medium text-slate-400">
-            Submit your credentials to secure clearance.
-          </p>
         </div>
 
-        {/* Form Block */}
-        <div className="app-panel rounded-t-xl rounded-b-[2rem] p-6 md:p-10 relative overflow-hidden">
-           <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
-           <RegistrationForm event={event} />
-        </div>
+        {closed ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            Registration is closed for this event.
+          </div>
+        ) : null}
 
-        <p className="text-center text-[0.65rem] tracking-widest uppercase font-bold text-slate-600 mt-8">
-          End-to-End Encrypted Transmission Layer
-        </p>
-
+        <RegistrationForm event={event} disabled={closed} />
       </div>
     </div>
   )

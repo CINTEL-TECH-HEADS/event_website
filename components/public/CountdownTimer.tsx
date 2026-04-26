@@ -1,77 +1,33 @@
-// Owner: FE1 — Countdown Timer (Premium UI)
-
 'use client'
 
 import { useEffect, useState } from 'react'
 
-export function CountdownTimer({
-  target,
-}: {
-  target: string
-}) {
-  const calculate = () => {
-    const targetDate = new Date(target)
+function getCountdownLabel(closesAt: string) {
+  const diff = new Date(closesAt).getTime() - Date.now()
+  if (diff <= 0) return 'Registration is closed'
 
-    if (isNaN(targetDate.getTime())) {
-      return {
-        days: 0,
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
-      }
-    }
+  const hours = Math.floor(diff / 3600000)
+  const mins = Math.floor((diff % 3600000) / 60000)
+  const secs = Math.floor((diff % 60000) / 1000)
 
-    const now = new Date()
-    const difference = targetDate.getTime() - now.getTime()
+  return `Registration closes in ${hours}h ${mins}m ${secs}s`
+}
 
-    if (difference <= 0) {
-      return {
-        days: 0,
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
-      }
-    }
-
-    return {
-      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-      minutes: Math.floor((difference / (1000 * 60)) % 60),
-      seconds: Math.floor((difference / 1000) % 60),
-    }
-  }
-
-  const [time, setTime] = useState(calculate())
+export function CountdownTimer({ closesAt }: { closesAt: string }) {
+  const [label, setLabel] = useState(() => getCountdownLabel(closesAt))
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(calculate())
+    const interval = setInterval(() => {
+      setLabel(getCountdownLabel(closesAt))
     }, 1000)
 
-    return () => clearInterval(timer)
-  }, [target])
-
-  const Item = ({
-    value,
-    label,
-  }: {
-    value: number
-    label: string
-  }) => (
-    <div className="flex flex-col items-center bg-white border rounded-xl px-3 py-2 min-w-[60px] shadow-sm">
-      <span className="text-lg font-bold text-gray-900">{value}</span>
-      <span className="text-[10px] text-gray-500 uppercase tracking-wide">
-        {label}
-      </span>
-    </div>
-  )
+    return () => clearInterval(interval)
+  }, [closesAt])
 
   return (
-    <div className="flex gap-3">
-      <Item value={time.days} label="Days" />
-      <Item value={time.hours} label="Hrs" />
-      <Item value={time.minutes} label="Min" />
-      <Item value={time.seconds} label="Sec" />
+    <div className="rounded-xl border border-blue-300/20 bg-[#101b33] px-4 py-4 text-sm font-medium text-blue-200">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-100">Countdown</p>
+      <p className="mt-2 text-base font-semibold text-blue-200">{label}</p>
     </div>
   )
 }

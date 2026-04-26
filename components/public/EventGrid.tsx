@@ -1,76 +1,216 @@
-// Owner: FE1 — Event Grid (Premium Neon)
+//FE1 event grid component used on the public events page. This is a client component since it has search and filter state, but it receives all events as a prop from the server component page. The server component fetches all events with their confirmed/waitlist counts using a single optimized query, so we don't have to worry about N+1 queries here when rendering the grid.
 
 'use client'
 
-import { useMemo, useState } from 'react'
-import type { EventWithStats } from '@/types'
+import { useState } from 'react'
+import type {
+  Event,
+  EventType,
+} from '@/types'
+
 import { EventCard } from './EventCard'
-import { Search } from 'lucide-react'
 
-const TYPES = ['all', 'workshop', 'seminar', 'fest', 'hackathon', 'talk', 'other']
+type PublicEvent =
+  Event & {
+    confirmed_count: number
+    waitlist_count?: number
+  }
 
-export function EventGrid({ events }: { events: EventWithStats[] }) {
-  const [search, setSearch] = useState('')
-  const [type, setType] = useState('all')
+const FILTERS: Array<
+  'all' | EventType
+> = [
+  'all',
+  'workshop',
+  'seminar',
+  'fest',
+  'hackathon',
+  'talk',
+  'other',
+]
 
-  const filteredEvents = useMemo(() => {
-    return events.filter(event => {
-      const matchesSearch = event.title?.toLowerCase().includes(search.toLowerCase())
-      const matchesType = type === 'all' || event.event_type === type
-      return matchesSearch && matchesType
-    })
-  }, [events, search, type])
+export function EventGrid({
+  events,
+}: {
+  events: PublicEvent[]
+}) {
+  const [search, setSearch] =
+    useState('')
+
+  const [type, setType] =
+    useState<
+      'all' | EventType
+    >('all')
+
+  const normalizedSearch =
+    search
+      .trim()
+      .toLowerCase()
+
+  const filteredEvents =
+    events.filter(
+      (event) => {
+        const matchesSearch =
+          normalizedSearch.length ===
+            0 ||
+          event.title
+            .toLowerCase()
+            .includes(
+              normalizedSearch
+            )
+
+        const matchesType =
+          type === 'all' ||
+          event.event_type ===
+            type
+
+        return (
+          matchesSearch &&
+          matchesType
+        )
+      }
+    )
 
   return (
-    <div className="space-y-8 app-fade-in">
-      
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        {/* Search Bar */}
-        <div className="relative w-full md:max-w-sm group">
-          <input
-            type="text"
-            placeholder="Search payload..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="app-input pl-11 shadow-[0_0_15px_rgba(0,0,0,0.5)] focus:shadow-[0_0_20px_rgba(16,185,129,0.2)]"
-          />
-          <Search size={16} className="absolute left-4 top-3.5 text-slate-500 group-focus-within:text-amber-500 transition-colors" />
+    <div className="space-y-8">
+
+      {/* Controls */}
+      <div className="grid gap-5 lg:grid-cols-3">
+
+        <div className="rounded-3xl border border-white/10 bg-[#112240] p-6">
+
+          <p className="text-[12px] font-semibold uppercase tracking-[0.35em] text-amber-200">
+            Browse Controls
+          </p>
+
+          <p className="mt-4 text-[16px] leading-8 text-slate-100">
+            Search events,
+            filter formats,
+            and instantly
+            explore what’s live.
+          </p>
+
+          <div className="mt-6 border-t border-white/10 pt-5">
+
+            <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">
+              Showing
+            </p>
+
+            <p className="mt-2 text-5xl font-bold text-white">
+              {
+                filteredEvents.length
+              }
+            </p>
+
+            <p className="mt-1 text-sm text-slate-400">
+              Matching Events
+            </p>
+
+          </div>
+
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex flex-wrap gap-2">
-          {TYPES.map(t => (
-            <button
-              key={t}
-              onClick={() => setType(t)}
-              className={`px-4 py-[0.45rem] rounded-full text-[0.8rem] font-bold uppercase tracking-wider transition-all duration-300 border
-                  ${type === t
-                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
-                    : 'bg-black/20 text-slate-400 border-white/5 hover:bg-white/5 hover:text-slate-300'
-                }`}
-            >
-              {t}
-            </button>
-          ))}
+        <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-[#0d1b31] p-6 space-y-6">
+
+          <div>
+
+            <p className="text-[12px] font-semibold uppercase tracking-[0.35em] text-slate-400">
+              Search
+            </p>
+
+            <input
+              type="text"
+              value={search}
+              onChange={(e) =>
+                setSearch(
+                  e.target.value
+                )
+              }
+              placeholder="Search workshops, hackathons..."
+              className="mt-3 w-full rounded-2xl border border-white/10 bg-[#07101f] px-5 py-4 text-white outline-none transition placeholder:text-slate-500 focus:border-amber-400"
+            />
+
+          </div>
+
+          <div>
+
+            <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.35em] text-slate-400">
+              Filter by Type
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+
+              {FILTERS.map(
+                (
+                  filter
+                ) => (
+                  <button
+                    key={
+                      filter
+                    }
+                    type="button"
+                    onClick={() =>
+                      setType(
+                        filter
+                      )
+                    }
+                    className={`rounded-xl px-4 py-2 text-sm font-semibold capitalize transition ${
+                      type ===
+                      filter
+                        ? 'bg-[#F5E62D] text-black'
+                        : 'border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                    }`}
+                  >
+                    {
+                      filter
+                    }
+                  </button>
+                )
+              )}
+
+            </div>
+
+          </div>
+
         </div>
+
       </div>
 
-      <div className="flex items-center justify-between border-b border-white/5 pb-4">
-        <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">
-          {filteredEvents.length} Item{filteredEvents.length !== 1 ? 's' : ''} Matched
-        </p>
-      </div>
+      {/* Events */}
+      {filteredEvents.length ===
+      0 ? (
+        <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-12 text-center">
 
-      {filteredEvents.length === 0 ? (
-        <div className="app-empty-state">
-          <p className="text-slate-400">Zero matches for current query parameters.</p>
-          <button onClick={() => {setSearch(''); setType('all')}} className="mt-4 text-xs font-bold text-amber-500 hover:text-amber-400 border-b border-amber-500/50 pb-0.5">Reset Filters</button>
+          <h2 className="text-xl font-semibold text-white">
+            No Matching Events
+          </h2>
+
+          <p className="mt-2 text-slate-400">
+            Try another
+            keyword or
+            filter.
+          </p>
+
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map(event => (
-            <EventCard key={event.id} event={event} />
-          ))}
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+
+          {filteredEvents.map(
+            (event) => (
+              <div
+                key={
+                  event.id
+                }
+                className="h-full"
+              >
+                <EventCard
+                  event={
+                    event
+                  }
+                />
+              </div>
+            )
+          )}
+
         </div>
       )}
 
