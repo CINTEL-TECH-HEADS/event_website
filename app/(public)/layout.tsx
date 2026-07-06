@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import Image from 'next/image'
+
 
 export default function PublicLayout({
   children
@@ -13,7 +15,13 @@ export default function PublicLayout({
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center border border-amber-300/40 bg-amber-300 text-sm font-bold text-slate-950">
-              C
+               <Image
+                  src="/Logo.png"
+                  alt="Cintel Logo"
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-cover"
+                />
             </span>
             <div>
               <p className="text-sm font-semibold tracking-[0.18em] text-white">CINTEL EVENTS</p>
@@ -23,7 +31,7 @@ export default function PublicLayout({
 
           <nav className="flex items-center gap-2 text-sm">
             <Link
-              href="/"
+              href="/#event-grid"
               className="border border-transparent px-4 py-2 font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white hover:shadow-[0_0_0_1px_rgba(252,211,77,0.12),0_0_24px_rgba(250,204,21,0.18)]"
             >
               Events
@@ -48,8 +56,7 @@ export default function PublicLayout({
 
       <footer className="relative z-10 border-t border-white/10 bg-[#07101d]">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <p>© {new Date().getFullYear()} Cintel. Built for smooth attendee registrations.</p>
-          <p>Public event listing, registration, confirmation, resend, and certificate access.</p>
+          <p>© {new Date().getFullYear()} Cintel Student Association</p>
         </div>
       </footer>
     </div>
