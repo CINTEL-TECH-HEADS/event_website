@@ -8,3 +8,5 @@ yarn-debug.log*
 coverage/
 .DS_Store
 .next/
+node_modules/
+

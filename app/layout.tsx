@@ -11,7 +11,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+try {
+  var savedTheme = window.localStorage.getItem('cintel-public-theme');
+  document.documentElement.dataset.theme = savedTheme === 'light' ? 'light' : 'dark';
+} catch (error) {
+  document.documentElement.dataset.theme = 'dark';
+}
+            `,
+          }}
+        />
+      </head>
       <body className={`${outfit.className} bg-background text-foreground antialiased selection:bg-brand/30 selection:text-brand`}>
         {children}
       </body>

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { ThemeToggle } from '@/components/public/ThemeToggle'
 
 
 export default function PublicLayout({
@@ -8,7 +9,7 @@ export default function PublicLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#07101d] text-slate-100">
+     <div className="public-theme-shell relative flex min-h-screen flex-col overflow-hidden bg-[#07101d] text-slate-100">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px,24px_24px]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(245,158,11,0.08),transparent)]" />
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#07101d]/94 backdrop-blur">
@@ -48,6 +49,7 @@ export default function PublicLayout({
             >
               Certificate
             </Link>
+            <ThemeToggle />
           </nav>
         </div>
       </header>

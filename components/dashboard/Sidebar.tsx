@@ -10,6 +10,7 @@ import {
   LogOut,
   ShieldCheck,
 } from 'lucide-react'
+import { ThemeToggle } from '@/components/public/ThemeToggle'
 
 type Profile = {
   full_name?: string
@@ -170,8 +171,13 @@ export function Sidebar({
 
       </div>
 
-      {/* Logout */}
-      <div className="pt-6">
+      {/* Theme + Logout */}
+      <div className="space-y-3 pt-6">
+
+        <div className="flex items-center justify-between border border-[#243B72] bg-[#10224A] px-4 py-3 text-sm font-semibold text-slate-300 rounded-sm">
+          <span>Theme</span>
+          <ThemeToggle className="h-9 w-9" />
+        </div>
 
         <button 
           onClick={async () => {

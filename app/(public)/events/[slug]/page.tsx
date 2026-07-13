@@ -100,7 +100,7 @@ export default function EventPage() {
               />
             ) : null}
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,17,31,0.18),rgba(9,17,31,0.76))]" />
-            <div className="relative flex h-full flex-col justify-between p-8 text-white">
+            <div className="public-event-hero-copy relative flex h-full flex-col justify-between p-8 text-white">
               <div className="flex flex-wrap gap-2">
                 <span className="inline-flex w-fit border border-amber-300/30 bg-[#09111f]/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-amber-200">
                   {event.event_type}
