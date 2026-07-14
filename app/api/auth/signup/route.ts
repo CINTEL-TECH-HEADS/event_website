@@ -1,18 +1,34 @@
+// app/api/auth/signup/route.ts
+//
+// POST /api/auth/signup  — create a PARTICIPANT account.
+// Body: { email, password, full_name }
+//
+// Organizers are NOT created here — an admin makes those manually
+// (see scripts/create-organizer.mjs). The handle_new_user DB trigger
+// auto-creates the profile with role 'participant'.
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createSessionClient, createAdminClient } from '@/lib/supabase/server'
+import { rateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const signupSchema = z.object({
   email: z.string().email('Invalid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  full_name: z.string().min(2, 'Full name is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
+    if (!rateLimit('login', ip).success) {
+      return NextResponse.json(
+        { data: null, error: 'Too many attempts. Please wait a few minutes and try again.' },
+        { status: 429 }
+      )
+    }
+
     const body = await req.json()
     const parsed = signupSchema.safeParse(body)
-
     if (!parsed.success) {
       return NextResponse.json(
         { data: null, error: parsed.error.errors[0].message },
@@ -20,64 +36,50 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { email, password, full_name } = parsed.data
+    const email = parsed.data.email.toLowerCase()
+    const { password } = parsed.data
     const supabase = await createSessionClient()
+    const admin = createAdminClient()
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-    // 1. Sign up the user in Supabase Auth
+    // Create the auth user. The DB trigger creates the profile as 'participant'.
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          full_name,
-        }
-      }
+        emailRedirectTo: `${appUrl}/api/auth/callback`,
+      },
     })
 
     if (authError) {
-      return NextResponse.json(
-        { data: null, error: authError.message },
-        { status: 400 }
-      )
+      return NextResponse.json({ data: null, error: authError.message }, { status: 400 })
     }
-
     if (!authData.user) {
       return NextResponse.json(
-        { data: null, error: 'Failed to create user account' },
+        { data: null, error: 'Failed to create account.' },
         { status: 500 }
       )
     }
 
-    const userId = authData.user.id
-    const admin = createAdminClient()
+    // Link any existing registrations for this email to the new account
+    await admin
+      .from('registrations')
+      .update({ participant_id: authData.user.id })
+      .eq('leader_email', email)
+      .is('participant_id', null)
 
-    // 2. Create or update the organizer profile
-    // Supabase often has triggers that auto-create profiles, so we upsert to avoid duplicate key errors.
-    const { error: profileError } = await admin
-      .from('profiles')
-      .upsert({
-        id: userId,
-        email,
-        full_name,
-        role: 'organizer',
-      })
-
-    if (profileError) {
-      // If profile insertion fails, ideally we should clean up the auth user,
-      // but for this MVP, we just return the error.
-      console.error('[POST /api/auth/signup] Profile insert error:', profileError)
-      return NextResponse.json(
-        { data: null, error: 'Failed to set up organizer profile. Please contact support.' },
-        { status: 500 }
-      )
-    }
+    // If email confirmation is required there's no session yet — ask them to verify.
+    const needsVerification = !authData.session
 
     return NextResponse.json({
       data: {
-        id: userId,
         email,
-        full_name,
-        role: 'organizer'
+        role: 'participant',
+        needsVerification,
+        redirect: needsVerification ? null : '/participant/portal',
+        message: needsVerification
+          ? 'Check your email to verify your account, then sign in.'
+          : null,
       },
       error: null,
     })
