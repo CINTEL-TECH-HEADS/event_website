@@ -21,7 +21,7 @@ export function WaitlistEmail({
   return (
     <Html>
       <Head />
-      <Preview>You're on the waitlist for {eventTitle} — position #{waitlistPosition}</Preview>
+      <Preview>{`You're on the waitlist for ${eventTitle} — position #${waitlistPosition}`}</Preview>
       <Body style={main}>
         <Container style={container}>
 
