@@ -63,10 +63,12 @@ export async function requireOrganizerRole(
         .eq('id', user.id)
         .single()
 
-    if (profile?.role === 'superadmin') {
+    // Organizers and superadmins have global access to every event.
+    // (Organizers are trusted, manually-created staff.)
+    if (profile?.role === 'superadmin' || profile?.role === 'organizer') {
         return {
             user: { id: user.id, email: user.email! },
-            organizerRole: 'owner', // treat superadmin as owner for permission purposes
+            organizerRole: 'owner', // treat as owner for permission purposes
         }
     }
 
