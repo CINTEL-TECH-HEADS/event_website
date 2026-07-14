@@ -1,0 +1,86 @@
+# Cintel — Project Context & Working Log
+
+> Living document. Update this at the end of every working session: append what was
+> done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
+> Last updated: 2026-07-14.
+
+---
+
+## 1. What this is
+Cintel — an event registration & attendance platform for the CINTEL Student Association.
+Public users browse/register for events; participants manage their registrations in a
+portal; organizers run events from a dashboard; judges review participants.
+
+## 2. Stack & architecture
+- **Next.js 16** (App Router, Turbopack) · **Supabase** (Postgres + Auth + Storage + RLS)
+- **Resend** (email, API) · **Twilio** (WhatsApp) · **React Hook Form + Zod** · **Tailwind**
+- Route groups: `(public)`, `(auth)`, `(participant)`, `dashboard/`, `judge/`
+- ~35 API routes under `app/api/**`; uniform `{ data, error }` responses (`lib/utils.ts`)
+- Two Supabase clients (`lib/supabase/server.ts`): **session** (RLS, user cookie) and
+  **admin** (service-role, bypasses RLS — every route using it MUST authorize itself)
+
+## 3. Environment & running
+- `npm run dev` → http://localhost:3000 (keep on **port 3000**; email/OAuth callbacks depend on it — `.claude/launch.json` has `autoPort:false`)
+- Required `.env.local` (gitignored): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL`. Optional: `RESEND_API_KEY`, `EMAIL_FROM`, Twilio.
+- Supabase project ref: `jokcuuftvqehycawioba`.
+- `.env.db.local` (gitignored) holds a direct Postgres URL used for admin SQL/verification.
+- DB schema-as-code lives in `supabase/migrations/**` (001–013), `supabase/rls/**`, `supabase/seed/**`.
+
+## 4. Auth & role model (current design)
+- **Single login** at `/login` for everyone (`POST /api/auth/login`): authenticates only,
+  then redirects by role — organizer/superadmin → `/dashboard`, participant → `/participant/portal`.
+  It does **not** create accounts.
+- **Participants** self-serve via `/signup` (`POST /api/auth/signup`) → role `participant`.
+- **Organizers are created manually** — `node scripts/create-organizer.mjs <email> <pw> "<Name>" [role] [eventId] [eventRole]`.
+- **Roles** (`profiles.role`, migration 012): `superadmin` | `organizer` | `participant`
+  (default `participant`; `handle_new_user` trigger sets it). Organizers **and** superadmins
+  have **global access to all events** (`requireOrganizerRole` treats both as owner;
+  `/api/events?mine=true` returns all events for them).
+- **Email verification + password reset** are built (`/api/auth/forgot-password`,
+  `/reset-password`, `/api/auth/resend-verification`, callback role-routes). They only
+  deliver once Supabase **custom SMTP** is configured and **"Confirm email" is ON**.
+
+## 5. Security posture
+- Organizer/admin API routes gated by `requireOrganizerRole` (owner/sub_admin/judge).
+- Closed holes: `events/[id]` PATCH/DELETE, `events/[id]/registrations`, `events/[id]/organizers*`,
+  `registrations/[id]/cancel`, `events/[id]/form-fields` POST, `certificates/download` (now session+ownership),
+  `waitlist` (organizer-only). Public POSTs rate-limited (`registrations`, `waitlist`, `resend-confirmation`).
+- **Session hardening:** middleware protects `/dashboard`,`/judge`,`/participant/portal`;
+  `no-store` on protected routes (`next.config.js`, middleware) + `force-dynamic` layouts +
+  `components/auth/SessionGuard.tsx` (re-validates on bfcache/back, focus, cross-tab logout).
+- **Audit log** (`audit_log` table, migration 013; `lib/audit/log.ts`; superadmin-only
+  `GET /api/audit`). Instrumented: event create/update/delete, registration cancel,
+  attendance check-in, organizer add/remove, certificate generate/release, export, form-fields update.
+
+## 6. Current state (2026-07-14)
+- Branch **`fix/api-authorization`** — committed **and pushed** to origin (HEAD `8ec24e7`), tree clean.
+- **Not merged to `main`** — needs a PR (`fix/api-authorization` → `main`).
+- Typecheck: **0 errors**. DB migrations 012 & 013 **applied** to the live Supabase project.
+- Commits: gitignore/lockfile · db+types+scripts · type fixes · UI unification ·
+  auth rework · organizer-all-events+create-fix · authz+audit+session-hardening.
+
+## 7. Future plan / open items (prioritized)
+1. **Open PR** `fix/api-authorization` → `main` and merge.
+2. **Reset the test password** on `test@cinteluser.com` (a temp password was set during testing).
+3. **Finish email setup** (Gmail or Resend SMTP in Supabase + turn ON "Confirm email" +
+   allowlist redirect URLs `…/reset-password`, `…/api/auth/callback`) so verification/reset deliver.
+4. **Reclassify 4 mislabeled `organizer` profiles** (no event assignment, e.g. metta.naneesh)
+   down to `participant`: `update profiles set role='participant' where role='organizer' and id not in (select profile_id from event_organizers);`
+5. **Extend audit coverage** to the remaining writes: manual check-in, notifications
+   send/schedule, duplicate review.
+6. **Durable rate-limit store** (currently in-memory → won't work across serverless; move to Redis/Upstash).
+7. Optional: dashboard **Activity page** to browse the audit log; 2FA for organizers; email verification UX polish.
+
+## 8. Operational caveats
+- Rate limiter is **in-memory** (`lib/rate-limit`) — dev-only semantics on multi-instance.
+- `no-store` header isn't observable in `next dev` (Next forces `no-cache`); it applies in a prod build.
+  SessionGuard is the reliable bfcache guard regardless.
+- App transactional email (registration/certificate) still needs `RESEND_API_KEY` + `EMAIL_FROM` (Resend API).
+
+## 9. How future sessions should work
+- Make the **most critical/irreversible-safe moves before wrapping** (commit/push work,
+  flag security/credentials, don't leave the tree dirty).
+- **Update this file** before ending: append to "steps done", refresh Current State & Future Plan.
+- **Notify the user** of pending critical items before the session ends.
+- Never commit secrets (`.env.local`, `.env.db.local`, `.claude/` are gitignored).
