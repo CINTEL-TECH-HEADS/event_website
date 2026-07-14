@@ -2,6 +2,9 @@
 node_modules/
 .env
 .env.local
+.env*.local
+.env.db.local
+.claude/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -9,4 +12,5 @@ coverage/
 .DS_Store
 .next/
 node_modules/
+tsconfig.tsbuildinfo
 
