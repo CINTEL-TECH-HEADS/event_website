@@ -108,14 +108,14 @@ export function LiveStatsCounter({
 
   if (loading) {
     return (
-      <div className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl">
-        <div className="h-16 animate-pulse rounded-2xl bg-[#0B1736]" />
+      <div className=" border border-[#243B72] bg-[#10224A] p-6 ">
+        <div className="h-16 animate-pulse  bg-[#0B1736]" />
       </div>
     )
   }
 
   return (
-    <div className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl">
+    <div className=" border border-[#243B72] bg-[#10224A] p-6 ">
 
       {/* Top */}
       <div className="flex items-start justify-between">
@@ -132,7 +132,7 @@ export function LiveStatsCounter({
 
         </div>
 
-        <span className="rounded-2xl bg-[#0B1736] p-3 text-[#F5E62D]">
+        <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
           <Users size={18} />
         </span>
 

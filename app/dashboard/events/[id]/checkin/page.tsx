@@ -50,7 +50,7 @@ export default function CheckInPage() {
     <div className="space-y-6">
 
       {/* Hero */}
-      <section className="app-panel rounded-[2rem] px-6 py-7 sm:px-8">
+      <section className="app-panel  px-6 py-7 sm:px-8">
 
         <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
           <QrCode size={14} />
@@ -76,7 +76,7 @@ export default function CheckInPage() {
       <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
 
         {/* Main Scanner */}
-        <section className="app-panel rounded-[2rem] p-5 sm:p-6">
+        <section className="app-panel  p-5 sm:p-6">
 
           <CheckInPanel
             eventId={id}
@@ -93,11 +93,11 @@ export default function CheckInPage() {
           />
 
           {/* Tips */}
-          <div className="app-panel rounded-[1.75rem] p-6">
+          <div className="app-panel  p-6">
 
             <div className="mb-4 flex items-center gap-3">
 
-              <span className="rounded-2xl bg-[#0B1736] p-3 text-[#F5E62D]">
+              <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
                 <Zap size={18} />
               </span>
 
@@ -117,17 +117,17 @@ export default function CheckInPage() {
 
             <div className="space-y-3 text-sm text-slate-300">
 
-              <div className="rounded-2xl border border-[#243B72] bg-[#0B1736] px-4 py-3">
+              <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3">
                 Scan only one QR code at a time.
               </div>
 
-              <div className="rounded-2xl border border-[#243B72] bg-[#0B1736] px-4 py-3">
+              <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3">
                 Green means success.
                 Red indicates duplicate
                 or invalid entry.
               </div>
 
-              <div className="rounded-2xl border border-[#243B72] bg-[#0B1736] px-4 py-3">
+              <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3">
                 Hold device steady
                 for faster detection.
               </div>
@@ -137,11 +137,11 @@ export default function CheckInPage() {
           </div>
 
           {/* Security */}
-          <div className="app-panel rounded-[1.75rem] p-6">
+          <div className="app-panel  p-6">
 
             <div className="flex items-center gap-3">
 
-              <span className="rounded-2xl bg-[#0B1736] p-3 text-[#93C5FD]">
+              <span className=" bg-[#0B1736] p-3 text-[#93C5FD]">
                 <ShieldCheck size={18} />
               </span>
 

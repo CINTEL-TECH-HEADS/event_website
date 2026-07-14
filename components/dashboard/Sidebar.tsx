@@ -39,19 +39,19 @@ export function Sidebar({
   const navClass = (
     active: boolean
   ) =>
-    `flex items-center gap-3 border px-4 py-3 text-sm font-semibold transition rounded-sm ${
+    `flex items-center gap-3 border px-4 py-3 text-sm font-semibold transition  ${
       active
-        ? 'border-[#FFF27A] bg-[#F5E62D] text-[#0B1736] shadow-[0_0_18px_rgba(245,230,45,0.18)]'
+        ? 'border-[#FFF27A] bg-[#F5E62D] text-[#0B1736] '
         : 'border-transparent text-slate-300 hover:border-[#243B72] hover:bg-[#132B59] hover:text-white'
     }`
 
   return (
-    <aside className="flex min-h-screen w-64 flex-col justify-between border-r border-[#243B72] bg-[#0B1736] p-5 text-white shadow-2xl">
+    <aside className="flex min-h-screen w-64 flex-col justify-between border-r border-[#243B72] bg-[#0B1736] p-5 text-white ">
 
       <div>
 
         {/* Brand */}
-        <div className="mb-8 border border-[#2A4580] bg-[#10224A] p-5 rounded-sm">
+        <div className="mb-8 border border-[#2A4580] bg-[#10224A] p-5 ">
 
           <h1 className="flex items-center gap-2 text-xl font-bold">
             <ShieldCheck
@@ -65,7 +65,7 @@ export function Sidebar({
             Organizer Workspace
           </p>
 
-          <div className="mt-5 border border-[#243B72] bg-[#0B1736] p-3 rounded-sm">
+          <div className="mt-5 border border-[#243B72] bg-[#0B1736] p-3 ">
 
             <p className="text-sm font-semibold text-white">
               {profile?.full_name ??
@@ -121,7 +121,7 @@ export function Sidebar({
               Managed Events
             </span>
 
-            <span className="flex h-6 w-6 items-center justify-center border border-[#FFF27A] bg-[#F5E62D] text-xs font-bold text-[#0B1736] rounded-sm">
+            <span className="flex h-6 w-6 items-center justify-center border border-[#FFF27A] bg-[#F5E62D] text-xs font-bold text-[#0B1736] ">
               {events.length}
             </span>
 
@@ -136,7 +136,7 @@ export function Sidebar({
                     event.id
                   }
                   href={`/dashboard/events/${event.id}`}
-                  className="block border border-[#243B72] bg-[#10224A] p-4 transition rounded-sm hover:border-[#F5E62D] hover:bg-[#132B59]"
+                  className="block border border-[#243B72] bg-[#10224A] p-4 transition  hover:border-[#F5E62D] hover:bg-[#132B59]"
                 >
 
                   <p className="truncate text-sm font-semibold text-white">
@@ -153,7 +153,7 @@ export function Sidebar({
                       }
                     </span>
 
-                    <span className="border border-[#FFF27A] bg-[#F5E62D] px-2 py-0.5 font-semibold text-[#0B1736] rounded-sm">
+                    <span className="border border-[#FFF27A] bg-[#F5E62D] px-2 py-0.5 font-semibold text-[#0B1736] ">
                       {
                         event.confirmed_count
                       }
@@ -174,7 +174,7 @@ export function Sidebar({
       {/* Theme + Logout */}
       <div className="space-y-3 pt-6">
 
-        <div className="flex items-center justify-between border border-[#243B72] bg-[#10224A] px-4 py-3 text-sm font-semibold text-slate-300 rounded-sm">
+        <div className="flex items-center justify-between border border-[#243B72] bg-[#10224A] px-4 py-3 text-sm font-semibold text-slate-300 ">
           <span>Theme</span>
           <ThemeToggle className="h-9 w-9" />
         </div>
@@ -184,7 +184,7 @@ export function Sidebar({
             await fetch('/api/auth/logout', { method: 'POST' })
             window.location.href = '/login'
           }}
-          className="flex w-full items-center justify-center gap-2 border border-[#243B72] bg-[#10224A] px-4 py-3 text-sm font-semibold text-slate-300 transition rounded-sm hover:border-red-500 hover:bg-red-500 hover:text-white"
+          className="flex w-full items-center justify-center gap-2 border border-[#243B72] bg-[#10224A] px-4 py-3 text-sm font-semibold text-slate-300 transition  hover:border-red-500 hover:bg-red-500 hover:text-white"
         >
 
           <LogOut

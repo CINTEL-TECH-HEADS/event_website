@@ -58,15 +58,15 @@ export default function HomePage() {
           <div className="grid gap-6 lg:grid-cols-[0.88fr_1.12fr]">
             <div className="border border-slate-200 bg-white dark:border-white/10 dark:bg-[#112240]">
               <div className="border-b border-slate-200 px-6 py-4 dark:border-white/10">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-blue-700 dark:text-amber-200">Open Program</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-blue-700 dark:text-amber-200">Cintel Archive</p>
               </div>
               <div className="space-y-8 p-6 sm:p-8">
                 <div className="space-y-2">
                   <h1 className="max-w-xl text-3xl font-semibold leading-[0.98] tracking-[-0.04em] text-slate-950 dark:text-white sm:text-4xl lg:text-[2.95rem]">
-                    Public event pages that feel more like a lineup board.
+                    Events &amp; Registration Portal
                   </h1>
                   <p className="max-w-lg text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">
-                    A calmer, sharper way to browse campus events, check availability, register, and return for confirmations or certificates.
+                    The official event portal for CINTEL Student Association at SRM. Browse upcoming workshops, hackathons, and talks, register for events, and manage your team and certificates.
                   </p>
                 </div>
 
@@ -89,7 +89,7 @@ export default function HomePage() {
                     href="/login"
                     className="public-force-white inline-flex w-full items-center justify-center border border-blue-600 bg-blue-600 px-5 py-3 text-center text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-blue-700 dark:border-amber-300/35 dark:bg-amber-300 dark:text-slate-950 dark:hover:bg-amber-200"
                   >
-                    Organiser Login
+                    Login
                   </Link>
                 </div>
 
@@ -117,9 +117,9 @@ export default function HomePage() {
             <div className="grid gap-6">
               <div className="grid gap-px border border-slate-200 bg-slate-200 dark:border-white/10 dark:bg-white/10 md:grid-cols-[0.72fr_0.28fr]">
                 <div className="bg-white p-6 dark:bg-[#0a1629] sm:p-8">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">What changes here</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">The Intellectual Core</p>
                   <p className="mt-4 max-w-2xl text-2xl font-semibold leading-tight text-slate-950 dark:text-white sm:text-3xl">
-                    Less hero-template energy. More like an event catalog with strong sections and clearer rhythm.
+                    Cultivating a strong technical culture where students don't just learn, they build, explore, and push boundaries.
                   </p>
                 </div>
                 <div className="public-force-white flex items-end bg-slate-900 p-6 pr-6 text-white dark:bg-blue-900/40 dark:text-blue-200">
@@ -129,15 +129,15 @@ export default function HomePage() {
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#0a1629]">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-700 dark:text-amber-200">Search</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Find events by title instead of digging through cards.</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-700 dark:text-amber-200">Discover</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Find and register for our latest technical, creative, and research-driven initiatives.</p>
                 </div>
                 <div className="border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#0a1629]">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-200">Filter</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Switch between workshops, talks, hackathons, and more in one row.</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-200">Participate</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Join individual sessions or form teams for our large-scale hackathons and symposiums.</p>
                 </div>
                 <div className="border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#0a1629]">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-700 dark:text-amber-200">Return</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-700 dark:text-amber-200">Manage</p>
                   <div className="mt-3 flex flex-wrap gap-2 text-sm text-slate-600 dark:text-slate-300">
                     <Link
                       href="/certificate"
@@ -175,7 +175,17 @@ export default function HomePage() {
             <p className="mt-2 text-sm text-slate-400">Check back soon for the next batch of registrations.</p>
           </div>
         ) : (
-          <EventGrid events={events} />
+          <>
+            <EventGrid events={events} />
+            <div className="mt-8 flex justify-center">
+              <Link
+                href="/events"
+                className="public-force-white inline-flex items-center justify-center border border-amber-300/35 bg-amber-300 px-8 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-slate-950 transition hover:bg-amber-200"
+              >
+                Show More
+              </Link>
+            </div>
+          </>
         )}
       </section>
     </div>

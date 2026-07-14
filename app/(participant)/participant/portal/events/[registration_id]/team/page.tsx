@@ -81,14 +81,14 @@ export default function TeamPage() {
       </Link>
 
       <div className="mb-6">
-        <h1 className="text-2xl font-black text-white">Team</h1>
+        <h1 className="text-2xl font-semibold text-white">Team</h1>
         <p className="text-slate-400 text-sm mt-1">{reg?.team_name} · {reg?.events?.title}</p>
       </div>
 
       {/* Members */}
-      <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-6 mb-4">
+      <div className="bg-slate-900/80 border border-white/10  p-6 mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-black text-white flex items-center gap-2">
+          <h2 className="font-semibold text-white flex items-center gap-2">
             <Users size={16} className="text-amber-400" />
             Members
           </h2>
@@ -110,7 +110,7 @@ export default function TeamPage() {
               {!m.is_leader && (
                 <button
                   onClick={() => removeMember(m.id, m.full_name)}
-                  className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10  transition-colors"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -121,10 +121,10 @@ export default function TeamPage() {
       </div>
 
       {/* Invite */}
-      <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-6">
+      <div className="bg-slate-900/80 border border-white/10  p-6">
         <div className="flex items-center gap-2 mb-2">
-          <UserPlus size={16} className="text-blue-400" />
-          <h2 className="font-black text-white">Invite Member</h2>
+          <UserPlus size={16} className="text-amber-300" />
+          <h2 className="font-semibold text-white">Invite Member</h2>
         </div>
         <p className="text-sm text-slate-400 mb-4">
           Generate a link and share it. They fill in their details and join instantly. Expires in 48 hours.
@@ -134,7 +134,7 @@ export default function TeamPage() {
           <button
             onClick={generateInvite}
             disabled={generating || (maxSize && memberCount >= maxSize)}
-            className="w-full flex items-center justify-center gap-2 bg-white text-slate-950 py-2.5 rounded-xl font-bold hover:bg-slate-100 disabled:opacity-40 transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-white text-slate-950 py-2.5  font-bold hover:bg-slate-100 disabled:opacity-40 transition-colors"
           >
             {generating ? (
               <div className="w-4 h-4 border-2 border-slate-400 border-t-slate-900 rounded-full animate-spin" />
@@ -145,20 +145,20 @@ export default function TeamPage() {
           </button>
         ) : (
           <div className="space-y-3">
-            <div className="bg-slate-800 border border-white/5 rounded-xl p-3 font-mono text-xs text-slate-300 break-all">
+            <div className="bg-slate-800 border border-white/5  p-3 font-mono text-xs text-slate-300 break-all">
               {inviteData.link}
             </div>
             <div className="flex gap-2">
               <button
                 onClick={copyLink}
-                className="flex-1 flex items-center justify-center gap-2 bg-white text-slate-950 py-2 rounded-xl text-sm font-bold hover:bg-slate-100 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 bg-white text-slate-950 py-2  text-sm font-bold hover:bg-slate-100 transition-colors"
               >
                 {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className="text-amber-500" />}
                 {copied ? 'Copied!' : 'Copy Link'}
               </button>
               <button
                 onClick={revokeCode}
-                className="px-3 py-2 border border-red-500/20 text-red-400 rounded-xl text-sm hover:bg-red-500/10 transition-colors"
+                className="px-3 py-2 border border-red-500/20 text-red-400  text-sm hover:bg-red-500/10 transition-colors"
               >
                 Revoke
               </button>

@@ -142,7 +142,7 @@ export default function RegistrationsPage() {
     <div className="space-y-6">
 
       {/* Hero */}
-      <section className="app-panel rounded-[2rem] px-6 py-7 sm:px-8">
+      <section className="app-panel  px-6 py-7 sm:px-8">
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -173,7 +173,7 @@ export default function RegistrationsPage() {
                 !showScanner
               )
             }
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F5E62D] px-5 py-3 text-sm font-semibold text-[#0B1736] transition hover:bg-[#FFF27A]"
+            className="inline-flex items-center justify-center gap-2  bg-[#F5E62D] px-5 py-3 text-sm font-semibold text-[#0B1736] transition hover:bg-[#FFF27A]"
           >
             <ScanLine size={16} />
             {showScanner
@@ -187,7 +187,7 @@ export default function RegistrationsPage() {
 
       {/* Scanner */}
       {showScanner && (
-        <section className="app-panel rounded-[2rem] p-5">
+        <section className="app-panel  p-5">
 
           <QRScanner
             onScan={handleScan}
@@ -199,7 +199,7 @@ export default function RegistrationsPage() {
           />
 
           {scanMessage && (
-            <div className="mt-4 rounded-2xl border border-[#243B72] bg-[#0B1736] px-4 py-3 text-sm text-slate-300">
+            <div className="mt-4  border border-[#243B72] bg-[#0B1736] px-4 py-3 text-sm text-slate-300">
               {scanMessage}
             </div>
           )}
@@ -226,7 +226,7 @@ export default function RegistrationsPage() {
 
             </div>
 
-            <span className="rounded-2xl bg-[#0B1736] p-3 text-[#F5E62D]">
+            <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
               <Users size={18} />
             </span>
 
@@ -250,7 +250,7 @@ export default function RegistrationsPage() {
 
             </div>
 
-            <span className="rounded-2xl bg-green-500/10 p-3 text-green-400">
+            <span className=" bg-green-500/10 p-3 text-green-400">
               <CheckCircle2 size={18} />
             </span>
 
@@ -274,7 +274,7 @@ export default function RegistrationsPage() {
 
             </div>
 
-            <span className="rounded-2xl bg-[#0B1736] p-3 text-[#93C5FD]">
+            <span className=" bg-[#0B1736] p-3 text-[#93C5FD]">
               <Clock3 size={18} />
             </span>
 
@@ -285,7 +285,7 @@ export default function RegistrationsPage() {
       </section>
 
       {/* Table */}
-      <section className="app-panel rounded-[2rem] p-5 sm:p-6">
+      <section className="app-panel  p-5 sm:p-6">
 
         <RegistrationTable
           eventId={id}

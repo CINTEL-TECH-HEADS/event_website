@@ -176,11 +176,11 @@ export function OrganizerManager({
     <div className="space-y-4">
 
       {/* Add Access */}
-      <section className="app-panel rounded-[1.8rem] p-5 sm:p-6">
+      <section className="app-panel  p-5 sm:p-6">
 
         <div className="mb-5 flex items-center gap-3">
 
-          <span className="rounded-2xl bg-[#0B1736] p-3 text-[#F5E62D]">
+          <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
             <UserPlus
               size={18}
             />
@@ -262,7 +262,7 @@ export function OrganizerManager({
 
         </div>
 
-        <div className="mt-4 rounded-[1.35rem] border border-[#243B72] bg-[#0B1736] p-4 text-sm text-slate-300">
+        <div className="mt-4  border border-[#243B72] bg-[#0B1736] p-4 text-sm text-slate-300">
 
           <p>
             <strong className="text-[#F5E62D]">
@@ -287,11 +287,11 @@ export function OrganizerManager({
       </section>
 
       {/* Team */}
-      <section className="app-panel rounded-[1.8rem] p-5 sm:p-6">
+      <section className="app-panel  p-5 sm:p-6">
 
         <div className="mb-5 flex items-center gap-3">
 
-          <span className="rounded-2xl bg-[#0B1736] p-3 text-[#93C5FD]">
+          <span className=" bg-[#0B1736] p-3 text-[#93C5FD]">
             <Shield
               size={18}
             />
@@ -330,7 +330,7 @@ export function OrganizerManager({
                   key={
                     organizer.id || `organizer-${index}`
                   }
-                  className="flex flex-col gap-4 rounded-[1.35rem] border border-[#243B72] bg-[#10224A] p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4  border border-[#243B72] bg-[#10224A] p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
 
                   <div>

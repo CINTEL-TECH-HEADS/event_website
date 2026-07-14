@@ -21,7 +21,7 @@ const QRScanner = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-[26rem] items-center justify-center rounded-[1.75rem] border border-[#243B72] bg-[#10224A] text-sm text-slate-400">
+      <div className="flex h-[26rem] items-center justify-center  border border-[#243B72] bg-[#10224A] text-sm text-slate-400">
         Loading camera...
       </div>
     ),
@@ -198,12 +198,12 @@ export function CheckInPanel({
   return (
     <div className="space-y-5">
 
-      <div className="rounded-[1.75rem] border border-[#243B72] bg-[#10224A] p-5 shadow-xl">
+      <div className=" border border-[#243B72] bg-[#10224A] p-5 ">
 
         {/* Header */}
         <div className="mb-5 flex items-center gap-3">
 
-          <span className="rounded-2xl bg-[#0B1736] p-3 text-[#F5E62D]">
+          <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
             <ScanLine
               size={18}
             />
@@ -240,7 +240,7 @@ export function CheckInPanel({
         {/* Loading */}
         {status ===
           'loading' && (
-          <div className="flex h-[26rem] flex-col items-center justify-center gap-3 rounded-[1.75rem] border border-[#243B72] bg-[#0B1736]">
+          <div className="flex h-[26rem] flex-col items-center justify-center gap-3  border border-[#243B72] bg-[#0B1736]">
 
             <Loader2
               size={30}
@@ -259,9 +259,9 @@ export function CheckInPanel({
         {status ===
           'success' &&
           result && (
-            <div className="rounded-[1.75rem] border border-green-500/20 bg-green-500/10 p-6 text-center">
+            <div className=" border border-green-500/20 bg-green-500/10 p-6 text-center">
 
-              <div className="mx-auto mb-4 inline-flex rounded-full bg-[#0B1736] p-3 text-green-400 shadow-sm">
+              <div className="mx-auto mb-4 inline-flex rounded-full bg-[#0B1736] p-3 text-green-400 ">
 
                 <CheckCircle2
                   size={28}
@@ -289,7 +289,7 @@ export function CheckInPanel({
                 result.members
                   .length >
                   0 && (
-                  <div className="mx-auto mt-5 max-w-md rounded-[1.35rem] border border-[#243B72] bg-[#10224A] p-4 text-left">
+                  <div className="mx-auto mt-5 max-w-md  border border-[#243B72] bg-[#10224A] p-4 text-left">
 
                     <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
 
@@ -314,7 +314,7 @@ export function CheckInPanel({
                             key={
                               member.email
                             }
-                            className="rounded-xl bg-[#0B1736] px-3 py-2 text-sm text-slate-300"
+                            className=" bg-[#0B1736] px-3 py-2 text-sm text-slate-300"
                           >
                             {
                               member.full_name
@@ -343,9 +343,9 @@ export function CheckInPanel({
         {/* Error */}
         {status ===
           'error' && (
-          <div className="rounded-[1.75rem] border border-red-500/20 bg-red-500/10 p-6 text-center">
+          <div className=" border border-red-500/20 bg-red-500/10 p-6 text-center">
 
-            <div className="mx-auto mb-4 inline-flex rounded-full bg-[#0B1736] p-3 text-red-400 shadow-sm">
+            <div className="mx-auto mb-4 inline-flex rounded-full bg-[#0B1736] p-3 text-red-400 ">
 
               <AlertCircle
                 size={28}

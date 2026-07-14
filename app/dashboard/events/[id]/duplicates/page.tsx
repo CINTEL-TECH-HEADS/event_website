@@ -165,7 +165,7 @@ export default function DuplicateReviewPage() {
     <div className="space-y-6">
 
       {/* Hero */}
-      <section className="app-panel rounded-[2rem] px-6 py-7 shadow-xl sm:px-8">
+      <section className="app-panel  px-6 py-7  sm:px-8">
 
         <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
           <ShieldAlert size={14} />
@@ -190,7 +190,7 @@ export default function DuplicateReviewPage() {
       {/* Empty */}
       {duplicates.length ===
       0 ? (
-        <div className="rounded-2xl border border-green-500/20 bg-green-500/10 px-5 py-4 text-sm font-medium text-green-400">
+        <div className=" border border-green-500/20 bg-green-500/10 px-5 py-4 text-sm font-medium text-green-400">
           No duplicate
           registrations
           require review.
@@ -206,7 +206,7 @@ export default function DuplicateReviewPage() {
                 key={
                   duplicate.id
                 }
-                className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl transition-all duration-300 hover:-translate-y-1"
+                className=" border border-[#243B72] bg-[#10224A] p-6  transition-all duration-300 hover:-translate-y-1"
               >
 
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -253,7 +253,7 @@ export default function DuplicateReviewPage() {
                     </div>
 
                     {duplicate.registration && (
-                      <div className="grid gap-3 rounded-[1.3rem] border border-[#243B72] bg-[#0B1736] p-4 text-sm text-slate-300 sm:grid-cols-2">
+                      <div className="grid gap-3  border border-[#243B72] bg-[#0B1736] p-4 text-sm text-slate-300 sm:grid-cols-2">
 
                         <div>
                           Registration ID
@@ -320,7 +320,7 @@ export default function DuplicateReviewPage() {
                         processing ===
                         duplicate.id
                       }
-                      className="inline-flex items-center gap-2 rounded-2xl bg-green-500 px-4 py-2 text-sm font-semibold text-white hover:bg-green-400 disabled:opacity-50"
+                      className="inline-flex items-center gap-2  bg-green-500 px-4 py-2 text-sm font-semibold text-white hover:bg-green-400 disabled:opacity-50"
                     >
                       <Check size={16} />
                       Dismiss
@@ -337,7 +337,7 @@ export default function DuplicateReviewPage() {
                         processing ===
                         duplicate.id
                       }
-                      className="inline-flex items-center gap-2 rounded-2xl bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-400 disabled:opacity-50"
+                      className="inline-flex items-center gap-2  bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-400 disabled:opacity-50"
                     >
                       <Trash2 size={16} />
                       Delete
@@ -355,7 +355,7 @@ export default function DuplicateReviewPage() {
       )}
 
       {/* Footer */}
-      <div className="rounded-2xl border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
+      <div className=" border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
         Dismiss marks a flag
         as reviewed. Delete
         permanently removes

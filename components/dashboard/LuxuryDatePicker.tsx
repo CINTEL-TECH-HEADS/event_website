@@ -31,8 +31,8 @@ export default function LuxuryDatePicker({
         showTimeSelect
         dateFormat="dd/MM/yyyy h:mm aa"
         placeholderText="Select date & time"
-        className="w-full rounded-2xl border border-[#243B72] bg-[#07142E] px-5 py-4 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
-        calendarClassName="rounded-2xl border border-[#243B72] bg-[#07142E] text-white shadow-2xl"
+        className="w-full  border border-[#243B72] bg-[#07142E] px-5 py-4 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
+        calendarClassName=" border border-[#243B72] bg-[#07142E] text-white "
         popperClassName="z-50"
       />
 

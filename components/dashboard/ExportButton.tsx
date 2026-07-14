@@ -99,7 +99,7 @@ export function ExportButton({
     <button
       onClick={handleExport}
       disabled={exporting}
-      className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${colorClass} ${className}`}
+      className={`inline-flex w-full items-center justify-center gap-2  px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${colorClass} ${className}`}
     >
       {exporting ? (
         <>

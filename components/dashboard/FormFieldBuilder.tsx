@@ -292,7 +292,7 @@ export function FormFieldBuilder({
     <div className="space-y-4">
 
       {/* List */}
-      <section className="app-panel rounded-[1.8rem] p-5 sm:p-6">
+      <section className="app-panel  p-5 sm:p-6">
 
         <div className="mb-5 flex items-center justify-between gap-4">
 
@@ -329,7 +329,7 @@ export function FormFieldBuilder({
 
         {fields.length ===
         0 ? (
-          <div className="rounded-2xl border border-dashed border-[#243B72] bg-[#0B1736] p-6 text-sm text-slate-400">
+          <div className=" border border-dashed border-[#243B72] bg-[#0B1736] p-6 text-sm text-slate-400">
             No custom fields
             yet.
           </div>
@@ -345,7 +345,7 @@ export function FormFieldBuilder({
                   key={
                     field.id
                   }
-                  className="flex flex-col gap-4 rounded-[1.35rem] border border-[#243B72] bg-[#10224A] p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4  border border-[#243B72] bg-[#10224A] p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
 
                   <div>
@@ -451,7 +451,7 @@ export function FormFieldBuilder({
       {/* Form */}
       {(editingId ||
         showAddForm) && (
-        <section className="app-panel rounded-[1.8rem] p-5 sm:p-6">
+        <section className="app-panel  p-5 sm:p-6">
 
           <h3 className="text-lg font-semibold text-white">
             {editingId
@@ -569,7 +569,7 @@ export function FormFieldBuilder({
 
             </div>
 
-            <label className="flex items-center gap-3 rounded-2xl border border-[#243B72] bg-[#0B1736] px-4 py-3 text-sm font-medium text-slate-300">
+            <label className="flex items-center gap-3  border border-[#243B72] bg-[#0B1736] px-4 py-3 text-sm font-medium text-slate-300">
 
               <input
                 type="checkbox"
@@ -617,7 +617,7 @@ export function FormFieldBuilder({
                     false
                   )
                 }}
-                className="rounded-xl border border-[#243B72] px-4 py-2 text-slate-300 hover:bg-[#0B1736]"
+                className=" border border-[#243B72] px-4 py-2 text-slate-300 hover:bg-[#0B1736]"
               >
                 Cancel
               </button>

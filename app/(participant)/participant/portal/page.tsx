@@ -13,8 +13,8 @@ import {
 function getGreeting(name: string) {
   const hour = new Date().getHours()
   if (hour < 12) return { text: `Good morning, ${name}`, icon: <Sun size={18} className="text-amber-400" /> }
-  if (hour < 17) return { text: `Good afternoon, ${name}`, icon: <Sunset size={18} className="text-orange-400" /> }
-  return { text: `Good evening, ${name}`, icon: <Moon size={18} className="text-blue-400" /> }
+  if (hour < 17) return { text: `Good afternoon, ${name}`, icon: <Sunset size={18} className="text-amber-400" /> }
+  return { text: `Good evening, ${name}`, icon: <Moon size={18} className="text-amber-300" /> }
 }
 
 function isTeamComplete(reg: any): boolean {
@@ -46,7 +46,7 @@ export default function PortalPage() {
 
   async function loadRegistrations() {
     const { data, error } = await fetch('/api/participant/registrations').then(r => r.json())
-    if (error === 'Unauthorised') { router.replace('/participant/login'); return }
+    if (error === 'Unauthorised') { router.replace('/login'); return }
     if (error) { setError(error); return }
     const regs = data ?? []
     setRegistrations(regs)
@@ -63,7 +63,7 @@ export default function PortalPage() {
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
-    window.location.href = '/participant/login'
+    window.location.href = '/login'
   }
 
   async function generateInvite(registrationId: string) {
@@ -130,7 +130,7 @@ export default function PortalPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             {greeting.icon}
-            <h1 className="text-2xl font-black text-white tracking-tight">{greeting.text}!</h1>
+            <h1 className="text-2xl font-semibold text-white tracking-tight">{greeting.text}!</h1>
           </div>
           <p className="text-slate-400 text-sm">Here's everything for your events.</p>
         </div>
@@ -147,9 +147,9 @@ export default function PortalPage() {
       {actionRequired.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <AlertTriangle size={14} className="text-orange-400" />
-            <h2 className="text-xs font-bold text-orange-400 uppercase tracking-widest">Action Required</h2>
-            <span className="text-xs bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full px-2 py-0.5 font-bold">
+            <AlertTriangle size={14} className="text-amber-400" />
+            <h2 className="text-xs font-bold text-amber-400 uppercase tracking-widest">Action Required</h2>
+            <span className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full px-2 py-0.5 font-bold">
               {actionRequired.length}
             </span>
           </div>
@@ -163,17 +163,17 @@ export default function PortalPage() {
               const needed     = Math.max(0, minSize - members.length)
 
               return (
-                <div key={r.id} className="bg-orange-500/5 border border-orange-500/25 rounded-2xl p-5">
+                <div key={r.id} className="bg-amber-500/5 border border-amber-500/25  p-5">
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold text-orange-400 uppercase tracking-widest">{r.events?.event_type}</span>
-                        <span className="text-xs font-bold text-orange-400 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full">
+                        <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">{r.events?.event_type}</span>
+                        <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
                           Team
                         </span>
                       </div>
-                      <h3 className="font-black text-white">{r.events?.title}</h3>
+                      <h3 className="font-semibold text-white">{r.events?.title}</h3>
                       <p className="text-xs text-slate-400 mt-0.5">Team: <span className="text-slate-300 font-semibold">{r.team_name}</span></p>
                     </div>
                     {isLeader && (
@@ -184,9 +184,9 @@ export default function PortalPage() {
                   </div>
 
                   {/* Incomplete warning */}
-                  <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
-                    <AlertTriangle size={14} className="text-orange-400 shrink-0" />
-                    <p className="text-xs text-orange-300">
+                  <div className="bg-amber-500/10 border border-amber-500/20  px-4 py-3 mb-4 flex items-center gap-2">
+                    <AlertTriangle size={14} className="text-amber-400 shrink-0" />
+                    <p className="text-xs text-amber-300">
                       Team needs <strong>{needed} more member{needed > 1 ? 's' : ''}</strong> to meet the minimum of {minSize}.
                       Registration is incomplete until the team is full.
                     </p>
@@ -222,12 +222,12 @@ export default function PortalPage() {
                       {inviteCodes[r.id] ? (
                         <div className="space-y-2">
                           <p className="text-xs text-slate-400">Share this invite link:</p>
-                          <div className="bg-slate-800 border border-white/5 rounded-lg px-3 py-2 font-mono text-xs text-slate-300 break-all">
+                          <div className="bg-[#0a1629] border border-white/5  px-3 py-2 font-mono text-xs text-slate-300 break-all">
                             {inviteCodes[r.id]}
                           </div>
                           <button
                             onClick={() => copyInvite(r.id)}
-                            className="w-full flex items-center justify-center gap-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 border border-orange-500/20 py-2 rounded-lg text-xs font-bold transition-colors"
+                            className="w-full flex items-center justify-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 py-2  text-xs font-bold transition-colors"
                           >
                             {copied === r.id ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
                             {copied === r.id ? 'Copied!' : 'Copy Invite Link'}
@@ -236,7 +236,7 @@ export default function PortalPage() {
                       ) : (
                         <button
                           onClick={() => generateInvite(r.id)}
-                          className="w-full flex items-center justify-center gap-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 border border-orange-500/20 py-2.5 rounded-xl text-xs font-bold transition-colors"
+                          className="w-full flex items-center justify-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 py-2.5  text-xs font-bold transition-colors"
                         >
                           <UserPlus size={12} />
                           Generate Invite Link for Team Members
@@ -255,7 +255,7 @@ export default function PortalPage() {
                             value={joiningCode}
                             onChange={e => setJoiningCode(e.target.value.toUpperCase())}
                             placeholder="CINTEL-XXXX"
-                            className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 font-mono focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                            className="w-full bg-[#0a1629] border border-white/10  px-3 py-2 text-sm text-white placeholder-slate-500 font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50"
                           />
                           {joinStatus === 'error' && <p className="text-red-400 text-xs">{joinMessage}</p>}
                           {joinStatus === 'success' && <p className="text-green-400 text-xs">{joinMessage}</p>}
@@ -263,13 +263,13 @@ export default function PortalPage() {
                             <button
                               onClick={handleJoinTeam}
                               disabled={joinStatus === 'loading' || !joiningCode}
-                              className="flex-1 bg-white text-slate-950 py-2 rounded-lg text-xs font-bold hover:bg-slate-100 disabled:opacity-40 transition-colors"
+                              className="flex-1 bg-white text-slate-950 py-2  text-xs font-bold hover:bg-slate-100 disabled:opacity-40 transition-colors"
                             >
                               {joinStatus === 'loading' ? 'Joining...' : 'Join Team'}
                             </button>
                             <button
                               onClick={() => { setJoinTarget(null); setJoiningCode(''); setJoinStatus('idle') }}
-                              className="px-3 py-2 border border-white/10 text-slate-400 rounded-lg text-xs hover:bg-slate-800 transition-colors"
+                              className="px-3 py-2 border border-white/10 text-slate-400  text-xs hover:bg-[#0a1629] transition-colors"
                             >
                               Cancel
                             </button>
@@ -278,7 +278,7 @@ export default function PortalPage() {
                       ) : (
                         <button
                           onClick={() => setJoinTarget(r.id)}
-                          className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/10 py-2 rounded-xl text-xs font-bold transition-colors"
+                          className="w-full flex items-center justify-center gap-2 bg-[#0a1629] hover:bg-slate-700 text-slate-300 border border-white/10 py-2  text-xs font-bold transition-colors"
                         >
                           <Users size={12} />
                           Join with Invite Code
@@ -314,31 +314,31 @@ export default function PortalPage() {
       {availableEvents.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <Zap size={13} className="text-green-400" />
-            <h2 className="text-xs font-bold text-green-400 uppercase tracking-widest">Register Now</h2>
-            <span className="text-xs bg-green-500/10 text-green-400 border border-green-500/20 rounded-full px-2 py-0.5 font-bold">
+            <Zap size={13} className="text-amber-300" />
+            <h2 className="text-xs font-bold text-amber-300 uppercase tracking-widest">Register Now</h2>
+            <span className="text-xs bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-full px-2 py-0.5 font-bold">
               {availableEvents.length}
             </span>
           </div>
           <div className="space-y-3">
             {availableEvents.map((e: any) => (
               <Link key={e.id} href={`/events/${e.slug}`}>
-                <div className="bg-slate-900/80 border border-white/10 rounded-xl p-5 hover:border-green-500/30 hover:bg-slate-800/80 transition-all group">
+                <div className="bg-[#0a1629] border border-white/10  p-5 hover:border-amber-300/30 hover:bg-[#112240] transition-all group">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold text-green-400 uppercase tracking-widest">{e.event_type}</span>
+                        <span className="text-xs font-bold text-amber-300 uppercase tracking-widest">{e.event_type}</span>
                         {e.registration_mode === 'team' || e.registration_mode === 'both' ? (
-                          <span className="text-xs font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                          <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full flex items-center gap-1">
                             <Users size={9} /> Team
                           </span>
                         ) : (
-                          <span className="text-xs font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-1.5 py-0.5 rounded-full">
+                          <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full">
                             Solo
                           </span>
                         )}
                       </div>
-                      <h3 className="font-black text-white group-hover:text-green-300 transition-colors truncate">{e.title}</h3>
+                      <h3 className="font-semibold text-white group-hover:text-amber-200 transition-colors truncate">{e.title}</h3>
                       <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-400">
                         <span className="flex items-center gap-1">
                           <Calendar size={11} className="text-slate-500" />
@@ -346,7 +346,7 @@ export default function PortalPage() {
                         </span>
                       </div>
                     </div>
-                    <ChevronRight size={16} className="text-slate-500 group-hover:text-green-400 transition-colors shrink-0 ml-3" />
+                    <ChevronRight size={16} className="text-slate-500 group-hover:text-amber-300 transition-colors shrink-0 ml-3" />
                   </div>
                 </div>
               </Link>
@@ -360,7 +360,7 @@ export default function PortalPage() {
         <section>
           <div className="flex items-center gap-3 mb-4">
             <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Past</h2>
-            <span className="text-xs bg-slate-800 text-slate-500 border border-white/5 rounded-full px-2 py-0.5 font-bold">
+            <span className="text-xs bg-[#0a1629] text-slate-500 border border-white/5 rounded-full px-2 py-0.5 font-bold">
               {past.length}
             </span>
           </div>
@@ -373,7 +373,7 @@ export default function PortalPage() {
       {/* Empty */}
       {registrations.length === 0 && availableEvents.length === 0 && (
         <div className="text-center py-20">
-          <div className="w-16 h-16 bg-slate-800 border border-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-[#0a1629] border border-white/5  flex items-center justify-center mx-auto mb-4">
             <Ticket className="w-8 h-8 text-slate-600" />
           </div>
           <p className="text-white font-semibold text-lg">No events yet</p>
@@ -393,20 +393,20 @@ function EventCard({ reg }: { reg: any }) {
 
   // Color scheme: blue for team, purple for solo
   const accent = isTeam
-    ? { border: 'border-blue-500/20',  bg: 'bg-blue-500/5',  text: 'text-blue-400',   badge: 'bg-blue-500/10 border-blue-500/20 text-blue-400'   }
-    : { border: 'border-purple-500/20', bg: 'bg-purple-500/5', text: 'text-purple-400', badge: 'bg-purple-500/10 border-purple-500/20 text-purple-400' }
+    ? { border: 'border-amber-500/20',  bg: 'bg-amber-500/5',  text: 'text-amber-300',   badge: 'bg-amber-500/10 border-amber-500/20 text-amber-300'   }
+    : { border: 'border-amber-500/20', bg: 'bg-amber-500/5', text: 'text-amber-300', badge: 'bg-amber-500/10 border-amber-500/20 text-amber-300' }
 
   const statusBadge = () => {
     if (reg.status === 'waitlisted')  return <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">Waitlisted</span>
     if (reg.status === 'cancelled')   return <span className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full">Cancelled</span>
-    if (attended && hasCert)          return <span className="text-xs font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-full">🎓 Certificate</span>
+    if (attended && hasCert)          return <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">🎓 Certificate</span>
     if (attended)                     return <span className="text-xs font-bold text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">✓ Attended</span>
     return <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${accent.badge}`}>Confirmed</span>
   }
 
   return (
     <Link href={`/participant/portal/events/${reg.id}`}>
-      <div className={`border rounded-xl p-5 hover:opacity-90 transition-all cursor-pointer group ${accent.border} ${accent.bg}`}>
+      <div className={`border  p-5 hover:opacity-90 transition-all cursor-pointer group ${accent.border} ${accent.bg}`}>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
@@ -415,7 +415,7 @@ function EventCard({ reg }: { reg: any }) {
                 {isTeam ? <><Users size={9} /> Team</> : 'Solo'}
               </span>
             </div>
-            <h3 className="font-black text-white group-hover:opacity-80 transition-opacity truncate">{event?.title}</h3>
+            <h3 className="font-semibold text-white group-hover:opacity-80 transition-opacity truncate">{event?.title}</h3>
           </div>
           {statusBadge()}
         </div>

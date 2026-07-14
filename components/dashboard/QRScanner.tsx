@@ -91,12 +91,12 @@ export default function QRScanner({
     <div className="mx-auto w-full max-w-lg">
 
       {/* Scanner Card */}
-      <div className="overflow-hidden rounded-[2rem] border border-[#243B72] bg-[#10224A] shadow-xl">
+      <div className="overflow-hidden  border border-[#243B72] bg-[#10224A] ">
 
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-[#243B72] px-5 py-4">
 
-          <span className="rounded-2xl bg-[#0B1736] p-3 text-[#F5E62D]">
+          <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
             <ScanLine
               size={18}
             />
@@ -121,11 +121,11 @@ export default function QRScanner({
         {/* Scanner Area */}
         <div className="p-5">
 
-          <div className="rounded-[1.5rem] border border-[#243B72] bg-black p-3">
+          <div className=" border border-[#243B72] bg-black p-3">
 
             <div
               id="qr-reader-container"
-              className="overflow-hidden rounded-[1rem]"
+              className="overflow-hidden "
             />
 
           </div>

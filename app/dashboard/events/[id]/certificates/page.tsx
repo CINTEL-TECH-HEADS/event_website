@@ -180,7 +180,7 @@ export default function CertificatesPage() {
     <div className="space-y-6">
 
       {/* Hero */}
-      <section className="app-panel rounded-[2rem] px-6 py-7 shadow-xl sm:px-8">
+      <section className="app-panel  px-6 py-7  sm:px-8">
 
         <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
           <Award size={14} />
@@ -202,7 +202,7 @@ export default function CertificatesPage() {
       </section>
 
       {/* Step 1 */}
-      <section className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <section className=" border border-[#243B72] bg-[#10224A] p-6  transition-all duration-300 hover:-translate-y-1">
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -245,7 +245,7 @@ export default function CertificatesPage() {
               disabled={
                 uploading
               }
-              className="inline-flex items-center gap-2 rounded-2xl bg-[#F5E62D] px-5 py-3 text-sm font-semibold text-[#0B1736] hover:bg-[#FFF27A]"
+              className="inline-flex items-center gap-2  bg-[#F5E62D] px-5 py-3 text-sm font-semibold text-[#0B1736] hover:bg-[#FFF27A]"
             >
               {uploading ? (
                 <Loader2
@@ -278,7 +278,7 @@ export default function CertificatesPage() {
       </section>
 
       {/* Step 2 */}
-      <section className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <section className=" border border-[#243B72] bg-[#10224A] p-6  transition-all duration-300 hover:-translate-y-1">
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -311,7 +311,7 @@ export default function CertificatesPage() {
                 generating ||
                 !templateUploaded
               }
-              className="inline-flex items-center gap-2 rounded-2xl bg-green-500 px-5 py-3 text-sm font-semibold text-white hover:bg-green-400 disabled:opacity-50"
+              className="inline-flex items-center gap-2  bg-green-500 px-5 py-3 text-sm font-semibold text-white hover:bg-green-400 disabled:opacity-50"
             >
               {generating && (
                 <Loader2
@@ -342,7 +342,7 @@ export default function CertificatesPage() {
       </section>
 
       {/* Step 3 */}
-      <section className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <section className=" border border-[#243B72] bg-[#10224A] p-6  transition-all duration-300 hover:-translate-y-1">
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -373,7 +373,7 @@ export default function CertificatesPage() {
               generatedCount ===
                 0
             }
-            className="inline-flex items-center gap-2 rounded-2xl bg-[#1E3A8A] px-5 py-3 text-sm font-semibold text-white hover:bg-[#2563EB] disabled:opacity-50"
+            className="inline-flex items-center gap-2  bg-[#1E3A8A] px-5 py-3 text-sm font-semibold text-white hover:bg-[#2563EB] disabled:opacity-50"
           >
             {releasing ? (
               <Loader2
@@ -394,7 +394,7 @@ export default function CertificatesPage() {
       </section>
 
       {/* Note */}
-      <div className="rounded-2xl border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
+      <div className=" border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
         Ensure all eligible
         participants are marked
         attended before

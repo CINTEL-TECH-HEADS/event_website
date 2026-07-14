@@ -152,8 +152,8 @@ export function RegistrationTable({
 
   if (loading) {
     return (
-      <div className="rounded-[1.75rem] border border-[#243B72] bg-[#10224A] p-5 shadow-xl">
-        <div className="h-12 animate-pulse rounded-xl bg-[#0B1736]" />
+      <div className=" border border-[#243B72] bg-[#10224A] p-5 ">
+        <div className="h-12 animate-pulse  bg-[#0B1736]" />
       </div>
     )
   }
@@ -162,7 +162,7 @@ export function RegistrationTable({
     <div className="space-y-4">
 
       {/* Filters */}
-      <section className="rounded-[1.75rem] border border-[#243B72] bg-[#10224A] p-4 shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <section className=" border border-[#243B72] bg-[#10224A] p-4  transition-all duration-300 hover:-translate-y-1">
 
         <div className="grid gap-3 lg:grid-cols-[1.6fr_0.8fr_0.8fr]">
 
@@ -250,7 +250,7 @@ export function RegistrationTable({
       </section>
 
       {/* Table */}
-      <section className="overflow-hidden rounded-[1.75rem] border border-[#243B72] bg-[#10224A] shadow-2xl transition-all duration-300 hover:-translate-y-1">
+      <section className="overflow-hidden  border border-[#243B72] bg-[#10224A]  transition-all duration-300 hover:-translate-y-1">
 
         <div className="overflow-x-auto">
 
@@ -295,7 +295,7 @@ export function RegistrationTable({
                     colSpan={6}
                     className="p-6"
                   >
-                    <div className="rounded-2xl border border-dashed border-[#243B72] bg-[#0B1736] p-8 text-center text-slate-400">
+                    <div className=" border border-dashed border-[#243B72] bg-[#0B1736] p-8 text-center text-slate-400">
                       No registrations
                       match the
                       current
@@ -384,7 +384,7 @@ export function RegistrationTable({
                             className="p-4"
                           >
 
-                            <div className="grid gap-4 rounded-2xl border border-[#243B72] bg-[#10224A] p-4 lg:grid-cols-2">
+                            <div className="grid gap-4  border border-[#243B72] bg-[#10224A] p-4 lg:grid-cols-2">
 
                               <div>
 

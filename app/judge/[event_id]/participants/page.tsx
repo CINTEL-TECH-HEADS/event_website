@@ -147,9 +147,9 @@ export default function JudgeParticipantsPage() {
 
                             <div>
                               <h3 className="mb-2 text-sm font-semibold text-slate-900">Answers</h3>
-                              {registration.answers.length > 0 ? (
+                              {(registration.answers?.length ?? 0) > 0 ? (
                                 <div className="space-y-2 text-sm text-slate-600">
-                                  {registration.answers.map((answer) => (
+                                  {registration.answers?.map((answer) => (
                                     <div key={answer.id} className="rounded-2xl bg-slate-50 px-3 py-2">
                                       <span className="font-medium text-slate-800">
                                         {answer.field_id}

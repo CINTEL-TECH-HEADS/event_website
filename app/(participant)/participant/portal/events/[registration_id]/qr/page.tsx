@@ -60,11 +60,11 @@ export default function QRPage() {
         Show this to the organiser at the entrance
       </p>
 
-      <div className="bg-white rounded-3xl p-6 mb-6 shadow-[0_0_60px_rgba(245,158,11,0.15)]">
+      <div className="bg-white  p-6 mb-6 ">
         <img src={qrUrl} alt="Check-in QR Code" className="w-64 h-64" />
       </div>
 
-      <h2 className="text-xl font-black text-white text-center mb-1">{eventName}</h2>
+      <h2 className="text-xl font-semibold text-white text-center mb-1">{eventName}</h2>
 
       {formattedDate && (
         <p className="text-slate-400 text-sm text-center mb-1">{formattedDate}</p>
@@ -77,7 +77,7 @@ export default function QRPage() {
       <div className="w-full max-w-xs flex flex-col items-center gap-4">
         <button
           onClick={saveQR}
-          className="w-full flex items-center justify-center gap-2 bg-white text-slate-950 py-3 rounded-xl font-bold hover:bg-slate-100 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+          className="w-full flex items-center justify-center gap-2 bg-white text-slate-950 py-3  font-bold hover:bg-slate-100 transition-colors "
         >
           <Download size={16} className="text-amber-500" />
           Save QR to Device
