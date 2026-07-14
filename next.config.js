@@ -30,6 +30,20 @@ const nextConfig = {
           },
         ],
       },
+      // Authenticated areas: never store — disables bfcache so Back can't
+      // reveal a protected page after logout.
+      {
+        source: '/dashboard/:path*',
+        headers: [{ key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, max-age=0' }],
+      },
+      {
+        source: '/judge/:path*',
+        headers: [{ key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, max-age=0' }],
+      },
+      {
+        source: '/participant/portal/:path*',
+        headers: [{ key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, max-age=0' }],
+      },
     ]
   },
 }

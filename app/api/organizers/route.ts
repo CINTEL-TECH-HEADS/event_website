@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { requireOrganizerRole } from '@/lib/auth/get-session'
+import { logAction } from '@/lib/audit/log'
 import { z } from 'zod'
 
 const assignSchema = z.object({
@@ -84,6 +85,16 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       )
     }
+
+    await logAction({
+      actorId: auth.user.id,
+      actorEmail: auth.user.email,
+      action: 'organizer.add',
+      targetType: 'organizer',
+      targetId: profile.id,
+      eventId: event_id,
+      metadata: { role, email },
+    })
 
     return NextResponse.json({ data: organizer, error: null }, { status: 201 })
   } catch (err) {

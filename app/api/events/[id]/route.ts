@@ -8,6 +8,9 @@ import {
   createAdminClient,
 } from '@/lib/supabase/server'
 
+import { requireOrganizerRole } from '@/lib/auth/get-session'
+import { logAction } from '@/lib/audit/log'
+
 function isUUID(
   value: string
 ) {
@@ -87,6 +90,12 @@ export async function PATCH(
     const { id } =
       await context.params
 
+    // Only the event owner or a sub_admin can edit an event
+    const auth = await requireOrganizerRole(id, ['owner', 'sub_admin'])
+    if ('error' in auth) {
+      return apiError(auth.error, auth.status)
+    }
+
     const body =
       await req.json()
 
@@ -109,6 +118,16 @@ export async function PATCH(
         error.message,
         500
       )
+
+    await logAction({
+      actorId: auth.user.id,
+      actorEmail: auth.user.email,
+      action: 'event.update',
+      targetType: 'event',
+      targetId: id,
+      eventId: id,
+      metadata: { fields: Object.keys(body ?? {}) },
+    })
 
     return apiSuccess(
       data
@@ -133,6 +152,12 @@ export async function DELETE(
     const { id } =
       await context.params
 
+    // Only the event owner can delete an event
+    const auth = await requireOrganizerRole(id, ['owner'])
+    if ('error' in auth) {
+      return apiError(auth.error, auth.status)
+    }
+
     const supabase =
       createAdminClient()
 
@@ -151,6 +176,15 @@ export async function DELETE(
         error.message,
         500
       )
+
+    await logAction({
+      actorId: auth.user.id,
+      actorEmail: auth.user.email,
+      action: 'event.delete',
+      targetType: 'event',
+      targetId: id,
+      eventId: id,
+    })
 
     return apiSuccess({
       message:

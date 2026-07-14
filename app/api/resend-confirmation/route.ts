@@ -58,9 +58,9 @@ export async function POST(req: NextRequest) {
   const event = reg.events
   const calendarLink = generateGoogleCalendarLink({
     title: event.title,
-    startAt: event.starts_at,
-    endAt: event.ends_at,
-    location: event.venue,
+    starts_at: event.starts_at,
+    ends_at: event.ends_at,
+    venue: event.venue,
   })
 
   await sendConfirmationEmail({

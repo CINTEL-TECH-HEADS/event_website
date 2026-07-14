@@ -50,19 +50,19 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
+    // Single login for both organizers and participants — role decides the destination
     const loginUrl = request.nextUrl.clone()
-
-    if (isParticipantRoute) {
-      // Participant routes redirect to participant login
-      loginUrl.pathname = '/participant/login'
-    } else {
-      // Organizer routes redirect to organizer login
-      loginUrl.pathname = '/login'
-    }
-
+    loginUrl.pathname = '/login'
     loginUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(loginUrl)
+    const redirect = NextResponse.redirect(loginUrl)
+    redirect.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+    return redirect
   }
+
+  // Never let the browser (or bfcache) serve an authenticated page after logout / back.
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+  response.headers.set('Pragma', 'no-cache')
+  response.headers.set('Expires', '0')
 
   return response
 }

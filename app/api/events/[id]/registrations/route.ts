@@ -4,6 +4,7 @@
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireOrganizerRole } from '@/lib/auth/get-session'
 
 export async function GET(
   req: NextRequest,
@@ -11,6 +12,12 @@ export async function GET(
 ) {
   const supabase = createAdminClient()
   const { id: eventId } = await params
+
+  // Registrations contain attendee PII — organizers/judges only
+  const auth = await requireOrganizerRole(eventId, ['owner', 'sub_admin', 'judge'])
+  if ('error' in auth) {
+    return apiError(auth.error, auth.status)
+  }
 
   const status = req.nextUrl.searchParams.get('status')
   const search = req.nextUrl.searchParams.get('search')

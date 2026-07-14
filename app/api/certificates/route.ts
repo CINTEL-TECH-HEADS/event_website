@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { requireOrganizerRole } from '@/lib/auth/get-session'
 import { generateCertificate } from '@/lib/certificates/generate'
 import { sendCertificateReadyEmail } from '@/lib/email/send'
+import { logAction } from '@/lib/audit/log'
 
 export async function POST(req: NextRequest) {
   try {
@@ -62,6 +63,15 @@ export async function POST(req: NextRequest) {
     if ('error' in auth) {
       return NextResponse.json({ data: null, error: auth.error }, { status: auth.status })
     }
+
+    await logAction({
+      actorId: auth.user.id,
+      actorEmail: auth.user.email,
+      action: `certificate.${action}`,
+      targetType: 'event',
+      targetId: event_id,
+      eventId: event_id,
+    })
 
     const { data: event } = await admin
       .from('events')

@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { requireOrganizerRole } from '@/lib/auth/get-session'
 import { rateLimit } from '@/lib/rate-limit'
+import { logAction } from '@/lib/audit/log'
 import { z } from 'zod'
 
 const checkInSchema = z.object({
@@ -126,6 +127,16 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       )
     }
+
+    await logAction({
+      actorId: auth.user.id,
+      actorEmail: auth.user.email,
+      action: 'attendance.checkin',
+      targetType: 'registration',
+      targetId: registration_id,
+      eventId: event_id,
+      metadata: { method: 'qr_scan' },
+    })
 
     return NextResponse.json({
       data: {

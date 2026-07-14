@@ -7,8 +7,14 @@ import { uploadQrToStorage, getQrSignedUrl } from '@/lib/qr/generate'
 import { generateGoogleCalendarLink } from '@/lib/calendar/gcal-link'
 import { sendConfirmationEmail, sendWaitlistEmail } from '@/lib/email/send'
 import { sendConfirmationWhatsApp } from '@/lib/whatsapp/send'
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
+  if (!rateLimit('register', ip).success) {
+    return apiError('Too many registration attempts. Please wait and try again.', 429)
+  }
+
   const body = await req.json()
 
   // Step 1: Validate
@@ -145,8 +151,8 @@ export async function POST(req: NextRequest) {
     : null
   const calendarUrl = generateGoogleCalendarLink({
     title:    event.title,
-    startsAt: event.starts_at,
-    endsAt:   event.ends_at,
+    starts_at: event.starts_at,
+    ends_at:   event.ends_at,
     venue:    event.venue,
   })
   const appUrl = process.env.NEXT_PUBLIC_APP_URL

@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { requireOrganizerRole } from '@/lib/auth/get-session'
+import { logAction } from '@/lib/audit/log'
 
 export async function DELETE(
   req: NextRequest,
@@ -106,6 +107,15 @@ export async function DELETE(
         { status: 500 }
       )
     }
+
+    await logAction({
+      actorId: auth.user.id,
+      actorEmail: auth.user.email,
+      action: 'organizer.remove',
+      targetType: 'organizer',
+      targetId: organizer.profile_id,
+      eventId: organizer.event_id,
+    })
 
     return NextResponse.json({
       data: {

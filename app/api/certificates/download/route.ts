@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
+import { getAuthUser, requireOrganizerRole } from '@/lib/auth/get-session'
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,12 +15,28 @@ export async function GET(req: NextRequest) {
     const email = searchParams.get('email')
     const event_id = searchParams.get('event_id')
 
-    if (!email || !event_id) {
+    if (!event_id) {
       return NextResponse.json(
-        { data: null, error: 'email and event_id are required' },
+        { data: null, error: 'event_id is required' },
         { status: 400 }
       )
     }
+
+    // Must be signed in. Participants can only fetch their OWN certificate
+    // (their session email); organizers of the event may fetch any attendee's.
+    const user = await getAuthUser()
+    if (!user) {
+      return NextResponse.json(
+        { data: null, error: 'Please sign in to download your certificate.' },
+        { status: 401 }
+      )
+    }
+
+    const orgCheck = await requireOrganizerRole(event_id, ['owner', 'sub_admin', 'judge'])
+    const isOrganizer = !('error' in orgCheck)
+
+    const lookupEmail =
+      isOrganizer && email ? email.toLowerCase().trim() : user.email!.toLowerCase().trim()
 
     const admin = createAdminClient() as any
 
@@ -27,7 +44,7 @@ export async function GET(req: NextRequest) {
     const { data: registration } = await admin
       .from('registrations')
       .select('id, leader_name, status')
-      .eq('leader_email', email.toLowerCase().trim())
+      .eq('leader_email', lookupEmail)
       .eq('event_id', event_id)
       .single()
 
