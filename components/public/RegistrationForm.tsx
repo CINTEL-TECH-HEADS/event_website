@@ -186,6 +186,15 @@ export function RegistrationForm({
         'member'
     )
 
+  // Pre-fill dynamic registration fields that map to a profile key
+  const prefillAnswers: Record<string, string> = {}
+  if (prefill) {
+    for (const f of teamFields) {
+      const v = f.field_key ? prefill[f.field_key] : undefined
+      if (v != null && v !== '') prefillAnswers[f.id] = String(v)
+    }
+  }
+
   const {
     register,
     handleSubmit,
@@ -227,7 +236,7 @@ export function RegistrationForm({
             '',
 
           answers:
-            {},
+            prefillAnswers,
 
           members: [
             {

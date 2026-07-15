@@ -14,7 +14,27 @@ import {
   FieldAppliesTo,
   FieldType,
   FormField,
+  ProfileFieldKey,
 } from '@/types'
+
+// Profile-backed "standard" fields an organiser can add in one click.
+// When a logged-in participant registers, these pre-fill from their profile.
+const STANDARD_FIELDS: {
+  key: ProfileFieldKey
+  label: string
+  field_type: FieldType
+  options: string[] | null
+}[] = [
+  { key: 'full_name', label: 'Full Name', field_type: 'text', options: null },
+  { key: 'register_number', label: 'Register Number', field_type: 'text', options: null },
+  { key: 'phone', label: 'Phone', field_type: 'phone', options: null },
+  { key: 'college_email', label: 'College Email', field_type: 'email', options: null },
+  { key: 'personal_email', label: 'Personal Email', field_type: 'email', options: null },
+  { key: 'year_of_study', label: 'Year of Study', field_type: 'select', options: ['1st', '2nd', '3rd', '4th', 'Alumni'] },
+  { key: 'batch', label: 'Batch', field_type: 'text', options: null },
+  { key: 'section', label: 'Section', field_type: 'text', options: null },
+  { key: 'fa_name', label: 'Faculty Advisor', field_type: 'text', options: null },
+]
 
 interface Props {
   eventId: string
@@ -284,6 +304,31 @@ export function FormFieldBuilder({
     )
   }
 
+  async function addStandardField(
+    sf: (typeof STANDARD_FIELDS)[number]
+  ) {
+    setSaving(true)
+    try {
+      await saveFields([
+        ...fields,
+        {
+          id: `temp-${Date.now()}`,
+          event_id: eventId,
+          label: sf.label,
+          field_type: sf.field_type,
+          options: sf.options,
+          validation: null,
+          is_required: false,
+          applies_to: 'registration',
+          sort_order: fields.length,
+          field_key: sf.key,
+        },
+      ])
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="text-sm text-slate-400">
@@ -330,6 +375,36 @@ export function FormFieldBuilder({
             )}
 
         </div>
+
+        {(() => {
+          const usedKeys = new Set(
+            fields.map((f) => f.field_key).filter(Boolean)
+          )
+          const available = STANDARD_FIELDS.filter(
+            (sf) => !usedKeys.has(sf.key)
+          )
+          if (available.length === 0) return null
+          return (
+            <div className="mb-5 border border-[#243B72] bg-[#0B1736] p-4">
+              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+                Standard fields — pre-fill from the participant&apos;s profile
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {available.map((sf) => (
+                  <button
+                    key={sf.key}
+                    type="button"
+                    disabled={saving}
+                    onClick={() => addStandardField(sf)}
+                    className="inline-flex items-center gap-1.5 border border-amber-300/25 bg-amber-300/5 px-3 py-1.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-300/10 disabled:opacity-50"
+                  >
+                    <PlusCircle size={13} /> {sf.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
 
         {fields.length ===
         0 ? (
