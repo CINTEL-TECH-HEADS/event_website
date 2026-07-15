@@ -2,7 +2,7 @@
 
 > Living document. Update this at the end of every working session: append what was
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
-> Last updated: 2026-07-14.
+> Last updated: 2026-07-14 (session-protection hardening).
 
 ---
 
@@ -37,18 +37,27 @@ portal; organizers run events from a dashboard; judges review participants.
   (default `participant`; `handle_new_user` trigger sets it). Organizers **and** superadmins
   have **global access to all events** (`requireOrganizerRole` treats both as owner;
   `/api/events?mine=true` returns all events for them).
-- **Email verification + password reset** are built (`/api/auth/forgot-password`,
-  `/reset-password`, `/api/auth/resend-verification`, callback role-routes). They only
-  deliver once Supabase **custom SMTP** is configured and **"Confirm email" is ON**.
+- **Email verification (new signups) + password reset use 6-digit OTP/PIN** (Supabase
+  `verifyOtp`, client-side). Signup and login show an OTP step; `/reset-password` is a
+  two-step email→code→new-password flow. Shared `components/auth/OtpInput.tsx` (accepts the
+  configured length, min 6). `verifyOtp` for `signup` + `recovery` verified against live
+  Supabase via `admin.generateLink(...).properties.email_otp`. Existing users just log in
+  with password (unchanged). **Activates once** Supabase has: custom SMTP, "Confirm email" ON,
+  and the *Confirm signup* / *Reset password* email templates rendering `{{ .Token }}`
+  (optionally set OTP length to 6 — this project currently emits 8-digit codes).
 
 ## 5. Security posture
 - Organizer/admin API routes gated by `requireOrganizerRole` (owner/sub_admin/judge).
 - Closed holes: `events/[id]` PATCH/DELETE, `events/[id]/registrations`, `events/[id]/organizers*`,
   `registrations/[id]/cancel`, `events/[id]/form-fields` POST, `certificates/download` (now session+ownership),
   `waitlist` (organizer-only). Public POSTs rate-limited (`registrations`, `waitlist`, `resend-confirmation`).
-- **Session hardening:** middleware protects `/dashboard`,`/judge`,`/participant/portal`;
-  `no-store` on protected routes (`next.config.js`, middleware) + `force-dynamic` layouts +
-  `components/auth/SessionGuard.tsx` (re-validates on bfcache/back, focus, cross-tab logout).
+- **Session hardening (defense-in-depth):** middleware protects `/dashboard`,`/judge`,`/participant/portal`;
+  **server-side auth gates** in the protected layouts (dashboard/judge layouts + new
+  `participant/portal/layout.tsx`) via `getAuthUser()` → `redirect('/login')` so no page renders
+  without a live session; `no-store` + `force-dynamic`; `SessionGuard.tsx` re-validates on
+  mount/bfcache/focus/cross-tab-logout; **logout** does global `signOut` + sends
+  `Clear-Site-Data` so Back/Forward can't resurrect a protected page. Verified in-browser:
+  sign-out → Back → lands on `/login`; refresh while logged in stays put.
 - **Audit log** (`audit_log` table, migration 013; `lib/audit/log.ts`; superadmin-only
   `GET /api/audit`). Instrumented: event create/update/delete, registration cancel,
   attendance check-in, organizer add/remove, certificate generate/release, export, form-fields update.
