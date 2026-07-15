@@ -1,37 +1,37 @@
 'use client'
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ArrowRight, TerminalSquare, LayoutGrid, Zap, ShieldCheck } from 'lucide-react'
+import { ArrowRight, TerminalSquare, LayoutGrid, Zap, ShieldCheck, MailCheck } from 'lucide-react'
 import Link from 'next/link'
+import { createBrowserClient } from '@/lib/supabase/client'
+import { OtpInput, MIN_OTP } from '@/components/auth/OtpInput'
 
 function SignupForm() {
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') ?? '/participant/portal'
+  const [supabase] = useState(() => createBrowserClient())
+  const [step, setStep] = useState<'form' | 'otp'>('form')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [otp, setOtp] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [verifyMsg, setVerifyMsg] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-
     if (password !== confirmPassword) {
       setError('Passwords do not match')
       return
     }
-
     setLoading(true)
     setError(null)
-    setVerifyMsg(null)
-
+    setInfo(null)
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
       const result = await response.json()
@@ -41,9 +41,10 @@ function SignupForm() {
         return
       }
 
-      // Email confirmation required — show a "verify your email" prompt, don't redirect
+      // Email confirmation required → move to the 6-digit code step
       if (result.data?.needsVerification) {
-        setVerifyMsg(result.data.message ?? 'Check your email to verify your account, then sign in.')
+        setInfo(`We sent a verification code to ${email}. Enter it below to verify.`)
+        setStep('otp')
         return
       }
 
@@ -55,94 +56,178 @@ function SignupForm() {
     }
   }
 
+  async function handleVerify(e: React.FormEvent) {
+    e.preventDefault()
+    if (otp.length < MIN_OTP) {
+      setError('Enter the code from your email.')
+      return
+    }
+    setLoading(true)
+    setError(null)
+    const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'signup' })
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+      return
+    }
+    // Session is now set (cookie) — new accounts are participants
+    window.location.assign('/participant/portal')
+  }
+
+  async function handleResend() {
+    setError(null)
+    setInfo('Sending…')
+    try {
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const result = await res.json()
+      setInfo(result.data?.message ?? result.error ?? 'A new code is on its way.')
+    } catch {
+      setInfo('Could not resend. Try again.')
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center p-4 sm:p-8 text-slate-100 relative">
 
       <div className="grid w-full max-w-[1100px] overflow-hidden border border-white/10 bg-[#112240]  lg:grid-cols-2 relative z-10 app-fade-in">
-        
+
         {/* Left Side: Auth Block */}
         <section className="p-8 sm:p-12 lg:p-16 flex flex-col justify-center relative">
-          
-          <div className="mb-10 space-y-3">
-             <div className="w-12 h-12 bg-white/5 border border-amber-300/30 flex items-center justify-center text-amber-300 mb-8">
-               <ShieldCheck size={24} />
-             </div>
-             <h1 className="text-3xl font-bold text-white tracking-tight">Create your account.</h1>
-             <p className="text-sm font-medium text-slate-500 leading-relaxed max-w-sm">
-                Sign up to track your event registrations, QR passes, teams and certificates — all in one place.
-             </p>
-          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-5">
-              <div>
-                <label className="mb-2 block text-xs font-bold text-slate-400 tracking-wide">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="john@example.com"
-                  required
-                  className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all text-sm font-medium"
-                />
+          {step === 'otp' ? (
+            <>
+              <div className="mb-10 space-y-3">
+                <div className="w-12 h-12 bg-white/5 border border-amber-300/30 flex items-center justify-center text-amber-300 mb-8">
+                  <MailCheck size={24} />
+                </div>
+                <h1 className="text-3xl font-bold text-white tracking-tight">Verify your email.</h1>
+                <p className="text-sm font-medium text-slate-500 leading-relaxed max-w-sm">
+                  Enter the code we sent to <span className="text-slate-300">{email}</span>.
+                </p>
               </div>
 
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label className="block text-xs font-bold text-slate-400 tracking-wide">Password</label>
+              <form onSubmit={handleVerify} className="space-y-5">
+                <OtpInput value={otp} onChange={setOtp} autoFocus disabled={loading} />
+
+                {error && (
+                  <div className="border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm font-medium text-red-400">
+                    {error}
+                  </div>
+                )}
+                {info && (
+                  <div className="border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-sm font-medium text-amber-200">
+                    {info}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || otp.length < MIN_OTP}
+                  className="public-force-white w-full border border-amber-300/35 bg-amber-300 hover:bg-amber-200 text-slate-950 font-semibold uppercase tracking-[0.14em] py-4 flex items-center justify-center gap-2 transition-all disabled:opacity-60 text-sm"
+                >
+                  {loading ? 'Verifying…' : 'Verify & continue'}
+                  {!loading && <ArrowRight size={16} />}
+                </button>
+
+                <div className="pt-1 text-center text-sm text-slate-500">
+                  Didn't get it?{' '}
+                  <button type="button" onClick={handleResend} className="text-amber-400 hover:text-amber-300 font-semibold">
+                    Resend code
+                  </button>
                 </div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  required
-                  minLength={8}
-                  className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all font-mono tracking-widest text-lg"
-                />
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => { setStep('form'); setOtp(''); setError(null); setInfo(null) }}
+                    className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                  >
+                    ← Use a different email
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              <div className="mb-10 space-y-3">
+                <div className="w-12 h-12 bg-white/5 border border-amber-300/30 flex items-center justify-center text-amber-300 mb-8">
+                  <ShieldCheck size={24} />
+                </div>
+                <h1 className="text-3xl font-bold text-white tracking-tight">Create your account.</h1>
+                <p className="text-sm font-medium text-slate-500 leading-relaxed max-w-sm">
+                  Sign up to track your event registrations, QR passes, teams and certificates — all in one place.
+                </p>
               </div>
 
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label className="block text-xs font-bold text-slate-400 tracking-wide">Confirm Password</label>
-                </div>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  required
-                  minLength={8}
-                  className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all font-mono tracking-widest text-lg"
-                />
-              </div>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-5">
+                  <div>
+                    <label className="mb-2 block text-xs font-bold text-slate-400 tracking-wide">Email</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="john@example.com"
+                      required
+                      className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all text-sm font-medium"
+                    />
+                  </div>
 
-              {error && (
-                <div className="border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm font-medium text-red-400 flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                  {error}
-                </div>
-              )}
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <label className="block text-xs font-bold text-slate-400 tracking-wide">Password</label>
+                    </div>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      required
+                      minLength={8}
+                      className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all font-mono tracking-widest text-lg"
+                    />
+                  </div>
 
-              {verifyMsg && (
-                <div className="border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-sm font-medium text-amber-200">
-                  {verifyMsg}
-                </div>
-              )}
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <label className="block text-xs font-bold text-slate-400 tracking-wide">Confirm Password</label>
+                    </div>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      required
+                      minLength={8}
+                      className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all font-mono tracking-widest text-lg"
+                    />
+                  </div>
 
-              <button type="submit" disabled={loading} className="public-force-white w-full border border-amber-300/35 bg-amber-300 hover:bg-amber-200 text-slate-950 font-semibold uppercase tracking-[0.14em] py-4 flex items-center justify-center gap-2 transition-all mt-4 text-sm">
-                {loading ? 'Creating account…' : 'Create account'}
-                {!loading && <ArrowRight size={16} />}
-              </button>
-            </div>
-            
-            <div className="pt-4 text-center">
-              <span className="text-slate-500 text-sm">Already have an account? </span>
-              <Link href="/login" className="text-amber-400 hover:text-amber-300 font-bold text-sm tracking-wide transition-colors">
-                Sign in
-              </Link>
-            </div>
-          </form>
+                  {error && (
+                    <div className="border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm font-medium text-red-400 flex items-center gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      {error}
+                    </div>
+                  )}
+
+                  <button type="submit" disabled={loading} className="public-force-white w-full border border-amber-300/35 bg-amber-300 hover:bg-amber-200 text-slate-950 font-semibold uppercase tracking-[0.14em] py-4 flex items-center justify-center gap-2 transition-all mt-4 text-sm">
+                    {loading ? 'Creating account…' : 'Create account'}
+                    {!loading && <ArrowRight size={16} />}
+                  </button>
+                </div>
+
+                <div className="pt-4 text-center">
+                  <span className="text-slate-500 text-sm">Already have an account? </span>
+                  <Link href="/login" className="text-amber-400 hover:text-amber-300 font-bold text-sm tracking-wide transition-colors">
+                    Sign in
+                  </Link>
+                </div>
+              </form>
+            </>
+          )}
 
         </section>
 

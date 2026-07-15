@@ -40,15 +40,13 @@ export async function POST(req: NextRequest) {
     const { password } = parsed.data
     const supabase = await createSessionClient()
     const admin = createAdminClient()
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
     // Create the auth user. The DB trigger creates the profile as 'participant'.
+    // With "Confirm email" ON, Supabase emails a 6-digit code; the client verifies it
+    // with verifyOtp — no link/redirect involved.
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: `${appUrl}/api/auth/callback`,
-      },
     })
 
     if (authError) {

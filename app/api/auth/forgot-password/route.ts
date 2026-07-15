@@ -27,15 +27,12 @@ export async function POST(req: NextRequest) {
 
     const email = parsed.data.email.toLowerCase()
     const supabase = await createSessionClient()
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-
-    // Fire and forget — ignore the result so we don't leak whether the email exists
-    await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${appUrl}/reset-password`,
-    })
+    // Fire and forget — ignore the result so we don't leak whether the email exists.
+    // With the recovery email template rendering {{ .Token }}, this sends a 6-digit code.
+    await supabase.auth.resetPasswordForEmail(email)
 
     return apiSuccess({
-      message: 'If an account exists for that email, a reset link is on its way.',
+      message: 'If an account exists for that email, a 6-digit code is on its way.',
     })
   } catch (err) {
     console.error('[POST /api/auth/forgot-password]', err)
