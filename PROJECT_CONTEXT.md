@@ -2,7 +2,20 @@
 
 > Living document. Update this at the end of every working session: append what was
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
-> Last updated: 2026-07-14 (session-protection hardening).
+> Last updated: 2026-07-14 (participant profiles + tabbed portal + auth-gated registration).
+
+## Recent: Participant Portal feature (migration 015-era work, all on fix/api-authorization)
+- **participant_profiles** table (migration 014) + RLS; `form_fields.field_key`; types updated.
+- Portal is **tabbed**: My Events / Past Events / My Profile (`PortalTabs`, `PastEventCard`, `ProfileTab`).
+- **`/api/participant/profile`** (auth-scoped GET/PATCH, seeds from latest registration).
+- **Registration now requires login** (`POST /api/registrations` → 401 if unauth), sets `participant_id`,
+  pre-fills the form from the profile, and **silently syncs** the profile on submit. The register page
+  redirects unauthenticated visitors to `/login?redirect=…` (reuses existing password login — the doc's
+  "OTP-only interstitial" was intentionally dropped).
+- Organiser **FormFieldBuilder** has a "Standard Fields" quick-add (writes `field_key`); dynamic fields
+  with a `field_key` pre-fill from the participant's profile.
+- Note: register_number = **college** student id (in participant_profiles); event registration number =
+  registrations.display_id (kept cosmetic — no uniqueness constraint; QR/check-in use the uuid `id`).
 
 ---
 
