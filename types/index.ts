@@ -59,6 +59,19 @@ export interface EventOrganizer {
   created_at: string
 }
 
+// Keys of a participant profile that a "standard" form field can map to.
+// null field_key = a fully custom field.
+export type ProfileFieldKey =
+  | 'full_name'
+  | 'register_number'
+  | 'phone'
+  | 'college_email'
+  | 'personal_email'
+  | 'year_of_study'
+  | 'batch'
+  | 'section'
+  | 'fa_name'
+
 export interface FormField {
   id: string
   event_id: string
@@ -69,6 +82,21 @@ export interface FormField {
   is_required: boolean
   applies_to: FieldAppliesTo
   sort_order: number
+  field_key: ProfileFieldKey | null
+}
+
+export interface ParticipantProfile {
+  id: string
+  full_name: string | null
+  register_number: string | null
+  phone: string | null
+  college_email: string | null
+  personal_email: string | null
+  year_of_study: string | null
+  batch: string | null
+  section: string | null
+  fa_name: string | null
+  updated_at: string
 }
 
 export interface FieldValidation {

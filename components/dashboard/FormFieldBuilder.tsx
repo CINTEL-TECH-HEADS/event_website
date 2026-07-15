@@ -65,6 +65,7 @@ export function FormFieldBuilder({
       sort_order: 0,
       event_id: eventId,
       validation: null,
+      field_key: null,
     })
 
   useEffect(() => {
@@ -118,6 +119,7 @@ export function FormFieldBuilder({
         is_required: false,
         applies_to: 'registration',
         sort_order: fields.length,
+        field_key: null,
       })
     }, [eventId, fields.length])
 
@@ -202,6 +204,8 @@ export function FormFieldBuilder({
                   editForm.applies_to,
                 sort_order:
                   fields.length,
+                field_key:
+                  editForm.field_key ?? null,
               },
             ]
 

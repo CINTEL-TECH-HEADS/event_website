@@ -9,6 +9,9 @@ import {
   Users, Copy, Check, ChevronRight, AlertTriangle,
   UserPlus, Zap,
 } from 'lucide-react'
+import { PortalTabs, type PortalTab } from '@/components/participant/PortalTabs'
+import { PastEventCard } from '@/components/participant/PastEventCard'
+import { ProfileTab } from '@/components/participant/ProfileTab'
 
 function getGreeting(name: string) {
   const hour = new Date().getHours()
@@ -42,6 +45,7 @@ export default function PortalPage() {
   const [joinTarget, setJoinTarget]       = useState<string | null>(null)
   const [joinStatus, setJoinStatus]       = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [joinMessage, setJoinMessage]     = useState('')
+  const [tab, setTab]                     = useState<PortalTab>('events')
   const router = useRouter()
 
   async function loadRegistrations() {
@@ -143,6 +147,10 @@ export default function PortalPage() {
         </button>
       </div>
 
+      <PortalTabs active={tab} onChange={setTab} />
+
+      {tab === 'events' && (
+      <>
       {/* ── ACTION REQUIRED ──────────────────────────── */}
       {actionRequired.length > 0 && (
         <section className="mb-8">
@@ -355,22 +363,7 @@ export default function PortalPage() {
         </section>
       )}
 
-      {/* ── PAST ─────────────────────────────────────── */}
-      {past.length > 0 && (
-        <section>
-          <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Past</h2>
-            <span className="text-xs bg-[#0a1629] text-slate-500 border border-white/5 rounded-full px-2 py-0.5 font-bold">
-              {past.length}
-            </span>
-          </div>
-          <div className="space-y-3">
-            {past.map(r => <EventCard key={r.id} reg={r} />)}
-          </div>
-        </section>
-      )}
-
-      {/* Empty */}
+      {/* Empty (My Events) */}
       {registrations.length === 0 && availableEvents.length === 0 && (
         <div className="text-center py-20">
           <div className="w-16 h-16 bg-[#0a1629] border border-white/5  flex items-center justify-center mx-auto mb-4">
@@ -380,6 +373,22 @@ export default function PortalPage() {
           <p className="text-slate-400 text-sm mt-2">Register for an upcoming event to see it here.</p>
         </div>
       )}
+      </>
+      )}
+
+      {/* ── PAST EVENTS TAB ──────────────────────────── */}
+      {tab === 'past' && (
+        past.length > 0 ? (
+          <div className="space-y-3">
+            {past.map(r => <PastEventCard key={r.id} reg={r} />)}
+          </div>
+        ) : (
+          <div className="text-center py-20 text-sm text-slate-400">No past events yet.</div>
+        )
+      )}
+
+      {/* ── PROFILE TAB ──────────────────────────────── */}
+      {tab === 'profile' && <ProfileTab />}
     </div>
   )
 }
