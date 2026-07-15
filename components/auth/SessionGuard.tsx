@@ -12,15 +12,19 @@ export function SessionGuard() {
     const supabase = createBrowserClient()
 
     async function check() {
-      const { data } = await supabase.auth.getUser()
-      if (!data.user) {
+      const { data, error } = await supabase.auth.getUser()
+      if (error || !data.user) {
         window.location.replace('/login')
       }
     }
 
+    // Validate immediately on mount (covers refresh + first paint), fail-closed
+    check()
+
     // Back/forward cache restore (the classic "press back after logout")
     const onPageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) check()
+      // persisted = restored from bfcache; also re-check on any show
+      check()
     }
     // Returning to the tab
     const onVisible = () => {

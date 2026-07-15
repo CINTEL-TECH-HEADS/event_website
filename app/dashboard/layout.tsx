@@ -1,16 +1,21 @@
 // Owner: FE2 - Dashboard shell layout with sidebar
-// Auth is enforced by middleware.ts - no need to re-check here
+import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { SessionGuard } from '@/components/auth/SessionGuard'
+import { getAuthUser } from '@/lib/auth/get-session'
 
 // Never statically cache authenticated dashboard content
 export const dynamic = 'force-dynamic'
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Server-authoritative gate — no dashboard page renders without a live session
+  const user = await getAuthUser()
+  if (!user) redirect('/login?redirect=/dashboard')
+
   return (
     <div className="dashboard-theme-shell relative flex min-h-screen flex-col bg-[#07101d] text-slate-100 lg:flex-row">
 
