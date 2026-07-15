@@ -8,12 +8,17 @@ import { generateGoogleCalendarLink } from '@/lib/calendar/gcal-link'
 import { sendConfirmationEmail, sendWaitlistEmail } from '@/lib/email/send'
 import { sendConfirmationWhatsApp } from '@/lib/whatsapp/send'
 import { rateLimit } from '@/lib/rate-limit'
+import { getAuthUser } from '@/lib/auth/get-session'
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
   if (!rateLimit('register', ip).success) {
     return apiError('Too many registration attempts. Please wait and try again.', 429)
   }
+
+  // Registration requires an account (anonymous registration removed).
+  const user = await getAuthUser()
+  if (!user) return apiError('Please sign in to register.', 401)
 
   const body = await req.json()
 
@@ -120,6 +125,7 @@ export async function POST(req: NextRequest) {
     qr_code_url:       qr_storage_path,
     status,
     waitlist_position,
+    participant_id:    user.id,
   })
   if (insertErr) return apiError(insertErr.message, 500)
 

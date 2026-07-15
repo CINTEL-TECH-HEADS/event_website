@@ -142,9 +142,11 @@ function createMemberRow() {
 export function RegistrationForm({
   event,
   disabled = false,
+  prefill = null,
 }: {
   event: EventWithFields
   disabled?: boolean
+  prefill?: Record<string, any> | null
 }) {
   const router = useRouter()
 
@@ -210,16 +212,16 @@ export function RegistrationForm({
             initialType,
 
           leader_name:
-            '',
+            prefill?.full_name ?? '',
 
           leader_email:
-            '',
+            prefill?.college_email || prefill?.personal_email || '',
 
           leader_phone:
-            '',
+            prefill?.phone ?? '',
 
           register_number:
-            '',
+            prefill?.register_number ?? '',
 
           team_name:
             '',
@@ -362,6 +364,17 @@ export function RegistrationForm({
         )
         return
       }
+
+      // Silently keep the participant's profile in sync (upsert; creates it if new)
+      fetch('/api/participant/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: parsed.data.leader_name,
+          phone: parsed.data.leader_phone,
+          register_number: parsed.data.register_number,
+        }),
+      }).catch(() => {})
 
       router.push(
         `/confirmation/${data.registration_id}`

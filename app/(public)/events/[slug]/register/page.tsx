@@ -27,12 +27,22 @@ function normalizeEvent(event: EventWithFields): EventWithFields {
 export default function RegisterPage() {
   const { slug } = useParams<{ slug: string }>()
   const [event, setEvent] = useState<EventWithFields | null>(null)
+  const [prefill, setPrefill] = useState<Record<string, any> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function loadEvent() {
+    async function load() {
       try {
+        // Registration requires an account — gate behind login, then pre-fill from profile
+        const profRes = await fetch('/api/participant/profile')
+        if (profRes.status === 401) {
+          window.location.href = `/login?redirect=${encodeURIComponent(`/events/${slug}/register`)}`
+          return
+        }
+        const profJson = await profRes.json().catch(() => null)
+        setPrefill(profJson?.data?.profile ?? null)
+
         const res = await fetch(`/api/events/${slug}`)
         const { data, error } = await res.json()
 
@@ -49,7 +59,7 @@ export default function RegisterPage() {
       }
     }
 
-    if (slug) loadEvent()
+    if (slug) load()
   }, [slug])
 
   if (loading) {
@@ -99,7 +109,7 @@ export default function RegisterPage() {
           </div>
         ) : null}
 
-        <RegistrationForm event={event} disabled={closed} />
+        <RegistrationForm event={event} disabled={closed} prefill={prefill} />
       </div>
     </div>
   )
