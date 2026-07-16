@@ -9,6 +9,7 @@ import { sendConfirmationEmail, sendWaitlistEmail } from '@/lib/email/send'
 import { sendConfirmationWhatsApp } from '@/lib/whatsapp/send'
 import { rateLimit } from '@/lib/rate-limit'
 import { getAuthUser } from '@/lib/auth/get-session'
+import { findUserRegistration } from '@/lib/registrations/is-registered'
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
@@ -41,6 +42,11 @@ export async function POST(req: NextRequest) {
   if (new Date() > new Date(event.registration_closes_at)) {
     return apiError('Registration has closed for this event')
   }
+
+  // Step 3b: Account-level duplicate — this user already owns or is a team
+  // member of a registration for this event.
+  const existing = await findUserRegistration(supabase, event.id, user.id, user.email!)
+  if (existing) return apiError('You are already registered for this event')
 
   // Step 4: Check duplicate leader email
   const { data: dupLeader } = await supabase

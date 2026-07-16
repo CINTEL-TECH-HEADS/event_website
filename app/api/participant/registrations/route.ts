@@ -8,13 +8,14 @@ export async function GET(req: NextRequest) {
     const { data: { user }, error: userError } = await sessionSupa.auth.getUser()
     if (userError || !user) return apiError('Unauthorised', 401)
 
-    const email = user.email!
-    console.log('SESSION EMAIL:', email)
+    const email = user.email!.toLowerCase()
 
     const admin = createAdminClient()
 
-    // Leader registrations
-    const { data: leaderRegs } = await admin
+    // Owned registrations — the account that created it, for both solo and
+    // team (as leader). participant_id is the identity; leader_email is only a
+    // contact field, so we key off the account, not the email.
+    const { data: ownedRegs } = await admin
       .from('registrations')
       .select(`
         *,
@@ -23,12 +24,12 @@ export async function GET(req: NextRequest) {
         attendance(id, checked_in_at),
         certificates(id, certificate_url, generated_at)
       `)
-      .eq('leader_email', email.toLowerCase())
+      .eq('participant_id', user.id)
       .order('registered_at', { ascending: false })
 
-    console.log('LEADER REGS COUNT:', leaderRegs?.length ?? 0)
-
-    // Team member registrations
+    // Team memberships — the only place email matching applies: a non-leader
+    // member added to someone else's team by email (their participant_id is
+    // not on that registration) still sees the event in their own portal.
     const { data: memberRegs } = await admin
       .from('team_members')
       .select(`
@@ -41,23 +42,20 @@ export async function GET(req: NextRequest) {
           certificates(id, certificate_url, generated_at)
         )
       `)
-      .eq('email', email.toLowerCase())
+      .eq('email', email)
       .eq('is_leader', false)
 
     const memberRegData = (memberRegs ?? [])
       .map((m: any) => m.registrations)
       .filter(Boolean)
 
-    const allRegs = [
-      ...(leaderRegs ?? []),
-      ...memberRegData.filter((r: any) =>
-        !leaderRegs?.find((lr: any) => lr.id === r.id)
-      ),
-    ]
+    // Merge and dedupe by registration id.
+    const byId = new Map<string, any>()
+    for (const r of [...(ownedRegs ?? []), ...memberRegData]) {
+      if (r && !byId.has(r.id)) byId.set(r.id, r)
+    }
 
-    console.log('TOTAL REGS:', allRegs.length)
-
-    return apiSuccess(allRegs)
+    return apiSuccess(Array.from(byId.values()))
   } catch (err) {
     console.error('[GET /api/participant/registrations]', err)
     return apiError('Internal server error', 500)

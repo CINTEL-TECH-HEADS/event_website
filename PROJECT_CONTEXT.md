@@ -2,7 +2,33 @@
 
 > Living document. Update this at the end of every working session: append what was
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
-> Last updated: 2026-07-14 (participant profiles + tabbed portal + auth-gated registration).
+> Last updated: 2026-07-16 (auth-aware public header + airtight role gates + portal registration mapping fix + no double-registration).
+
+## Recent: Auth-aware header, role gates, portal fix, no double-registration (2026-07-16, uncommitted)
+- **Public header is session-aware** — new `components/public/AuthNav.tsx` (client): logged out → amber
+  **Login**; logged in → **profile icon** dropdown with their portal (Dashboard/My Events), Home, Sign out.
+  Wired into `app/(public)/layout.tsx` (still a server component). Backed by new **`GET /api/auth/me`**
+  (`{authenticated,email,role,home}`, no-store).
+- **Single source of truth for access** — `getUserAccess()` / `resolveUserAccess()` in
+  `lib/auth/get-session.ts` (role + isOrganizer + home). Login route refactored to use it.
+- **Airtight role gates** — `dashboard` and `judge` layouts now require **organizer** access
+  (`getUserAccess()`), not just a session; a logged-in participant is redirected to `/participant/portal`.
+  No longer just `getAuthUser()`.
+- **Home links on all portals** — dashboard `Sidebar`, participant header, and a new judge top bar.
+- **FIX: registered events not showing in portal** — `app/api/participant/registrations` now matches
+  owned regs by **`participant_id`** (was `leader_email`, which broke when login email ≠ leader_email,
+  e.g. meshprath1@ / pn3641@srmist). `team_members.email` kept only for non-leader members. Deduped.
+- **No double-registration** — shared `lib/registrations/is-registered.ts`; account-level dup guard in
+  `POST /api/registrations`; new `GET /api/registrations/mine?event_id=`; "Already Registered — View in
+  Portal" gates on the public event page + register page.
+- **Model note:** a registration is owned by the **account** (`participant_id`), solo=participant /
+  team=leader; `leader_email` is a team-only contact field, not an identity.
+- ✅ **Verified in-browser** (`tsc` clean, no console errors): logged-out header shows Login; logged-in
+  participant sees the profile-icon dropdown (Signed in as / My Events → /participant/portal / Home /
+  Sign out); Sign out returns to `/` and reverts the header. Role gates confirmed: participant hitting
+  `/dashboard` and `/judge/[id]/participants` is redirected to `/participant/portal`. Registration
+  mapping proven against live data (broken user now returns 2 events via `participant_id`; old
+  `leader_email` match returned 0); account-level dup guard blocks re-registration.
 
 ## Recent: Participant Portal feature (migration 015-era work, all on fix/api-authorization)
 - **participant_profiles** table (migration 014) + RLS; `form_fields.field_key`; types updated.

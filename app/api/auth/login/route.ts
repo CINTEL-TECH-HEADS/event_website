@@ -16,6 +16,7 @@
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createSessionClient, createAdminClient } from '@/lib/supabase/server'
+import { resolveUserAccess } from '@/lib/auth/get-session'
 import { rateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 
@@ -65,23 +66,8 @@ export async function POST(req: NextRequest) {
 
     const userId = signInData.user.id
 
-    // 3. Determine role — superadmin/organizer or event_organizers membership → organizer
-    const { data: profile } = await admin
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .maybeSingle()
-
-    const { data: orgRows } = await admin
-      .from('event_organizers')
-      .select('id')
-      .eq('profile_id', userId)
-      .limit(1)
-
-    const isOrganizer =
-      profile?.role === 'superadmin' ||
-      profile?.role === 'organizer' ||
-      (orgRows?.length ?? 0) > 0
+    // 3. Determine role/home (shared with layout gates + /api/auth/me)
+    const access = await resolveUserAccess(userId, email)
 
     // 4. Link any of this email's registrations to the account (participant convenience)
     await admin
@@ -91,8 +77,8 @@ export async function POST(req: NextRequest) {
       .is('participant_id', null)
 
     return apiSuccess({
-      redirect: isOrganizer ? '/dashboard' : '/participant/portal',
-      role: isOrganizer ? 'organizer' : 'participant',
+      redirect: access.home,
+      role: access.isOrganizer ? 'organizer' : 'participant',
     })
   } catch (err) {
     console.error('[POST /api/auth/login]', err)

@@ -46,6 +46,12 @@ export default function ParticipantLayout({
 
           <nav className="flex items-center gap-2 text-sm">
             <Link
+              href="/"
+              className="participant-nav-link border border-transparent px-4 py-2 font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white "
+            >
+              Home
+            </Link>
+            <Link
               href="/participant/portal"
               className="participant-nav-link border border-transparent px-4 py-2 font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white "
             >

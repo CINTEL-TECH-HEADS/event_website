@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/public/ThemeToggle'
+import { AuthNav } from '@/components/public/AuthNav'
 
 
 export default function PublicLayout({
@@ -49,12 +50,7 @@ export default function PublicLayout({
             >
               Certificate
             </Link>
-            <Link
-              href="/login"
-              className="public-force-white border border-amber-300/35 bg-amber-300 px-4 py-2 font-semibold text-slate-950 transition hover:bg-amber-200"
-            >
-              Login
-            </Link>
+            <AuthNav />
             <ThemeToggle />
           </nav>
         </div>

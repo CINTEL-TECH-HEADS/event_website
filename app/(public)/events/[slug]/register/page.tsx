@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import type { EventWithFields } from '@/types'
 import { RegistrationForm } from '@/components/public/RegistrationForm'
 import { isPast } from '@/lib/utils'
@@ -28,6 +29,7 @@ export default function RegisterPage() {
   const { slug } = useParams<{ slug: string }>()
   const [event, setEvent] = useState<EventWithFields | null>(null)
   const [prefill, setPrefill] = useState<Record<string, any> | null>(null)
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -51,7 +53,14 @@ export default function RegisterPage() {
           return
         }
 
-        setEvent(normalizeEvent(data as EventWithFields))
+        const normalized = normalizeEvent(data as EventWithFields)
+        setEvent(normalized)
+
+        // Already registered under this account → show a notice, not the form.
+        const mine = await fetch(`/api/registrations/mine?event_id=${normalized.id}`)
+          .then((r) => r.json())
+          .catch(() => null)
+        if (mine?.data?.registered) setAlreadyRegistered(true)
       } catch {
         setError('Failed to load event')
       } finally {
@@ -109,7 +118,23 @@ export default function RegisterPage() {
           </div>
         ) : null}
 
-        <RegistrationForm event={event} disabled={closed} prefill={prefill} />
+        {alreadyRegistered ? (
+          <div className="space-y-4 rounded-2xl border border-emerald-300/25 bg-emerald-400/10 px-5 py-6 text-center">
+            <p className="text-lg font-semibold text-white">You&apos;re already registered</p>
+            <p className="text-sm text-emerald-100/80">
+              You have already registered for this event. You can view your registration and QR code in
+              your portal.
+            </p>
+            <Link
+              href="/participant/portal"
+              className="inline-flex items-center justify-center rounded-2xl border border-emerald-300/35 bg-emerald-400/20 px-5 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-400/30"
+            >
+              View in Portal
+            </Link>
+          </div>
+        ) : (
+          <RegistrationForm event={event} disabled={closed} prefill={prefill} />
+        )}
       </div>
     </div>
   )

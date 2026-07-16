@@ -2,7 +2,7 @@
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { SessionGuard } from '@/components/auth/SessionGuard'
-import { getAuthUser } from '@/lib/auth/get-session'
+import { getUserAccess } from '@/lib/auth/get-session'
 
 // Never statically cache authenticated dashboard content
 export const dynamic = 'force-dynamic'
@@ -12,9 +12,11 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Server-authoritative gate — no dashboard page renders without a live session
-  const user = await getAuthUser()
-  if (!user) redirect('/login?redirect=/dashboard')
+  // Server-authoritative gate — a live session AND organizer access are required.
+  // A logged-in participant is sent to their own portal, not the organizer shell.
+  const access = await getUserAccess()
+  if (!access) redirect('/login?redirect=/dashboard')
+  if (!access.isOrganizer) redirect('/participant/portal')
 
   return (
     <div className="dashboard-theme-shell relative flex min-h-screen flex-col bg-[#07101d] text-slate-100 lg:flex-row">

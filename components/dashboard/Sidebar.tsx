@@ -9,6 +9,7 @@ import {
   PlusCircle,
   LogOut,
   ShieldCheck,
+  Home,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/public/ThemeToggle'
 
@@ -108,6 +109,16 @@ export function Sidebar({
               size={18}
             />
             New Event
+          </Link>
+
+          <Link
+            href="/"
+            className={navClass(false)}
+          >
+            <Home
+              size={18}
+            />
+            Home
           </Link>
 
         </nav>
