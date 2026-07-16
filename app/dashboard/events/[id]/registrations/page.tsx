@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import {
   ClipboardList,
@@ -15,6 +15,7 @@ import {
 import { RegistrationTable } from '@/components/dashboard/RegistrationTable'
 import QRScanner from '@/components/dashboard/QRScanner'
 import { createBrowserClient } from '@/lib/supabase/client'
+import { parseUuidFromQr } from '@/lib/qr/parse'
 
 export default function RegistrationsPage() {
   const { id } =
@@ -32,101 +33,90 @@ export default function RegistrationsPage() {
   const [scanMessage, setScanMessage] =
     useState<string | null>(null)
 
+  const [scanResult, setScanResult] =
+    useState<any | null>(null)
+
+  const [refreshSignal, setRefreshSignal] =
+    useState(0)
+
   const [stats, setStats] =
     useState({
       total: 0,
       confirmed: 0,
       waitlisted: 0,
+      attended: 0,
     })
+
+  const loadStats = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/events/${id}/registrations`)
+      const { data } = await res.json()
+      const rows = data ?? []
+      setStats({
+        total: rows.length,
+        confirmed: rows.filter((r: any) => r.status === 'confirmed').length,
+        waitlisted: rows.filter((r: any) => r.status === 'waitlisted').length,
+        attended: rows.filter((r: any) => {
+          const a = Array.isArray(r.attendance) ? r.attendance[0] : r.attendance
+          return !!a?.id
+        }).length,
+      })
+    } catch (error) {
+      console.error(error)
+    }
+  }, [id])
 
   useEffect(() => {
     async function init() {
       try {
-        const supabase =
-          createBrowserClient()
-
-        const {
-          data: { user },
-        } =
-          await supabase.auth.getUser()
-
-        if (user) {
-          setOrganizerId(user.id)
-        }
-
-        const res = await fetch(
-          `/api/events/${id}/registrations`
-        )
-
-        const { data } =
-          await res.json()
-
-        const rows = data ?? []
-
-        setStats({
-          total: rows.length,
-          confirmed:
-            rows.filter(
-              (r: any) =>
-                r.status ===
-                'confirmed'
-            ).length,
-
-          waitlisted:
-            rows.filter(
-              (r: any) =>
-                r.status ===
-                'waitlisted'
-            ).length,
-        })
-      } catch (error) {
-        console.error(error)
+        const supabase = createBrowserClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) setOrganizerId(user.id)
+        await loadStats()
       } finally {
         setLoading(false)
       }
     }
-
     init()
-  }, [id])
+  }, [loadStats])
 
   async function handleScan(
     code: string
   ) {
+    // The QR encodes `${APP_URL}/checkin/<uuid>` — extract the registration id.
+    const registrationId = parseUuidFromQr(code)
+    if (!registrationId) {
+      setScanMessage('Invalid QR code.')
+      return
+    }
+
     try {
-      setScanMessage(
-        'Processing scan...'
-      )
+      setScanMessage('Processing scan...')
 
-      const res = await fetch(
-        '/api/attendance/check-in',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':
-              'application/json',
-          },
-          body: JSON.stringify({
-            qr_code: code,
-          }),
-        }
-      )
+      const res = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          registration_id: registrationId,
+          event_id: id,
+        }),
+      })
 
-      const json =
-        await res.json()
+      const json = await res.json()
 
       if (json.error) {
-        setScanMessage(
-          json.error
-        )
+        setScanMessage(json.error)
+        setScanResult(null)
       } else {
-        setScanMessage(
-          'Check-in successful'
-        )
+        setScanMessage(null)
+        // Show the verified participant and refresh the table + stats live.
+        setScanResult(json.data)
+        setRefreshSignal((n) => n + 1)
+        loadStats()
       }
     } catch {
-      setScanMessage(
-        'Scan failed'
-      )
+      setScanMessage('Scan failed')
+      setScanResult(null)
     }
   }
 
@@ -204,11 +194,40 @@ export default function RegistrationsPage() {
             </div>
           )}
 
+          {/* Verified participant */}
+          {scanResult && (
+            <div className="mt-4 border border-green-500/30 bg-green-500/5 p-5">
+              <div className="mb-2 flex items-center gap-2 text-sm font-bold text-green-400">
+                <CheckCircle2 size={16} /> Checked in
+              </div>
+              <p className="text-lg font-semibold text-white">{scanResult.leader_name}</p>
+              <div className="mt-1 flex flex-wrap gap-3 text-sm text-slate-300">
+                <span className="app-badge app-badge-neutral">
+                  {scanResult.registration_type === 'team' ? 'Team' : 'Solo'}
+                </span>
+                {scanResult.team_name && <span>Team: <strong className="text-white">{scanResult.team_name}</strong></span>}
+                {scanResult.checked_in_at && (
+                  <span className="text-slate-400">at {new Date(scanResult.checked_in_at).toLocaleString('en-IN')}</span>
+                )}
+              </div>
+              {scanResult.members?.length > 0 && (
+                <div className="mt-3">
+                  <p className="mb-1 text-xs uppercase tracking-widest text-slate-500">Members</p>
+                  <ul className="space-y-0.5 text-sm text-slate-300">
+                    {scanResult.members.map((m: any, i: number) => (
+                      <li key={i}>{m.full_name} <span className="text-slate-500">{m.email}</span></li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
         </section>
       )}
 
       {/* Stats */}
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-4">
 
         <div className="app-stat-card p-5">
 
@@ -282,6 +301,18 @@ export default function RegistrationsPage() {
 
         </div>
 
+        <div className="app-stat-card p-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm text-slate-400">Checked in</p>
+              <p className="mt-3 text-4xl font-bold text-green-400">{stats.attended}</p>
+            </div>
+            <span className="bg-green-500/10 p-3 text-green-400">
+              <ScanLine size={18} />
+            </span>
+          </div>
+        </div>
+
       </section>
 
       {/* Table */}
@@ -290,6 +321,7 @@ export default function RegistrationsPage() {
         <RegistrationTable
           eventId={id}
           organizerId={organizerId}
+          refreshSignal={refreshSignal}
         />
 
       </section>

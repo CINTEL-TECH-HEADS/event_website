@@ -8,6 +8,14 @@ import { RegistrationStatus, RegistrationWithDetails } from '@/types'
 interface Props {
   eventId: string
   organizerId: string
+  // Bump to force a reload (e.g. after a live check-in).
+  refreshSignal?: number
+}
+
+// Attendance embeds as a single object (unique per registration), not an array.
+function attendanceRow(reg: any): { id: string; checked_in_at?: string } | null {
+  const a = Array.isArray(reg?.attendance) ? reg.attendance[0] : reg?.attendance
+  return a?.id ? a : null
 }
 
 type StatusFilter =
@@ -24,6 +32,7 @@ type TypeFilter =
 export function RegistrationTable({
   eventId,
   organizerId,
+  refreshSignal = 0,
 }: Props) {
   const [
     registrations,
@@ -125,7 +134,9 @@ export function RegistrationTable({
 
   useEffect(() => {
     loadRegistrations()
-  }, [loadRegistrations])
+    // refreshSignal is intentionally a dep so a live check-in re-fetches.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadRegistrations, refreshSignal])
 
   const getStatusBadge = (
     status: RegistrationStatus
@@ -280,6 +291,10 @@ export function RegistrationTable({
                 </th>
 
                 <th className="px-4 py-4 text-left">
+                  Attendance
+                </th>
+
+                <th className="px-4 py-4 text-left">
                   Date
                 </th>
               </tr>
@@ -292,7 +307,7 @@ export function RegistrationTable({
               0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="p-6"
                   >
                     <div className=" border border-dashed border-[#243B72] bg-[#0B1736] p-8 text-center text-slate-400">
@@ -365,6 +380,14 @@ export function RegistrationTable({
                           </span>
                         </td>
 
+                        <td className="px-4 py-4">
+                          {attendanceRow(registration) ? (
+                            <span className="app-badge app-badge-success">✓ Checked in</span>
+                          ) : (
+                            <span className="text-xs text-slate-500">—</span>
+                          )}
+                        </td>
+
                         <td className="px-4 py-4 text-sm text-slate-400">
                           {new Date(
                             registration.registered_at
@@ -378,64 +401,75 @@ export function RegistrationTable({
                       {expandedId ===
                         registration.id && (
                         <tr className="bg-[#0B1736]">
+                          <td colSpan={7} className="p-4">
+                            {(() => {
+                              const r = registration as any
+                              const att = attendanceRow(r)
+                              const attended = !!att
+                              const hasCert = (r.certificates?.length ?? 0) > 0
+                              const checkedInAt = att?.checked_in_at
+                              return (
+                                <div className="grid gap-4 border border-[#243B72] bg-[#10224A] p-4 lg:grid-cols-2">
+                                  {/* Contact + status */}
+                                  <div className="space-y-2 text-sm">
+                                    <div className="mb-2 flex items-center gap-2 font-semibold text-white">
+                                      <ChevronDown size={15} className="text-[#F5E62D]" /> Participant
+                                    </div>
+                                    <p className="text-slate-300"><span className="text-slate-500">Name:</span> {r.leader_name}</p>
+                                    <p className="text-slate-300"><span className="text-slate-500">Email:</span> {r.leader_email}</p>
+                                    {r.leader_phone && <p className="text-slate-300"><span className="text-slate-500">Phone:</span> {r.leader_phone}</p>}
+                                    <p className="text-slate-300"><span className="text-slate-500">ID:</span> <span className="font-mono">{r.display_id}</span></p>
+                                    {r.team_name && <p className="text-slate-300"><span className="text-slate-500">Team:</span> {r.team_name}</p>}
+                                    {r.group_code && <p className="text-slate-300"><span className="text-slate-500">Group code:</span> <span className="font-mono">{r.group_code}</span></p>}
+                                    <p className="text-slate-300">
+                                      <span className="text-slate-500">Attendance:</span>{' '}
+                                      {attended
+                                        ? <span className="text-green-400">Checked in{checkedInAt ? ` · ${new Date(checkedInAt).toLocaleString('en-IN')}` : ''}</span>
+                                        : <span className="text-slate-400">Not checked in</span>}
+                                    </p>
+                                    <p className="text-slate-300">
+                                      <span className="text-slate-500">Certificate:</span>{' '}
+                                      {hasCert ? <span className="text-amber-300">Generated</span> : <span className="text-slate-400">—</span>}
+                                    </p>
+                                  </div>
 
-                          <td
-                            colSpan={6}
-                            className="p-4"
-                          >
+                                  {/* Team members */}
+                                  <div className="text-sm">
+                                    <div className="mb-2 flex items-center gap-2 font-semibold text-white">
+                                      <Users size={15} className="text-[#F5E62D]" /> Members ({r.members?.length ?? 0})
+                                    </div>
+                                    {r.members?.length ? (
+                                      <ul className="space-y-1">
+                                        {r.members.map((m: any) => (
+                                          <li key={m.id} className="text-slate-300">
+                                            {m.full_name} <span className="text-slate-500">{m.email}</span>
+                                            {m.is_leader && <span className="ml-1 text-xs text-amber-400">Creator</span>}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p className="text-slate-400">Solo registration</p>
+                                    )}
+                                  </div>
 
-                            <div className="grid gap-4  border border-[#243B72] bg-[#10224A] p-4 lg:grid-cols-2">
-
-                              <div>
-
-                                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-
-                                  <Users
-                                    size={
-                                      15
-                                    }
-                                    className="text-[#F5E62D]"
-                                  />
-
-                                  Team &
-                                  Members
-
+                                  {/* Custom answers */}
+                                  {r.answers?.length > 0 && (
+                                    <div className="lg:col-span-2">
+                                      <div className="mb-2 text-sm font-semibold text-white">Responses</div>
+                                      <div className="grid gap-2 sm:grid-cols-2">
+                                        {r.answers.map((a: any) => (
+                                          <div key={a.id} className="border border-[#243B72] bg-[#0B1736] px-3 py-2">
+                                            <p className="text-xs text-slate-500">{a.form_fields?.label ?? 'Field'}</p>
+                                            <p className="text-sm text-white">{a.answer}</p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
-
-                                <p className="text-sm text-slate-300">
-                                  {registration.team_name ??
-                                    'Solo registration'}
-                                </p>
-
-                              </div>
-
-                              <div>
-
-                                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-
-                                  <ChevronDown
-                                    size={
-                                      15
-                                    }
-                                    className="text-[#F5E62D]"
-                                  />
-
-                                  Details
-
-                                </div>
-
-                                <p className="text-sm text-slate-300">
-                                  Clicked
-                                  registration
-                                  expanded.
-                                </p>
-
-                              </div>
-
-                            </div>
-
+                              )
+                            })()}
                           </td>
-
                         </tr>
                       )}
 

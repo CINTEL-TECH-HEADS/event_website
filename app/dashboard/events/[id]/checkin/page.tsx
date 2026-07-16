@@ -20,6 +20,9 @@ export default function CheckInPage() {
   const [organizerId, setOrganizerId] =
     useState('')
 
+  const [refreshSignal, setRefreshSignal] =
+    useState(0)
+
   useEffect(() => {
     async function getOrganizerId() {
       const supabase =
@@ -81,6 +84,7 @@ export default function CheckInPage() {
           <CheckInPanel
             eventId={id}
             organizerId={organizerId}
+            onCheckIn={() => setRefreshSignal((n) => n + 1)}
           />
 
         </section>
@@ -90,6 +94,7 @@ export default function CheckInPage() {
 
           <LiveStatsCounter
             eventId={id}
+            refreshSignal={refreshSignal}
           />
 
           {/* Tips */}

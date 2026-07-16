@@ -28,7 +28,9 @@ export async function GET(
     .select(`
       *,
       members:team_members(id, full_name, email, is_leader),
-      attendance(id, checked_in_at, method, checked_in_by)
+      answers:registration_answers(id, answer, field_id, form_fields(label, field_type)),
+      attendance(id, checked_in_at, method, checked_in_by),
+      certificates(id, certificate_url)
     `)
     .eq('event_id', eventId)
     .order('registered_at', { ascending: false })

@@ -14,6 +14,7 @@ import {
   ScanLine,
   Users,
 } from 'lucide-react'
+import { parseUuidFromQr } from '@/lib/qr/parse'
 
 const QRScanner = dynamic(
   () =>
@@ -44,6 +45,8 @@ interface CheckInResult {
 interface Props {
   eventId: string
   organizerId: string
+  // Fired after a successful check-in so siblings (e.g. the live counter) refresh.
+  onCheckIn?: () => void
 }
 
 type Status =
@@ -52,22 +55,10 @@ type Status =
   | 'success'
   | 'error'
 
-function parseUuidFromQr(
-  content: string
-): string | null {
-  const match =
-    content.match(
-      /[0-9a-f-]{36}/i
-    )
-
-  return match
-    ? match[0]
-    : null
-}
-
 export function CheckInPanel({
   eventId,
   organizerId,
+  onCheckIn,
 }: Props) {
   const [status, setStatus] =
     useState<Status>('idle')
@@ -176,6 +167,8 @@ export function CheckInPanel({
             setResult(
               data
             )
+
+            onCheckIn?.()
           }
         } catch {
           setStatus(
@@ -192,6 +185,7 @@ export function CheckInPanel({
       [
         eventId,
         organizerId,
+        onCheckIn,
       ]
     )
 
