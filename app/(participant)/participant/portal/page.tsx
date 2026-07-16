@@ -7,7 +7,7 @@ import { isPast, formatShortDate } from '@/lib/utils'
 import {
   Ticket, LogOut, Sun, Moon, Sunset, Calendar,
   Users, Copy, Check, ChevronRight, AlertTriangle,
-  UserPlus, Zap,
+  Zap,
 } from 'lucide-react'
 import { PortalTabs, type PortalTab } from '@/components/participant/PortalTabs'
 import { PastEventCard } from '@/components/participant/PastEventCard'
@@ -39,12 +39,9 @@ export default function PortalPage() {
   const [userName, setUserName]           = useState('')
   const [loading, setLoading]             = useState(true)
   const [error, setError]                 = useState<string | null>(null)
-  const [inviteCodes, setInviteCodes]     = useState<Record<string, string>>({})
   const [copied, setCopied]               = useState<string | null>(null)
-  const [joiningCode, setJoiningCode]     = useState('')
-  const [joinTarget, setJoinTarget]       = useState<string | null>(null)
-  const [joinStatus, setJoinStatus]       = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [joinMessage, setJoinMessage]     = useState('')
+  const [invites, setInvites]             = useState<any[]>([])
+  const [respBusy, setRespBusy]           = useState<string | null>(null)
   const [tab, setTab]                     = useState<PortalTab>('events')
   const router = useRouter()
 
@@ -58,9 +55,15 @@ export default function PortalPage() {
     if (first?.leader_name) setUserName(first.leader_name.split(' ')[0])
   }
 
+  async function loadInvites() {
+    const { data } = await fetch('/api/participant/team/invites').then(r => r.json()).catch(() => ({ data: [] }))
+    setInvites(data ?? [])
+  }
+
   useEffect(() => {
     Promise.all([
       loadRegistrations(),
+      loadInvites(),
       fetch('/api/events').then(r => r.json()).then(({ data }) => setActiveEvents(data ?? [])),
     ]).finally(() => setLoading(false))
   }, [])
@@ -70,39 +73,26 @@ export default function PortalPage() {
     window.location.href = '/login'
   }
 
-  async function generateInvite(registrationId: string) {
-    const { data, error } = await fetch('/api/participant/team/invite', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ registration_id: registrationId }),
-    }).then(r => r.json())
-    if (error) alert(error)
-    else setInviteCodes(prev => ({ ...prev, [registrationId]: data.link }))
-  }
-
-  async function copyInvite(regId: string) {
-    await navigator.clipboard.writeText(inviteCodes[regId])
+  async function copyInvite(regId: string, code: string) {
+    await navigator.clipboard.writeText(code)
     setCopied(regId)
     setTimeout(() => setCopied(null), 2000)
   }
 
-  async function handleJoinTeam() {
-    if (!joiningCode || !joinTarget) return
-    setJoinStatus('loading')
-    const email = registrations[0]?.leader_email ?? ''
-    const { data, error } = await fetch('/api/participant/team/join', {
+  // Accept / decline an incoming team invite or request.
+  async function respondInvite(inviteId: string, action: 'accept' | 'decline') {
+    setRespBusy(inviteId + action)
+    const { data, error } = await fetch('/api/participant/team/invite/respond', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ code: joiningCode.toUpperCase(), full_name: userName || 'Participant', email }),
+      body:    JSON.stringify({ invite_id: inviteId, action }),
     }).then(r => r.json())
-    if (error) { setJoinMessage(error); setJoinStatus('error') }
-    else {
-      setJoinMessage(data.message)
-      setJoinStatus('success')
-      setJoinTarget(null)
-      setJoiningCode('')
-      await loadRegistrations()
+    setRespBusy(null)
+    if (error) { alert(error); return }
+    if (action === 'accept' && data?.registration_id) {
+      router.push(`/participant/portal/events/${data.registration_id}`); return
     }
+    await Promise.all([loadRegistrations(), loadInvites()])
   }
 
   if (loading) return (
@@ -151,6 +141,33 @@ export default function PortalPage() {
 
       {tab === 'events' && (
       <>
+      {/* ── TEAM INVITES / REQUESTS (needs your response) ── */}
+      {invites.filter((i: any) => i.incoming).length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center gap-3 mb-3">
+            <Users size={13} className="text-amber-300" />
+            <h2 className="text-xs font-bold text-amber-300 uppercase tracking-widest">Team Invites</h2>
+          </div>
+          <div className="space-y-2">
+            {invites.filter((i: any) => i.incoming).map((i: any) => (
+              <div key={i.id} className="flex items-center justify-between bg-amber-500/5 border border-amber-500/20 px-4 py-3">
+                <p className="text-sm text-white">
+                  {i.direction === 'invite'
+                    ? <>Invite to join <strong>{i.team_name}</strong> · {i.event_title}</>
+                    : <><strong>{i.seeker_name}</strong> wants to join your team · {i.event_title}</>}
+                </p>
+                <div className="flex gap-2 shrink-0">
+                  <button onClick={() => respondInvite(i.id, 'accept')} disabled={respBusy === i.id + 'accept'}
+                    className="inline-flex items-center gap-1 bg-amber-400 text-slate-950 px-3 py-1.5 text-xs font-bold hover:bg-amber-300 disabled:opacity-50"><Check size={12}/>Accept</button>
+                  <button onClick={() => respondInvite(i.id, 'decline')} disabled={respBusy === i.id + 'decline'}
+                    className="inline-flex items-center gap-1 border border-white/10 text-slate-300 px-3 py-1.5 text-xs font-semibold hover:bg-white/5 disabled:opacity-50">Decline</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ── ACTION REQUIRED ──────────────────────────── */}
       {actionRequired.length > 0 && (
         <section className="mb-8">
@@ -224,74 +241,36 @@ export default function PortalPage() {
                     </div>
                   </div>
 
-                  {/* Leader — generate invite */}
+                  {/* Group code — creator can share it and manage the team */}
                   {isLeader && (
-                    <div className="border-t border-white/5 pt-4">
-                      {inviteCodes[r.id] ? (
-                        <div className="space-y-2">
-                          <p className="text-xs text-slate-400">Share this invite link:</p>
-                          <div className="bg-[#0a1629] border border-white/5  px-3 py-2 font-mono text-xs text-slate-300 break-all">
-                            {inviteCodes[r.id]}
-                          </div>
-                          <button
-                            onClick={() => copyInvite(r.id)}
-                            className="w-full flex items-center justify-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 py-2  text-xs font-bold transition-colors"
-                          >
-                            {copied === r.id ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
-                            {copied === r.id ? 'Copied!' : 'Copy Invite Link'}
-                          </button>
+                    <div className="border-t border-white/5 pt-4 space-y-2">
+                      <p className="text-xs text-slate-400">Share this group code so teammates can join:</p>
+                      <div className="flex gap-2">
+                        <div className="flex-1 bg-[#0a1629] border border-white/5 px-3 py-2 font-mono text-sm font-bold tracking-widest text-white">
+                          {r.group_code ?? '—'}
                         </div>
-                      ) : (
                         <button
-                          onClick={() => generateInvite(r.id)}
-                          className="w-full flex items-center justify-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 py-2.5  text-xs font-bold transition-colors"
+                          onClick={() => copyInvite(r.id, r.group_code)}
+                          className="flex items-center justify-center gap-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 px-3 text-xs font-bold transition-colors"
                         >
-                          <UserPlus size={12} />
-                          Generate Invite Link for Team Members
+                          {copied === r.id ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                          {copied === r.id ? 'Copied' : 'Copy'}
                         </button>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Non-leader — join with code */}
-                  {!isLeader && (
-                    <div className="border-t border-white/5 pt-4">
-                      {joinTarget === r.id ? (
-                        <div className="space-y-2">
-                          <input
-                            type="text"
-                            value={joiningCode}
-                            onChange={e => setJoiningCode(e.target.value.toUpperCase())}
-                            placeholder="CINTEL-XXXX"
-                            className="w-full bg-[#0a1629] border border-white/10  px-3 py-2 text-sm text-white placeholder-slate-500 font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                          />
-                          {joinStatus === 'error' && <p className="text-red-400 text-xs">{joinMessage}</p>}
-                          {joinStatus === 'success' && <p className="text-green-400 text-xs">{joinMessage}</p>}
-                          <div className="flex gap-2">
-                            <button
-                              onClick={handleJoinTeam}
-                              disabled={joinStatus === 'loading' || !joiningCode}
-                              className="flex-1 bg-white text-slate-950 py-2  text-xs font-bold hover:bg-slate-100 disabled:opacity-40 transition-colors"
-                            >
-                              {joinStatus === 'loading' ? 'Joining...' : 'Join Team'}
-                            </button>
-                            <button
-                              onClick={() => { setJoinTarget(null); setJoiningCode(''); setJoinStatus('idle') }}
-                              className="px-3 py-2 border border-white/10 text-slate-400  text-xs hover:bg-[#0a1629] transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setJoinTarget(r.id)}
-                          className="w-full flex items-center justify-center gap-2 bg-[#0a1629] hover:bg-slate-700 text-slate-300 border border-white/10 py-2  text-xs font-bold transition-colors"
+                      </div>
+                      <div className="flex gap-2">
+                        <Link
+                          href={`/participant/portal/events/${r.id}/team`}
+                          className="flex-1 flex items-center justify-center gap-2 bg-[#0a1629] hover:bg-slate-700 text-slate-300 border border-white/10 py-2 text-xs font-bold transition-colors"
                         >
-                          <Users size={12} />
-                          Join with Invite Code
-                        </button>
-                      )}
+                          <Users size={12} /> Manage Team
+                        </Link>
+                        <Link
+                          href={`/participant/portal/events/${r.id}/find`}
+                          className="flex-1 flex items-center justify-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 py-2 text-xs font-bold transition-colors"
+                        >
+                          <Users size={12} /> Find Teammates
+                        </Link>
+                      </div>
                     </div>
                   )}
                 </div>
