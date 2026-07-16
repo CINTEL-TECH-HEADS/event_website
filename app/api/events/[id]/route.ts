@@ -37,7 +37,9 @@ export async function GET(
     let query =
       supabase
         .from('events')
-        .select('*')
+        // Include the event's configured form fields so the registration page
+        // renders exactly what the organizer added.
+        .select('*, form_fields(*)')
 
     query = isUUID(id)
       ? query.eq(
@@ -54,6 +56,13 @@ export async function GET(
       error,
     } =
       await query.maybeSingle()
+
+    // Order fields by sort_order for a stable form layout.
+    if (data?.form_fields) {
+      data.form_fields.sort(
+        (a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+      )
+    }
 
     if (error)
       return apiError(
@@ -101,6 +110,17 @@ export async function PATCH(
 
     const supabase =
       createAdminClient()
+
+    // Gate publishing: an event must have at least one configured field.
+    if (body.is_published === true) {
+      const { count } = await supabase
+        .from('form_fields')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', id)
+      if ((count ?? 0) === 0) {
+        return apiError('Add at least one registration field before publishing this event.', 400)
+      }
+    }
 
     const {
       data,

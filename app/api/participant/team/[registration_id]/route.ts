@@ -7,6 +7,7 @@ import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
 import { isTeamCreator } from '@/lib/registrations/access'
+import { isTeamNameTaken } from '@/lib/registrations/team-name'
 
 export async function PATCH(
   req: NextRequest,
@@ -28,6 +29,15 @@ export async function PATCH(
     if (typeof body.team_name === 'string') {
       const name = body.team_name.trim()
       if (name.length < 2) return apiError('Team name must be at least 2 characters')
+      // Unique per event (excluding this registration).
+      const { data: reg } = await admin
+        .from('registrations')
+        .select('event_id')
+        .eq('id', registration_id)
+        .maybeSingle()
+      if (reg && (await isTeamNameTaken(admin, reg.event_id, name, registration_id))) {
+        return apiError('That team name is already taken for this event.')
+      }
       update.team_name = name
     }
     if (typeof body.is_open === 'boolean') {
