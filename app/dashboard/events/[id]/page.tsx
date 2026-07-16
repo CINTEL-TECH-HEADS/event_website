@@ -23,6 +23,7 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<EventWithStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [fieldsCount, setFieldsCount] = useState<number | null>(null)
   const [tab, setTab] = useState<'details' | 'form' | 'organizers'>('details')
   const [formData, setFormData] = useState({
     title: '',
@@ -56,6 +57,12 @@ export default function EventDetailPage() {
         min_team_size: data.min_team_size?.toString() ?? '',
         max_team_size: data.max_team_size?.toString() ?? '',
       })
+
+      // Fields count gates publishing.
+      fetch(`/api/events/${id}/form-fields`)
+        .then((r) => r.json())
+        .then((j) => setFieldsCount((j.data ?? []).length))
+        .catch(() => setFieldsCount(0))
     } catch (error) {
       console.error('Failed to load event:', error)
       setEvent(null)
@@ -114,14 +121,13 @@ export default function EventDetailPage() {
         body: JSON.stringify({ is_published: !event.is_published }),
       })
 
+      const json = await res.json().catch(() => null)
       if (!res.ok) {
-  const text = await res.text()
-  console.log(text)
-  throw new Error(text || 'Failed to toggle publish')
-}
-
-      const { data } = await res.json()
-      setEvent(data)
+        // Surface the server's reason (e.g. "add at least one field").
+        alert(json?.error ?? 'Failed to update event status')
+        return
+      }
+      setEvent(json.data)
     } catch (error) {
       console.error('Failed to toggle publish:', error)
       alert('Failed to update event status')
@@ -162,14 +168,19 @@ export default function EventDetailPage() {
             </div>
           </div>
 
-          <button
-            onClick={togglePublish}
-            disabled={saving}
-            className={event.is_published ? 'app-button-secondary' : 'app-button-primary'}
-          >
-            {event.is_published ? <CheckCircle2 size={16} /> : <CircleDashed size={16} />}
-            {event.is_published ? 'Published' : 'Publish Event'}
-          </button>
+          <div className="flex flex-col items-end gap-1">
+            <button
+              onClick={togglePublish}
+              disabled={saving || (!event.is_published && fieldsCount === 0)}
+              className={event.is_published ? 'app-button-secondary' : 'app-button-primary'}
+            >
+              {event.is_published ? <CheckCircle2 size={16} /> : <CircleDashed size={16} />}
+              {event.is_published ? 'Published' : 'Publish Event'}
+            </button>
+            {!event.is_published && fieldsCount === 0 && (
+              <p className="text-xs text-amber-300/80">Add at least one field (Form tab) to publish.</p>
+            )}
+          </div>
         </div>
       </section>
 
