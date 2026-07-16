@@ -24,17 +24,24 @@ export async function GET(
         members:team_members(*),
         answers:registration_answers(*, form_fields(label, field_type)),
         attendance(id, checked_in_at, method),
-        certificates(id, certificate_url, generated_at)
+        certificates(id, certificate_url, generated_at, team_member_id)
       `)
       .eq('id', id)
       .maybeSingle()
 
     if (!reg) return apiError('Registration not found', 404)
 
-    const isLeader = reg.leader_email?.toLowerCase() === email.toLowerCase()
-    const isMember = reg.members?.some((m: any) => m.email?.toLowerCase() === email.toLowerCase())
+    // Access + role are account-based (participant_id), with email as a legacy
+    // fallback. Owner = solo participant or team creator; member = joined the team.
+    const lowerEmail = email.toLowerCase()
+    const myMember = reg.members?.find(
+      (m: any) => m.participant_id === user.id || m.email?.toLowerCase() === lowerEmail
+    )
+    const isOwner =
+      reg.participant_id === user.id || reg.leader_email?.toLowerCase() === lowerEmail
+    const isLeader = isOwner || !!myMember?.is_leader
 
-    if (!isLeader && !isMember) return apiError('Forbidden', 403)
+    if (!isOwner && !myMember) return apiError('Forbidden', 403)
 
     // Get fresh QR signed URL
     let qr_code_url = reg.qr_code_url
@@ -46,7 +53,19 @@ export async function GET(
       qr_code_url = signedUrl?.signedUrl ?? reg.qr_code_url
     }
 
-    return apiSuccess({ ...reg, qr_code_url, is_leader: isLeader })
+    // The certificate belonging to the requesting member: for a team, the row
+    // whose team_member_id matches; for solo, the registration-level row.
+    const myCertificate = myMember
+      ? (reg.certificates ?? []).find((c: any) => c.team_member_id === myMember.id) ?? null
+      : (reg.certificates ?? []).find((c: any) => !c.team_member_id) ?? null
+
+    return apiSuccess({
+      ...reg,
+      qr_code_url,
+      is_leader: isLeader,
+      my_team_member_id: myMember?.id ?? null,
+      my_certificate: myCertificate,
+    })
   } catch (err) {
     console.error('[GET /api/participant/registrations/[id]]', err)
     return apiError('Internal server error', 500)

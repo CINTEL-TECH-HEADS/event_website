@@ -32,7 +32,10 @@ export const teamRegistrationSchema = z.object({
   leader_email: z.string().email(),
   leader_phone: z.string().regex(/^[6-9]\d{9}$/),
   register_number: z.string().min(5),
-  members: z.array(teamMemberSchema).min(1),
+  // Group-code model: the creator makes the team with just themselves; other
+  // participants join later with the code, so members are no longer required
+  // up front. Kept optional for any legacy callers that still pass members.
+  members: z.array(teamMemberSchema).optional().default([]),
   answers: z.array(registrationAnswerSchema).optional().default([]),
 })
 

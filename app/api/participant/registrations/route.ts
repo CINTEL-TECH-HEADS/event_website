@@ -27,13 +27,15 @@ export async function GET(req: NextRequest) {
       .eq('participant_id', user.id)
       .order('registered_at', { ascending: false })
 
-    // Team memberships — the only place email matching applies: a non-leader
-    // member added to someone else's team by email (their participant_id is
-    // not on that registration) still sees the event in their own portal.
+    // Team memberships — teams this account joined (group-code model links each
+    // member to their account via participant_id). Legacy rows with no account
+    // link still match by email as a fallback.
     const { data: memberRegs } = await admin
       .from('team_members')
       .select(`
         registration_id,
+        participant_id,
+        email,
         registrations(
           *,
           events(id, title, event_type, venue, starts_at, ends_at),
@@ -42,7 +44,7 @@ export async function GET(req: NextRequest) {
           certificates(id, certificate_url, generated_at)
         )
       `)
-      .eq('email', email)
+      .or(`participant_id.eq.${user.id},email.eq.${email}`)
       .eq('is_leader', false)
 
     const memberRegData = (memberRegs ?? [])

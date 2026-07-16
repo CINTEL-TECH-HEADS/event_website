@@ -83,13 +83,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ data: null, error: 'Event not found' }, { status: 404 })
     }
 
-    // Fetch all confirmed and attended registrations
+    // Fetch all confirmed and attended registrations (attendance is team-level:
+    // one shared QR check-in per registration).
     const { data: attended } = await admin
       .from('attendance')
       .select(`
         registration_id,
         registrations!inner (
-          id, leader_name, leader_email, status
+          id, registration_type, leader_name, leader_email, status,
+          members:team_members ( id, full_name, email )
         )
       `)
       .eq('event_id', event_id)
@@ -99,45 +101,70 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ data: null, error: 'No eligible attendees found.' }, { status: 404 })
     }
 
-    const results = { total: attended.length, generated: 0, emailed: 0, failed: 0 }
-
+    // Expand each attended registration into per-recipient certificate targets.
+    // Solo → one (team_member_id null). Team → one per member (own name + cert).
+    type Target = { regId: string; teamMemberId: string | null; name: string; email: string }
+    const targets: Target[] = []
     for (const record of attended) {
       const reg = record.registrations as any
       if (!reg) continue
+      if (reg.registration_type === 'team') {
+        for (const m of (reg.members ?? [])) {
+          targets.push({ regId: reg.id, teamMemberId: m.id, name: m.full_name, email: m.email })
+        }
+      } else {
+        targets.push({ regId: reg.id, teamMemberId: null, name: reg.leader_name, email: reg.leader_email })
+      }
+    }
 
+    const results = { total: targets.length, generated: 0, emailed: 0, failed: 0 }
+
+    for (const t of targets) {
       try {
-        let certUrl = null
+        let certUrl: string | null = null
 
-        // Try to find existing certificate
-        const { data: existingCert } = await admin
+        // Existing cert for this exact recipient (registration + member).
+        let existingQuery = admin
           .from('certificates')
           .select('certificate_url')
-          .eq('registration_id', reg.id)
+          .eq('registration_id', t.regId)
           .eq('event_id', event_id)
+        existingQuery = t.teamMemberId
+          ? existingQuery.eq('team_member_id', t.teamMemberId)
+          : existingQuery.is('team_member_id', null)
+        const { data: existingCert } = await existingQuery
           .order('generated_at', { ascending: false })
           .limit(1)
-          .single()
+          .maybeSingle()
 
-        if (existingCert) {
-          certUrl = existingCert.certificate_url
-        }
+        if (existingCert) certUrl = existingCert.certificate_url
 
         // Generate if missing or if action is explicitly 'generate'
         if (!existingCert || action === 'generate') {
           certUrl = await generateCertificate({
-            registrationId: reg.id,
+            registrationId: t.regId,
             eventId: event_id,
-            attendeeName: reg.leader_name,
+            attendeeName: t.name,
             eventName: event.title,
             eventDate: event.starts_at,
+            teamMemberId: t.teamMemberId,
           })
 
-          // Save/Update record in DB
           if (certUrl) {
-            await admin.from('certificates').delete().eq('registration_id', reg.id).eq('event_id', event_id)
+            let delQuery = admin
+              .from('certificates')
+              .delete()
+              .eq('registration_id', t.regId)
+              .eq('event_id', event_id)
+            delQuery = t.teamMemberId
+              ? delQuery.eq('team_member_id', t.teamMemberId)
+              : delQuery.is('team_member_id', null)
+            await delQuery
+
             await admin.from('certificates').insert({
               event_id: event_id,
-              registration_id: reg.id,
+              registration_id: t.regId,
+              team_member_id: t.teamMemberId,
               certificate_url: certUrl,
               template_version: 1,
             })
@@ -154,8 +181,8 @@ export async function POST(req: NextRequest) {
 
           if (signedUrl?.signedUrl) {
             await sendCertificateReadyEmail({
-              to: reg.leader_email,
-              leaderName: reg.leader_name,
+              to: t.email,
+              leaderName: t.name,
               eventTitle: event.title,
               certificateUrl: signedUrl.signedUrl,
             })
@@ -165,7 +192,7 @@ export async function POST(req: NextRequest) {
           }
         }
       } catch (err: any) {
-        console.error(`Error processing registration ${reg.id}:`, err)
+        console.error(`Error processing certificate for ${t.regId}/${t.teamMemberId}:`, err)
         results.failed++
       }
     }

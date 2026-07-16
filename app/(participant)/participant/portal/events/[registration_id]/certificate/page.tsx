@@ -22,15 +22,13 @@ export default function CertificatePage() {
         const attended = Array.isArray(data?.attendance)
           ? data.attendance.length > 0
           : !!data?.attendance?.id
-        const cert = Array.isArray(data?.certificates)
-          ? data.certificates[0]
-          : data?.certificates
 
         if (!attended) { setState('not_attended'); return }
-        if (!cert)     { setState('pending');      return }
 
+        // Account-based: returns THIS participant's own certificate (per-member
+        // for teams, registration-level for solo).
         const res = await fetch(
-          `/api/certificates/download?email=${encodeURIComponent(data.leader_email)}&event_id=${data.event_id}`
+          `/api/participant/registrations/${registration_id}/certificate`
         ).then(r => r.json())
 
         if (res.data?.downloadUrl) {

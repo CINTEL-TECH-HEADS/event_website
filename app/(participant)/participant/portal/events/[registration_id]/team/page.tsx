@@ -3,16 +3,17 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Users, Link2, Copy, Check, Trash2, UserPlus } from 'lucide-react'
+import { ArrowLeft, Users, Copy, Check, Trash2, KeyRound, Lock, Unlock, Pencil } from 'lucide-react'
 
 export default function TeamPage() {
   const { registration_id } = useParams<{ registration_id: string }>()
   const router = useRouter()
-  const [reg, setReg]               = useState<any>(null)
-  const [inviteData, setInviteData] = useState<any>(null)
-  const [loading, setLoading]       = useState(true)
-  const [generating, setGenerating] = useState(false)
-  const [copied, setCopied]         = useState(false)
+  const [reg, setReg]         = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [copied, setCopied]   = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+  const [busy, setBusy]       = useState(false)
 
   async function loadReg() {
     const { data } = await fetch(`/api/participant/registrations/${registration_id}`).then(r => r.json())
@@ -21,23 +22,11 @@ export default function TeamPage() {
       return
     }
     setReg(data)
+    setNameDraft(data.team_name ?? '')
     setLoading(false)
   }
 
   useEffect(() => { loadReg() }, [registration_id])
-
-  async function generateInvite() {
-    setGenerating(true)
-    const res = await fetch('/api/participant/team/invite', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ registration_id }),
-    })
-    const { data, error } = await res.json()
-    if (error) alert(error)
-    else setInviteData(data)
-    setGenerating(false)
-  }
 
   async function removeMember(member_id: string, name: string) {
     if (!confirm(`Remove ${name} from the team?`)) return
@@ -50,19 +39,23 @@ export default function TeamPage() {
     else loadReg()
   }
 
-  async function copyLink() {
-    await navigator.clipboard.writeText(inviteData.link)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  async function patchTeam(update: Record<string, unknown>) {
+    setBusy(true)
+    const { error } = await fetch(`/api/participant/team/${registration_id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(update),
+    }).then(r => r.json())
+    setBusy(false)
+    if (error) { alert(error); return false }
+    await loadReg()
+    return true
   }
 
-  async function revokeCode() {
-    await fetch('/api/participant/team/invite/revoke', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: inviteData.code }),
-    })
-    setInviteData(null)
+  async function copyCode() {
+    await navigator.clipboard.writeText(reg.group_code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   if (loading) return (
@@ -73,6 +66,7 @@ export default function TeamPage() {
 
   const maxSize     = reg?.events?.max_team_size
   const memberCount = reg?.members?.length ?? 0
+  const isFull      = maxSize && memberCount >= maxSize
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
@@ -80,19 +74,77 @@ export default function TeamPage() {
         <ArrowLeft size={14} /> Back
       </Link>
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-white">Team</h1>
-        <p className="text-slate-400 text-sm mt-1">{reg?.team_name} · {reg?.events?.title}</p>
+      <div className="mb-6 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          {editing ? (
+            <div className="flex items-center gap-2">
+              <input
+                value={nameDraft}
+                onChange={e => setNameDraft(e.target.value)}
+                className="bg-[#0a1629] border border-white/10 px-3 py-1.5 text-lg font-semibold text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              />
+              <button
+                disabled={busy}
+                onClick={async () => { if (await patchTeam({ team_name: nameDraft })) setEditing(false) }}
+                className="text-xs font-bold bg-amber-400 text-slate-950 px-3 py-1.5 hover:bg-amber-300 disabled:opacity-50"
+              >
+                Save
+              </button>
+              <button onClick={() => { setEditing(false); setNameDraft(reg.team_name ?? '') }} className="text-xs text-slate-400 px-2 py-1.5">Cancel</button>
+            </div>
+          ) : (
+            <h1 className="text-2xl font-semibold text-white flex items-center gap-2">
+              {reg?.team_name}
+              <button onClick={() => setEditing(true)} className="text-slate-500 hover:text-amber-300" title="Rename team">
+                <Pencil size={15} />
+              </button>
+            </h1>
+          )}
+          <p className="text-slate-400 text-sm mt-1">{reg?.events?.title}</p>
+        </div>
+      </div>
+
+      {/* Group code */}
+      <div className="bg-slate-900/80 border border-white/10 p-6 mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <KeyRound size={16} className="text-amber-300" />
+          <h2 className="font-semibold text-white">Group code</h2>
+        </div>
+        <p className="text-sm text-slate-400 mb-4">
+          Share this code. Teammates sign in and enter it (or find your team in the Team Finder) to join.
+        </p>
+        <div className="flex gap-2">
+          <div className="flex-1 bg-[#0a1629] border border-white/10 px-4 py-3 font-mono text-lg font-bold tracking-widest text-white">
+            {reg?.group_code ?? '—'}
+          </div>
+          <button
+            onClick={copyCode}
+            className="flex items-center justify-center gap-2 bg-white text-slate-950 px-4 font-bold hover:bg-slate-100 transition-colors"
+          >
+            {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} className="text-amber-500" />}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+
+        {/* Open / closed for the finder */}
+        <button
+          disabled={busy}
+          onClick={() => patchTeam({ is_open: !reg.is_open })}
+          className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-300 border border-white/10 px-4 py-2 hover:bg-white/5 disabled:opacity-50"
+        >
+          {reg?.is_open ? <Unlock size={14} className="text-emerald-400" /> : <Lock size={14} className="text-slate-400" />}
+          {reg?.is_open ? 'Open — visible in Team Finder' : 'Closed — hidden from Team Finder'}
+        </button>
       </div>
 
       {/* Members */}
-      <div className="bg-slate-900/80 border border-white/10  p-6 mb-4">
+      <div className="bg-slate-900/80 border border-white/10 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-white flex items-center gap-2">
             <Users size={16} className="text-amber-400" />
             Members
           </h2>
-          <span className="text-xs font-bold text-slate-400 bg-slate-800 border border-white/5 px-2 py-0.5 rounded-full">
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${isFull ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20' : 'text-slate-400 bg-slate-800 border-white/5'}`}>
             {memberCount}{maxSize ? `/${maxSize}` : ''}
           </span>
         </div>
@@ -103,14 +155,15 @@ export default function TeamPage() {
               <div>
                 <p className="text-sm font-bold text-white">
                   {m.full_name}
-                  {m.is_leader && <span className="ml-2 text-xs text-amber-400 font-bold">Leader</span>}
+                  {m.is_leader && <span className="ml-2 text-xs text-amber-400 font-bold">Creator</span>}
                 </p>
                 <p className="text-xs text-slate-400">{m.email}</p>
               </div>
               {!m.is_leader && (
                 <button
                   onClick={() => removeMember(m.id, m.full_name)}
-                  className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10  transition-colors"
+                  className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  title="Remove member"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -118,56 +171,6 @@ export default function TeamPage() {
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Invite */}
-      <div className="bg-slate-900/80 border border-white/10  p-6">
-        <div className="flex items-center gap-2 mb-2">
-          <UserPlus size={16} className="text-amber-300" />
-          <h2 className="font-semibold text-white">Invite Member</h2>
-        </div>
-        <p className="text-sm text-slate-400 mb-4">
-          Generate a link and share it. They fill in their details and join instantly. Expires in 48 hours.
-        </p>
-
-        {!inviteData ? (
-          <button
-            onClick={generateInvite}
-            disabled={generating || (maxSize && memberCount >= maxSize)}
-            className="w-full flex items-center justify-center gap-2 bg-white text-slate-950 py-2.5  font-bold hover:bg-slate-100 disabled:opacity-40 transition-colors"
-          >
-            {generating ? (
-              <div className="w-4 h-4 border-2 border-slate-400 border-t-slate-900 rounded-full animate-spin" />
-            ) : (
-              <Link2 size={16} className="text-amber-500" />
-            )}
-            {generating ? 'Generating...' : 'Generate Invite Link'}
-          </button>
-        ) : (
-          <div className="space-y-3">
-            <div className="bg-slate-800 border border-white/5  p-3 font-mono text-xs text-slate-300 break-all">
-              {inviteData.link}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={copyLink}
-                className="flex-1 flex items-center justify-center gap-2 bg-white text-slate-950 py-2  text-sm font-bold hover:bg-slate-100 transition-colors"
-              >
-                {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className="text-amber-500" />}
-                {copied ? 'Copied!' : 'Copy Link'}
-              </button>
-              <button
-                onClick={revokeCode}
-                className="px-3 py-2 border border-red-500/20 text-red-400  text-sm hover:bg-red-500/10 transition-colors"
-              >
-                Revoke
-              </button>
-            </div>
-            <p className="text-xs text-slate-500">
-              Expires: {new Date(inviteData.expires_at).toLocaleDateString('en-IN')}
-            </p>
-          </div>
-        )}
       </div>
     </div>
   )
