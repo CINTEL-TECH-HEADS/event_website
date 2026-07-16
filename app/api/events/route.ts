@@ -235,6 +235,24 @@ export async function POST(
     const payload =
       await req.json()
 
+    // Team-size cap: required and 2 <= min <= max for team/both; null for solo.
+    const isTeamMode = payload.registration_mode !== 'solo'
+    let minTeam: number | null = null
+    let maxTeam: number | null = null
+    if (isTeamMode) {
+      minTeam = payload.min_team_size ?? null
+      maxTeam = payload.max_team_size ?? null
+      if (minTeam == null || maxTeam == null) {
+        return apiError('Team and both events require a min and max team size', 400)
+      }
+      if (minTeam < 2 || maxTeam < 2) {
+        return apiError('Team size must be at least 2', 400)
+      }
+      if (minTeam > maxTeam) {
+        return apiError('Max team size must be greater than or equal to min team size', 400)
+      }
+    }
+
     const supabase =
       createAdminClient()
 
@@ -285,11 +303,9 @@ export async function POST(
             registration_mode:
               payload.registration_mode,
             min_team_size:
-              payload.min_team_size ??
-              null,
+              minTeam,
             max_team_size:
-              payload.max_team_size ??
-              null,
+              maxTeam,
             is_published:
               false,
           },

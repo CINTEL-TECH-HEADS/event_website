@@ -26,6 +26,11 @@ export default function NewEventPage() {
   const [error, setError] =
     useState<string | null>(null)
 
+  const [registrationMode, setRegistrationMode] =
+    useState<'solo' | 'team' | 'both'>('solo')
+
+  const isTeamMode = registrationMode !== 'solo'
+
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
   ) {
@@ -68,6 +73,14 @@ export default function NewEventPage() {
         form.get(
           'registration_mode'
         ) as CreateEventPayload['registration_mode'],
+
+      min_team_size: isTeamMode && form.get('min_team_size')
+        ? Number(form.get('min_team_size'))
+        : null,
+
+      max_team_size: isTeamMode && form.get('max_team_size')
+        ? Number(form.get('max_team_size'))
+        : null,
     }
 
     const res = await fetch(
@@ -235,6 +248,12 @@ export default function NewEventPage() {
               name="registration_mode"
               required
               className="app-select"
+              value={registrationMode}
+              onChange={(e) =>
+                setRegistrationMode(
+                  e.target.value as 'solo' | 'team' | 'both'
+                )
+              }
             >
               <option value="solo">
                 Solo
@@ -251,6 +270,38 @@ export default function NewEventPage() {
             </select>
 
           </div>
+
+          {/* Team size — only for team / both events */}
+          {isTeamMode && (
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                  Min team size
+                </label>
+                <input
+                  name="min_team_size"
+                  type="number"
+                  min={2}
+                  defaultValue={2}
+                  required
+                  className="w-full border border-[#243B72] bg-[#07142E] px-5 py-4 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                  Max team size
+                </label>
+                <input
+                  name="max_team_size"
+                  type="number"
+                  min={2}
+                  defaultValue={4}
+                  required
+                  className="w-full border border-[#243B72] bg-[#07142E] px-5 py-4 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Textarea */}
           <LuxuryTextarea

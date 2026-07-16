@@ -10,6 +10,7 @@ import { sendConfirmationWhatsApp } from '@/lib/whatsapp/send'
 import { rateLimit } from '@/lib/rate-limit'
 import { getAuthUser } from '@/lib/auth/get-session'
 import { findUserRegistration } from '@/lib/registrations/is-registered'
+import { generateUniqueGroupCode } from '@/lib/registrations/group-code'
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
@@ -38,6 +39,14 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
   if (!event) return apiError('Event not found', 404)
 
+  // Step 2b: registration_type must match what the event allows.
+  if (event.registration_mode === 'solo' && payload.registration_type !== 'solo') {
+    return apiError('This event only allows solo registration')
+  }
+  if (event.registration_mode === 'team' && payload.registration_type !== 'team') {
+    return apiError('This event only allows team registration')
+  }
+
   // Step 3: Check deadline
   if (new Date() > new Date(event.registration_closes_at)) {
     return apiError('Registration has closed for this event')
@@ -57,12 +66,14 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
   if (dupLeader) return apiError('This email is already registered for this event')
 
-  // Step 5: Team-specific checks
+  // Step 5: Team-specific checks (group-code model: the creator starts the team
+  // with just themselves; other participants join later with the code, so we no
+  // longer require members up front and min-size is a soft/portal signal). Any
+  // members passed by a legacy caller are still validated + capped.
   if (payload.registration_type === 'team') {
     const members = (payload as any).members ?? []
-    if (event.min_team_size && members.length < event.min_team_size)
-      return apiError(`Minimum team size is ${event.min_team_size}`)
-    if (event.max_team_size && members.length > event.max_team_size)
+    const teamSize = members.length + 1 // + the creator
+    if (event.max_team_size && teamSize > event.max_team_size)
       return apiError(`Maximum team size is ${event.max_team_size}`)
     const emails = members.map((m: any) => m.email)
     if (new Set(emails).size !== emails.length)
@@ -104,9 +115,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Step 7: Generate IDs
+  // Step 7: Generate IDs (+ a shareable group code for teams)
   const regId      = crypto.randomUUID()
   const display_id = regId.replace(/-/g, '').slice(0, 8).toUpperCase()
+  const group_code =
+    payload.registration_type === 'team'
+      ? await generateUniqueGroupCode(supabase)
+      : null
 
   // Step 8: Generate QR
   let qr_storage_path: string | null = null
@@ -132,15 +147,18 @@ export async function POST(req: NextRequest) {
     status,
     waitlist_position,
     participant_id:    user.id,
+    group_code,
+    is_open:           payload.registration_type === 'team' ? true : null,
   })
   if (insertErr) return apiError(insertErr.message, 500)
 
-  // Step 10: Insert team members
+  // Step 10: Insert team members — creator is the leader and is linked to their
+  // account so the team surfaces in their portal and gets a per-member cert.
   if (payload.registration_type === 'team') {
     const members = (payload as any).members ?? []
     const memberRows = [
-      { registration_id: regId, full_name: payload.leader_name, email: payload.leader_email, is_leader: true },
-      ...members.map((m: any) => ({ registration_id: regId, full_name: m.full_name, email: m.email, is_leader: false }))
+      { registration_id: regId, full_name: payload.leader_name, email: payload.leader_email, is_leader: true, participant_id: user.id },
+      ...members.map((m: any) => ({ registration_id: regId, full_name: m.full_name, email: m.email, is_leader: false, participant_id: null }))
     ]
     await supabase.from('team_members').insert(memberRows)
   }
@@ -210,5 +228,6 @@ export async function POST(req: NextRequest) {
     qr_code_url:     qrSignedUrl,
     status,
     waitlist_position,
+    group_code,
   })
 }

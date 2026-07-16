@@ -2,7 +2,80 @@
 
 > Living document. Update this at the end of every working session: append what was
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
-> Last updated: 2026-07-16 (auth-aware public header + airtight role gates + portal registration mapping fix + no double-registration).
+> Last updated: 2026-07-16 (group-code teams: create/join + Team Finder, shared QR, per-member certs; auth-aware header; role gates; portal mapping fix).
+
+## Recent: Team-size caps + solo/team choice (2026-07-16, uncommitted — no migration)
+- **Organizer sets min/max team members** on **create** (`app/dashboard/events/new/page.tsx`) and **edit**
+  (`app/dashboard/events/[id]/page.tsx`) forms — inputs shown when `registration_mode` is team/both,
+  required, `2 <= min <= max`. Columns/API already existed; the forms just never collected them.
+- **Validation**: `lib/validators/event.ts` refine (team/both require min+max, min≤max); inline guard in
+  `POST /api/events` (which doesn't run the schema) rejects missing/invalid caps and nulls them for solo.
+  `max_team_size` is now actually set, so the existing join/invite/request/merge capacity checks bite.
+- **Registration solo/team choice for `both` events** (`app/(public)/events/[slug]/register/page.tsx`):
+  a **Register solo / Register as a team** selector; solo → solo form, team → Create/Find/Join. Solo and
+  team-only events are fixed (no selector). `RegistrationForm` gained a `forceTeam` prop so "Create a
+  team" submits as a team on a `both` event.
+- **Server guard** (`POST /api/registrations`): rejects a `registration_type` the event's mode disallows
+  (solo event → solo only; team event → team only).
+- ✅ **Verified**: create/edit store min/max; missing or min>max rejected; solo stores nulls; `both`
+  register page shows the solo/team choice and gates the team controls; team-only event rejects a solo
+  POST; `tsc` clean; no console errors; temp data cleaned up.
+- NOTE: migration 016 gained a cert-constraint fix (drop old one-cert-per-registration unique; add a
+  solo-only partial unique so per-member team certs work) — **already applied** to live DB (idempotent).
+
+## Recent: Team matchmaking (2026-07-16, uncommitted — migration 017 APPLIED to live DB)
+Two-sided invite/request matchmaking, scoped to **team events** and to **registration + portal** (never
+the homepage). Builds on the group-code work below.
+- **Scope**: removed the global portal "Join a team" box. On the **register page** (team events only):
+  **Create a team** / **Find a team** (opt-in seeking) / **Join with code**. Team actions otherwise live
+  only in the portal per team-event.
+- **Seeker = open team-of-one**: "Find a team" registers the participant as a size-1 open team
+  (`is_open=true`, auto-named), so they count as a registrant (no double-registration) and appear in the
+  seeker pool. Reuses `POST /api/registrations` team path.
+- **Matchmaking (both directions)**: a team short of members **invites** an individual seeker (seeker
+  accepts), and a seeker **requests** to join a team (creator accepts). On accept the seeker is merged
+  into the team and their team-of-one dissolved (`lib/registrations/merge-into-team.ts`); full team → is
+  removed from both pools (`is_open=false`).
+- **Endpoints**: `GET /api/events/[id]/seekers` (+ `/teams` now excludes self);
+  `POST /api/participant/team/invite | request | invite/respond`; `GET /api/participant/team/invites`
+  (incoming/outgoing). `lib/registrations/access.ts` `isTeamCreator` authorizes creator actions.
+- **UI**: matchmaking view at `.../events/[registration_id]/find` (request/invite/respond + pending);
+  portal home surfaces **incoming invites/requests** (accept/decline); team cards link to Find Teammates.
+  Instant group-code join kept (register page "Join with code" + `/join/[code]`).
+- **Migration 017** (`017_team_invites.sql`, APPLIED): `team_invites` (direction invite|request, status,
+  fks, partial-unique pending pair, RLS). Reuses `registrations.is_open` (016) as finder visibility.
+- ✅ **Verified end-to-end** (throwaway users/event, cleaned up): create team, two "Find a team" seekers,
+  invite→accept, request→accept, guards (dup invite blocked, wrong-party accept blocked both directions),
+  full team drops from finder + `is_open=false`, seeker reg dissolved (counted once), homepage/events have
+  no team UI, no console errors, `tsc` clean.
+
+## Recent: Group-code teams (2026-07-16, uncommitted — migration 016 APPLIED to live DB)
+Replaced the leader-invite team model with a **group-code** model:
+- **Create/Join**: creating a team mints a shareable `group_code` (registration row) and adds the creator
+  as a `team_members` row linked to their account (`participant_id`). Others **join** with the code (or
+  via the Team Finder) while logged in — each member is linked to their account. Auth-required join
+  (`POST /api/participant/team/join` by `{code}` or `{registration_id}`).
+- **Team Finder**: `GET /api/events/[id]/teams` lists open, non-full teams (no PII); shown on the
+  register page (Create-a-team vs Find-a-team toggle) and a Join box in the portal.
+- **Lightweight creator**: rename + open/close (`PATCH /api/participant/team/[registration_id]`) and
+  remove members (`team/remove`, now authorized by account via `lib/registrations/access.ts`).
+- **Shared QR, per-member certificates**: attendance stays team-level (one shared QR check-in);
+  `POST /api/certificates` now generates **one cert per team member** (`certificates.team_member_id`,
+  distinct file per recipient). New `GET /api/participant/registrations/[id]/certificate` returns the
+  requester's own cert (account-based). Public `certificates/download` handles team members + per-member.
+- **Account-based access fixes BOTH solo & team**: `/api/participant/registrations` (list) and `[id]`
+  (detail, backs detail/QR/certificate) now authorize by `participant_id` (+ `team_members.participant_id`),
+  not `leader_email`. This fixes the reported bug where a participant whose login email ≠ the
+  registration's `leader_email` got 403 ("Registration not found") on detail/QR/cert.
+- **Removed** the old leader invite-link flow (`team/invite`, `team/invite/revoke`, `team_invite_codes`
+  retired). `/join/[code]` restyled + auth-required.
+- **Migration 016** (`supabase/migrations/016_group_code_teams.sql`, APPLIED): `registrations.group_code`
+  (unique) + `is_open`; `team_members.participant_id`; `certificates.team_member_id`; dropped the old
+  `certificates_unique_registration_event` constraint (blocked per-member certs) → solo-only partial unique.
+- ✅ **Verified end-to-end** (throwaway A/B/C users + temp event, all cleaned up): create→code, join by
+  code, join via finder, full-team hidden from finder, dup/re-join guards, creator rename/close/remove +
+  non-creator denial, per-member certs (2 distinct files, each member fetches own), and the solo
+  mismatched-email access fix (detail opens; unrelated user 403). `tsc` clean.
 
 ## Recent: Auth-aware header, role gates, portal fix, no double-registration (2026-07-16, uncommitted)
 - **Public header is session-aware** — new `components/public/AuthNav.tsx` (client): logged out → amber

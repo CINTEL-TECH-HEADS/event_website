@@ -28,7 +28,9 @@ export default function EventDetailPage() {
     title: '',
     description: '',
     capacity: '',
-    registration_mode: 'both' as const,
+    registration_mode: 'both' as 'solo' | 'team' | 'both',
+    min_team_size: '',
+    max_team_size: '',
   })
 
   useEffect(() => {
@@ -51,6 +53,8 @@ export default function EventDetailPage() {
         description: data.description ?? '',
         capacity: data.capacity?.toString() ?? '',
         registration_mode: data.registration_mode ?? 'both',
+        min_team_size: data.min_team_size?.toString() ?? '',
+        max_team_size: data.max_team_size?.toString() ?? '',
       })
     } catch (error) {
       console.error('Failed to load event:', error)
@@ -72,6 +76,14 @@ export default function EventDetailPage() {
         body: JSON.stringify({
           ...formData,
           capacity: formData.capacity ? Number(formData.capacity) : null,
+          min_team_size:
+            formData.registration_mode !== 'solo' && formData.min_team_size
+              ? Number(formData.min_team_size)
+              : null,
+          max_team_size:
+            formData.registration_mode !== 'solo' && formData.max_team_size
+              ? Number(formData.max_team_size)
+              : null,
         }),
       })
 
@@ -260,6 +272,33 @@ export default function EventDetailPage() {
                   </select>
                 </div>
               </div>
+
+              {formData.registration_mode !== 'solo' && (
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-300">Min team size</label>
+                    <input
+                      type="number"
+                      min={2}
+                      value={formData.min_team_size}
+                      onChange={(e) => setFormData({ ...formData, min_team_size: e.target.value })}
+                      placeholder="2"
+                      className="app-input"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-300">Max team size</label>
+                    <input
+                      type="number"
+                      min={2}
+                      value={formData.max_team_size}
+                      onChange={(e) => setFormData({ ...formData, max_team_size: e.target.value })}
+                      placeholder="4"
+                      className="app-input"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="flex justify-end border-t border-[#243B72] pt-5">
                 <button onClick={handleSaveEvent} disabled={saving} className="app-button-primary">

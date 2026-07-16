@@ -21,10 +21,6 @@ import {
   registrationSchema,
 } from '@/lib/validators/registration'
 
-import {
-  TeamMemberFields,
-} from './TeamMemberFields'
-
 type RegistrationFormValues = {
   event_id: string
   registration_type: 'solo' | 'team'
@@ -127,26 +123,21 @@ function buildAnswers(
     )
 }
 
-function createMemberRow() {
-  return {
-    id:
-      typeof crypto !==
-        'undefined' &&
-      typeof crypto.randomUUID ===
-        'function'
-        ? crypto.randomUUID()
-        : `member-${Math.random()}`,
-  }
-}
-
 export function RegistrationForm({
   event,
   disabled = false,
   prefill = null,
+  seeking = false,
+  forceTeam = false,
 }: {
   event: EventWithFields
   disabled?: boolean
   prefill?: Record<string, any> | null
+  // "Find a team" mode: register as an open team-of-one (auto-named) and go to
+  // the matchmaking view instead of the team management page.
+  seeking?: boolean
+  // Force a team submission even on a `both` event (the "Create a team" choice).
+  forceTeam?: boolean
 }) {
   const router = useRouter()
 
@@ -155,15 +146,6 @@ export function RegistrationForm({
     'team'
       ? 'team'
       : 'solo'
-
-  const [memberRows, setMemberRows] =
-    useState([
-      {
-        id:
-          createMemberRow()
-            .id,
-      },
-    ])
 
   const [
     submitError,
@@ -177,13 +159,6 @@ export function RegistrationForm({
       (field) =>
         field.applies_to ===
         'registration'
-    )
-
-  const memberFields =
-    event.form_fields.filter(
-      (field) =>
-        field.applies_to ===
-        'member'
     )
 
   // Pre-fill dynamic registration fields that map to a profile key
@@ -202,8 +177,6 @@ export function RegistrationForm({
       errors,
       isSubmitting,
     },
-    setValue,
-    getValues,
     watch,
   } =
     useForm<RegistrationFormValues>(
@@ -258,6 +231,8 @@ export function RegistrationForm({
     )
 
   const teamMode =
+    seeking ||
+    forceTeam ||
     event.registration_mode ===
       'team' ||
     registrationType ===
@@ -293,30 +268,15 @@ export function RegistrationForm({
       register_number:
         values.register_number.trim(),
 
+      // Group-code model: creating a team registers just the creator and mints
+      // a shareable code; teammates join later from their own accounts. In
+      // "Find a team" mode the team is auto-named (an open team-of-one seeker).
       ...(teamMode
         ? {
-            team_name:
-              values.team_name?.trim() ??
-              '',
-
-            members:
-              values.members.map(
-                (
-                  member
-                ) => ({
-                  full_name:
-                    member.full_name.trim(),
-
-                  email:
-                    member.email.trim(),
-
-                  answers:
-                    buildAnswers(
-                      memberFields,
-                      member.answers
-                    ),
-                })
-              ),
+            team_name: seeking
+              ? `${values.leader_name.trim()}'s team`
+              : (values.team_name?.trim() ?? ''),
+            members: [],
           }
         : {}),
 
@@ -385,8 +345,14 @@ export function RegistrationForm({
         }),
       }).catch(() => {})
 
+      // Seeking → matchmaking view; new team → management page (group code);
+      // solo → confirmation.
       router.push(
-        `/confirmation/${data.registration_id}`
+        teamMode
+          ? seeking
+            ? `/participant/portal/events/${data.registration_id}/find`
+            : `/participant/portal/events/${data.registration_id}/team`
+          : `/confirmation/${data.registration_id}`
       )
     } catch {
       setSubmitError(
@@ -517,51 +483,30 @@ export function RegistrationForm({
             Team Details
           </h2>
 
-          <label className="mt-4 block">
+          {seeking ? (
+            <p className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-sm text-amber-100/80">
+              You&apos;ll be added to this event as <strong>looking for a team</strong>. Teams short of
+              members can invite you, and you can request to join open teams — a team forms once one side
+              accepts.
+            </p>
+          ) : (
+            <>
+              <label className="mt-4 block">
+                <span className="mb-2 block text-sm text-slate-300">Team name</span>
+                <input
+                  {...register('team_name')}
+                  className={inputClass}
+                  placeholder="Enter your team name"
+                />
+              </label>
 
-            <span className="mb-2 block text-sm text-slate-300">
-              Team name
-            </span>
-
-            <input
-              {...register(
-                'team_name'
-              )}
-              className={
-                inputClass
-              }
-              placeholder="Enter your team name"
-            />
-
-          </label>
-
-          <TeamMemberFields
-            memberRows={
-              memberRows
-            }
-            setMemberRows={
-              setMemberRows
-            }
-            memberFields={
-              memberFields
-            }
-            register={
-              register
-            }
-            errors={
-              errors
-            }
-            disabled={
-              isSubmitting ||
-              disabled
-            }
-            getValues={
-              getValues
-            }
-            setValue={
-              setValue
-            }
-          />
+              <p className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-sm text-amber-100/80">
+                You&apos;ll create the team now and get a shareable <strong>group code</strong>. Teammates
+                sign in and enter the code (or request to join from the Team Finder) — no need to add them
+                here.
+              </p>
+            </>
+          )}
 
         </div>
       ) : null}

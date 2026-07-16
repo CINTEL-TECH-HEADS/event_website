@@ -3,9 +3,52 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import type { EventWithFields } from '@/types'
 import { RegistrationForm } from '@/components/public/RegistrationForm'
 import { isPast } from '@/lib/utils'
+
+// Instant join with a shared group code (known teammate).
+function JoinByCode() {
+  const router = useRouter()
+  const [code, setCode] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [message, setMessage] = useState('')
+
+  async function join() {
+    if (!code) return
+    setStatus('loading')
+    const { data, error } = await fetch('/api/participant/team/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code.toUpperCase().trim() }),
+    }).then((r) => r.json())
+    if (error) { setMessage(error); setStatus('error') }
+    else router.push(`/participant/portal/events/${data.registration_id}`)
+  }
+
+  return (
+    <div className="space-y-3 rounded-2xl border border-white/10 bg-[#0f1d36] p-5">
+      <p className="text-sm text-slate-300">Have a group code from a teammate? Enter it to join instantly.</p>
+      <div className="flex gap-2">
+        <input
+          value={code}
+          onChange={(e) => { setCode(e.target.value.toUpperCase()); setStatus('idle') }}
+          placeholder="TEAM-XXXXX"
+          className="flex-1 rounded-2xl border border-[#243B72] bg-[#07101f] px-4 py-3 font-mono text-sm tracking-widest text-white outline-none focus:border-[#F5E62D]"
+        />
+        <button
+          onClick={join}
+          disabled={!code || status === 'loading'}
+          className="rounded-2xl bg-[#F5E62D] px-5 text-sm font-bold text-black transition hover:brightness-110 disabled:opacity-50"
+        >
+          {status === 'loading' ? 'Joining…' : 'Join'}
+        </button>
+      </div>
+      {status === 'error' && <p className="text-sm text-red-300">{message}</p>}
+    </div>
+  )
+}
 
 function normalizeCount(value: unknown): number {
   if (typeof value === 'number') return value
@@ -30,6 +73,9 @@ export default function RegisterPage() {
   const [event, setEvent] = useState<EventWithFields | null>(null)
   const [prefill, setPrefill] = useState<Record<string, any> | null>(null)
   const [alreadyRegistered, setAlreadyRegistered] = useState(false)
+  const [mode, setMode] = useState<'create' | 'find' | 'code'>('create')
+  // For `both` events the participant chooses; solo/team events are fixed.
+  const [participation, setParticipation] = useState<'solo' | 'team' | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -132,9 +178,87 @@ export default function RegisterPage() {
               View in Portal
             </Link>
           </div>
-        ) : (
-          <RegistrationForm event={event} disabled={closed} prefill={prefill} />
-        )}
+        ) : (() => {
+          // Effective participation: fixed for solo/team events, chosen for `both`.
+          const part =
+            event.registration_mode === 'solo' ? 'solo'
+            : event.registration_mode === 'team' ? 'team'
+            : participation
+          return (
+          <>
+            {/* `both` events: choose solo or team participation first */}
+            {event.registration_mode === 'both' && !closed && (
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  ['solo', 'Register solo'],
+                  ['team', 'Register as a team'],
+                ] as const).map(([p, label]) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setParticipation(p)}
+                    className={`rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
+                      part === p
+                        ? 'border-amber-300/40 bg-amber-300/15 text-amber-100'
+                        : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Prompt to pick for `both` before showing a form */}
+            {event.registration_mode === 'both' && part === null && !closed ? (
+              <p className="rounded-2xl border border-white/10 bg-[#0f1d36] px-4 py-4 text-sm text-slate-300">
+                This event allows both solo and team entries — choose how you&apos;d like to register.
+              </p>
+            ) : part === 'team' ? (
+              <>
+                {/* Team: create a team, find a team, or join with a code */}
+                {!closed && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {([
+                      ['create', 'Create a team'],
+                      ['find', 'Find a team'],
+                      ['code', 'Join with code'],
+                    ] as const).map(([m, label]) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setMode(m)}
+                        className={`rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
+                          mode === m
+                            ? 'border-amber-300/40 bg-amber-300/15 text-amber-100'
+                            : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {mode === 'code' && !closed ? (
+                  <JoinByCode />
+                ) : (
+                  <RegistrationForm
+                    event={event}
+                    disabled={closed}
+                    prefill={prefill}
+                    forceTeam
+                    seeking={mode === 'find'}
+                  />
+                )}
+              </>
+            ) : (
+              // Solo registration
+              <RegistrationForm event={event} disabled={closed} prefill={prefill} />
+            )}
+          </>
+          )
+        })()}
       </div>
     </div>
   )

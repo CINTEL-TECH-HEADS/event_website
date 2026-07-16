@@ -21,7 +21,13 @@ export const createEventSchema = eventBaseSchema.refine(d => new Date(d.ends_at)
 }).refine(d => new Date(d.registration_closes_at) <= new Date(d.starts_at), {
   message: 'Registration must close before the event starts',
   path: ['registration_closes_at'],
-})
+}).refine(
+  d => d.registration_mode === 'solo' || (d.min_team_size != null && d.max_team_size != null),
+  { message: 'Team and both events require a min and max team size', path: ['max_team_size'] }
+).refine(
+  d => d.registration_mode === 'solo' || d.min_team_size == null || d.max_team_size == null || d.min_team_size <= d.max_team_size,
+  { message: 'Max team size must be greater than or equal to min team size', path: ['max_team_size'] }
+)
 
 export const updateEventSchema = eventBaseSchema.partial().extend({
   is_published: z.boolean().optional(),
