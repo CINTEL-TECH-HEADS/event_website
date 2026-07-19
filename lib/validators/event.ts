@@ -1,7 +1,7 @@
 // Owner: BE2
 import { z } from 'zod'
 
-export const createEventSchema = z.object({
+export const eventBaseSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().optional(),
   event_type: z.enum(['workshop', 'seminar', 'fest', 'hackathon', 'talk', 'other']),
@@ -13,15 +13,23 @@ export const createEventSchema = z.object({
   registration_mode: z.enum(['solo', 'team', 'both']),
   min_team_size: z.number().int().min(2).nullable().optional(),
   max_team_size: z.number().int().min(2).nullable().optional(),
-}).refine(d => new Date(d.ends_at) > new Date(d.starts_at), {
+})
+
+export const createEventSchema = eventBaseSchema.refine(d => new Date(d.ends_at) > new Date(d.starts_at), {
   message: 'End time must be after start time',
   path: ['ends_at'],
 }).refine(d => new Date(d.registration_closes_at) <= new Date(d.starts_at), {
   message: 'Registration must close before the event starts',
   path: ['registration_closes_at'],
-})
+}).refine(
+  d => d.registration_mode === 'solo' || (d.min_team_size != null && d.max_team_size != null),
+  { message: 'Team and both events require a min and max team size', path: ['max_team_size'] }
+).refine(
+  d => d.registration_mode === 'solo' || d.min_team_size == null || d.max_team_size == null || d.min_team_size <= d.max_team_size,
+  { message: 'Max team size must be greater than or equal to min team size', path: ['max_team_size'] }
+)
 
-export const updateEventSchema = createEventSchema.partial().extend({
+export const updateEventSchema = eventBaseSchema.partial().extend({
   is_published: z.boolean().optional(),
 })
 

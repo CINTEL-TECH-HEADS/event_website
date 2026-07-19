@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/public/ThemeToggle'
+import { AuthNav } from '@/components/public/AuthNav'
 
 
 export default function PublicLayout({
@@ -32,23 +33,24 @@ export default function PublicLayout({
 
           <nav className="flex items-center gap-2 text-sm">
             <Link
-              href="/#event-grid"
+              href="/events"
               className="border border-transparent px-4 py-2 font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white hover:shadow-[0_0_0_1px_rgba(252,211,77,0.12),0_0_24px_rgba(250,204,21,0.18)]"
             >
               Events
             </Link>
             <Link
               href="/resend"
-              className="border border-transparent px-4 py-2 font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white hover:shadow-[0_0_0_1px_rgba(252,211,77,0.12),0_0_24px_rgba(250,204,21,0.18)]"
+              className="border border-transparent px-4 py-2 font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white"
             >
               Resend
             </Link>
             <Link
               href="/certificate"
-              className="border border-amber-300/35 bg-amber-300 px-4 py-2 font-semibold text-slate-950 shadow-[0_0_0_1px_rgba(252,211,77,0.2),0_0_26px_rgba(250,204,21,0.32)] transition hover:bg-amber-200 hover:shadow-[0_0_0_1px_rgba(252,211,77,0.28),0_0_34px_rgba(250,204,21,0.42)]"
+              className="border border-transparent px-4 py-2 font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white"
             >
               Certificate
             </Link>
+            <AuthNav />
             <ThemeToggle />
           </nav>
         </div>

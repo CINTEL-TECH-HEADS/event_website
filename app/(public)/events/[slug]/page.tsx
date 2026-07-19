@@ -31,6 +31,7 @@ function normalizeEvent(event: EventWithFields): EventWithFields {
 export default function EventPage() {
   const { slug } = useParams<{ slug: string }>()
   const [event, setEvent] = useState<EventWithFields | null>(null)
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -45,7 +46,14 @@ export default function EventPage() {
           return
         }
 
-        setEvent(normalizeEvent(data as EventWithFields))
+        const normalized = normalizeEvent(data as EventWithFields)
+        setEvent(normalized)
+
+        // If logged in and already registered, gate the CTA.
+        const mine = await fetch(`/api/registrations/mine?event_id=${normalized.id}`)
+          .then((r) => r.json())
+          .catch(() => null)
+        if (mine?.data?.registered) setAlreadyRegistered(true)
       } catch {
         setError('Failed to load event')
       } finally {
@@ -164,17 +172,26 @@ export default function EventPage() {
             ) : null}
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Link
-                href={`/events/${event.slug}/register`}
-                aria-disabled={closed}
-                className={`inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-sm transition ${
-                  closed
-                    ? 'pointer-events-none bg-slate-300 text-white'
-                    : 'border border-amber-300/35 bg-amber-300 text-slate-950 hover:bg-amber-200'
-                }`}
-              >
-                {closed ? 'Registration Closed' : 'Register Now'}
-              </Link>
+              {alreadyRegistered ? (
+                <Link
+                  href="/participant/portal"
+                  className="inline-flex items-center justify-center rounded-2xl border border-emerald-300/35 bg-emerald-400/15 px-5 py-3 text-sm font-semibold text-emerald-200 transition hover:bg-emerald-400/25"
+                >
+                  ✓ Already Registered — View in Portal
+                </Link>
+              ) : (
+                <Link
+                  href={`/events/${event.slug}/register`}
+                  aria-disabled={closed}
+                  className={`inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-sm transition ${
+                    closed
+                      ? 'pointer-events-none bg-slate-300 text-white'
+                      : 'border border-amber-300/35 bg-amber-300 text-slate-950 hover:bg-amber-200'
+                  }`}
+                >
+                  {closed ? 'Registration Closed' : 'Register Now'}
+                </Link>
+              )}
               <a
                 href={calLink}
                 target="_blank"

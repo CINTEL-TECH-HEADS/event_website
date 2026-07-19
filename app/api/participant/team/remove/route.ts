@@ -4,6 +4,7 @@
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient, createSessionClient } from '@/lib/supabase/server'
+import { isTeamCreator } from '@/lib/registrations/access'
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,18 +13,12 @@ export async function POST(req: NextRequest) {
     if (!user) return apiError('Unauthorised', 401)
 
     const { member_id, registration_id } = await req.json()
-    const email = user.email!
     const admin = createAdminClient()
 
-    // Verify requester is leader
-    const { data: reg } = await admin
-      .from('registrations')
-      .select('id')
-      .eq('id', registration_id)
-      .eq('leader_email', email.toLowerCase())
-      .maybeSingle()
-
-    if (!reg) return apiError('Only the team leader can remove members')
+    // Verify requester is the team creator (account-based).
+    if (!(await isTeamCreator(admin, registration_id, user.id, user.email!))) {
+      return apiError('Only the team creator can remove members')
+    }
 
     const { data: member } = await admin
       .from('team_members')

@@ -26,6 +26,11 @@ export default function NewEventPage() {
   const [error, setError] =
     useState<string | null>(null)
 
+  const [registrationMode, setRegistrationMode] =
+    useState<'solo' | 'team' | 'both'>('solo')
+
+  const isTeamMode = registrationMode !== 'solo'
+
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
   ) {
@@ -68,6 +73,14 @@ export default function NewEventPage() {
         form.get(
           'registration_mode'
         ) as CreateEventPayload['registration_mode'],
+
+      min_team_size: isTeamMode && form.get('min_team_size')
+        ? Number(form.get('min_team_size'))
+        : null,
+
+      max_team_size: isTeamMode && form.get('max_team_size')
+        ? Number(form.get('max_team_size'))
+        : null,
     }
 
     const res = await fetch(
@@ -116,7 +129,7 @@ export default function NewEventPage() {
         transition={{
           duration: 0.45,
         }}
-        className="app-panel rounded-[2rem] p-6 sm:p-10"
+        className="app-panel  p-6 sm:p-10"
       >
 
         <div className="mb-10 space-y-4">
@@ -190,7 +203,7 @@ export default function NewEventPage() {
     name="capacity"
     type="number"
     placeholder="Enter capacity"
-    className="w-full rounded-2xl border border-[#243B72] bg-[#07142E] px-5 py-4 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
+    className="w-full  border border-[#243B72] bg-[#07142E] px-5 py-4 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
   />
 
 </div>
@@ -235,6 +248,12 @@ export default function NewEventPage() {
               name="registration_mode"
               required
               className="app-select"
+              value={registrationMode}
+              onChange={(e) =>
+                setRegistrationMode(
+                  e.target.value as 'solo' | 'team' | 'both'
+                )
+              }
             >
               <option value="solo">
                 Solo
@@ -252,6 +271,38 @@ export default function NewEventPage() {
 
           </div>
 
+          {/* Team size — only for team / both events */}
+          {isTeamMode && (
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                  Min team size
+                </label>
+                <input
+                  name="min_team_size"
+                  type="number"
+                  min={2}
+                  defaultValue={2}
+                  required
+                  className="w-full border border-[#243B72] bg-[#07142E] px-5 py-4 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                  Max team size
+                </label>
+                <input
+                  name="max_team_size"
+                  type="number"
+                  min={2}
+                  defaultValue={4}
+                  required
+                  className="w-full border border-[#243B72] bg-[#07142E] px-5 py-4 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Textarea */}
           <LuxuryTextarea
             name="description"
@@ -259,7 +310,7 @@ export default function NewEventPage() {
           />
 
           {error && (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            <div className=" border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
               {error}
             </div>
           )}
@@ -275,7 +326,7 @@ export default function NewEventPage() {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F5E62D] px-8 py-3 text-sm font-semibold text-[#0B1736] transition hover:bg-[#FFF27A]"
+              className="inline-flex items-center justify-center gap-2  bg-[#F5E62D] px-8 py-3 text-sm font-semibold text-[#0B1736] transition hover:bg-[#FFF27A]"
             >
 
               {loading
@@ -299,11 +350,11 @@ export default function NewEventPage() {
       {/* Side */}
       <aside className="space-y-4">
 
-        <div className="app-panel rounded-[2rem] p-8">
+        <div className="app-panel  p-8">
 
           <div className="mb-6 flex flex-col gap-4">
 
-            <span className="w-fit rounded-2xl bg-[#0B1736] p-3 text-[#93C5FD]">
+            <span className="w-fit  bg-[#0B1736] p-3 text-[#93C5FD]">
               <Sparkles size={20} />
             </span>
 
@@ -324,17 +375,17 @@ export default function NewEventPage() {
 
           <div className="space-y-3 text-sm">
 
-            <div className="rounded-xl border border-[#243B72] bg-[#0B1736] px-4 py-3 text-slate-300">
+            <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3 text-slate-300">
               Configure custom
               registration fields
             </div>
 
-            <div className="rounded-xl border border-[#243B72] bg-[#0B1736] px-4 py-3 text-slate-300">
+            <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3 text-slate-300">
               Assign organizers
               and team members
             </div>
 
-            <div className="rounded-xl border border-[#243B72] bg-[#0B1736] px-4 py-3 text-slate-300">
+            <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3 text-slate-300">
               Publish and start
               registrations
             </div>

@@ -1,54 +1,26 @@
-//FE1 registration form component used on the event details page. This is a client component since it needs to fetch form fields for the registration form, but it receives all other event details as a prop from the server component page. The server component fetches the event with its confirmed/waitlist counts using a single optimized query, so we don't have to worry about N+1 queries here when rendering the details.
+//FE1 registration form — fully organizer-driven. It renders ONLY the fields the
+// organizer configured for this event (form_fields with applies_to='registration'),
+// plus the team-name/group-code block for team creation. Core identity
+// (name/email/phone) is derived from the configured standard fields (field_key)
+// or the participant's profile/account — no hard-coded inputs.
 
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-import type {
-  EventWithFields,
-  FormField,
-} from '@/types'
-
-import {
-  DynamicFormRenderer,
-} from '@/components/forms/DynamicFormRenderer'
-
-import {
-  registrationSchema,
-} from '@/lib/validators/registration'
-
-import {
-  TeamMemberFields,
-} from './TeamMemberFields'
+import type { EventWithFields, FormField } from '@/types'
+import { DynamicFormRenderer } from '@/components/forms/DynamicFormRenderer'
+import { registrationSchema } from '@/lib/validators/registration'
 
 type RegistrationFormValues = {
   event_id: string
   registration_type: 'solo' | 'team'
-
-  leader_name: string
-  leader_email: string
-  leader_phone: string
-  register_number: string
-
   team_name?: string
-
-  answers?: Record<
-    string,
-    string | number | boolean
-  >
-
-  members: Array<{
-    full_name: string
-    email: string
-    answers?: Record<
-      string,
-      string | number | boolean
-    >
-  }>
+  answers?: Record<string, string | number | boolean>
 }
 
 const inputClass =
@@ -56,517 +28,294 @@ const inputClass =
 
 const clientSchema = z.object({
   event_id: z.string().uuid(),
-
-  registration_type: z.enum([
-    'solo',
-    'team',
-  ]),
-
-  leader_name: z.string().min(2),
-
-  leader_email: z.string().email(),
-
-  leader_phone: z
-    .string()
-    .regex(/^[6-9]\d{9}$/),
-
-  register_number: z
-    .string()
-    .min(5),
-
+  registration_type: z.enum(['solo', 'team']),
   team_name: z.string().optional(),
-
   answers: z
-    .record(
-      z.union([
-        z.string(),
-        z.number(),
-        z.boolean(),
-      ])
-    )
+    .record(z.union([z.string(), z.number(), z.boolean()]))
     .optional(),
-
-  members: z.array(
-    z.object({
-      full_name:
-        z.string().optional(),
-
-      email:
-        z.string().optional(),
-
-      answers: z
-        .record(
-          z.union([
-            z.string(),
-            z.number(),
-            z.boolean(),
-          ])
-        )
-        .optional(),
-    })
-  ),
 })
 
 function buildAnswers(
   fields: FormField[],
-  values?: Record<
-    string,
-    string | number | boolean
-  >
+  values?: Record<string, string | number | boolean>
 ) {
   return fields
-    .map((field) => ({
-      field_id: field.id,
-      answer:
-        values?.[
-          field.id
-        ]?.toString() ?? '',
-    }))
-    .filter(
-      (x) => x.answer
-    )
-}
-
-function createMemberRow() {
-  return {
-    id:
-      typeof crypto !==
-        'undefined' &&
-      typeof crypto.randomUUID ===
-        'function'
-        ? crypto.randomUUID()
-        : `member-${Math.random()}`,
-  }
+    .map((field) => ({ field_id: field.id, answer: values?.[field.id]?.toString() ?? '' }))
+    .filter((x) => x.answer)
 }
 
 export function RegistrationForm({
   event,
   disabled = false,
+  prefill = null,
+  seeking = false,
+  forceTeam = false,
 }: {
   event: EventWithFields
   disabled?: boolean
+  prefill?: Record<string, any> | null
+  // "Find a team" mode: register as an open team-of-one (auto-named) and go to
+  // the matchmaking view instead of the team management page.
+  seeking?: boolean
+  // Force a team submission even on a `both` event (the "Create a team" choice).
+  forceTeam?: boolean
 }) {
   const router = useRouter()
 
-  const initialType =
-    event.registration_mode ===
-    'team'
-      ? 'team'
-      : 'solo'
+  const initialType = event.registration_mode === 'team' ? 'team' : 'solo'
 
-  const [memberRows, setMemberRows] =
-    useState([
-      {
-        id:
-          createMemberRow()
-            .id,
-      },
-    ])
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const [
-    submitError,
-    setSubmitError,
-  ] = useState<
-    string | null
-  >(null)
+  const registrationFields = event.form_fields.filter(
+    (field) => field.applies_to === 'registration'
+  )
 
-  const teamFields =
-    event.form_fields.filter(
-      (field) =>
-        field.applies_to ===
-        'registration'
-    )
-
-  const memberFields =
-    event.form_fields.filter(
-      (field) =>
-        field.applies_to ===
-        'member'
-    )
+  // Pre-fill fields that map to a profile key (field_key) from the profile.
+  const prefillAnswers: Record<string, string> = {}
+  if (prefill) {
+    for (const f of registrationFields) {
+      const v = f.field_key ? prefill[f.field_key] : undefined
+      if (v != null && v !== '') prefillAnswers[f.id] = String(v)
+    }
+  }
 
   const {
     register,
     handleSubmit,
-    formState: {
-      errors,
-      isSubmitting,
-    },
-    setValue,
-    getValues,
+    formState: { errors, isSubmitting },
     watch,
-  } =
-    useForm<RegistrationFormValues>(
-      {
-        resolver:
-          zodResolver(
-            clientSchema
-          ),
+    setValue,
+  } = useForm<RegistrationFormValues>({
+    resolver: zodResolver(clientSchema),
+    defaultValues: {
+      event_id: event.id,
+      registration_type: initialType,
+      team_name: '',
+      answers: prefillAnswers,
+    },
+  })
 
-        defaultValues: {
-          event_id:
-            event.id,
-
-          registration_type:
-            initialType,
-
-          leader_name:
-            '',
-
-          leader_email:
-            '',
-
-          leader_phone:
-            '',
-
-          register_number:
-            '',
-
-          team_name:
-            '',
-
-          answers:
-            {},
-
-          members: [
-            {
-              full_name:
-                '',
-              email:
-                '',
-              answers:
-                {},
-            },
-          ],
-        },
-      }
-    )
-
-  const registrationType =
-    watch(
-      'registration_type'
-    )
+  const registrationType = watch('registration_type')
 
   const teamMode =
-    event.registration_mode ===
-      'team' ||
-    registrationType ===
-      'team'
+    seeking || forceTeam || event.registration_mode === 'team' || registrationType === 'team'
 
-  async function onSubmit(
-    values: RegistrationFormValues
-  ) {
+  // Live team-name availability (unique per event) for the create flow.
+  const teamName = watch('team_name')
+  const [nameCheck, setNameCheck] = useState<{
+    status: 'idle' | 'checking' | 'available' | 'taken'
+    suggestion?: string | null
+  }>({ status: 'idle' })
+
+  useEffect(() => {
+    if (seeking || !teamMode) return
+    const name = (teamName ?? '').trim()
+    if (name.length < 2) {
+      setNameCheck({ status: 'idle' })
+      return
+    }
+    setNameCheck({ status: 'checking' })
+    const t = setTimeout(async () => {
+      try {
+        const { data } = await fetch(
+          `/api/events/${event.id}/team-name-check?name=${encodeURIComponent(name)}`
+        ).then((r) => r.json())
+        setNameCheck(
+          data?.available
+            ? { status: 'available' }
+            : { status: 'taken', suggestion: data?.suggestion }
+        )
+      } catch {
+        setNameCheck({ status: 'idle' })
+      }
+    }, 400)
+    return () => clearTimeout(t)
+  }, [teamName, teamMode, seeking, event.id])
+
+  // Map a field_key to its answer value (for deriving the leader identity).
+  function answerForKey(
+    values: RegistrationFormValues,
+    key: string
+  ): string | undefined {
+    const field = registrationFields.find((f) => f.field_key === key)
+    if (!field) return undefined
+    const v = values.answers?.[field.id]
+    return v != null && v !== '' ? String(v) : undefined
+  }
+
+  async function onSubmit(values: RegistrationFormValues) {
     if (disabled) return
+    setSubmitError(null)
 
-    setSubmitError(
-      null
-    )
+    // Derive core identity from configured standard fields, else the profile.
+    // leader_email may be empty here — the server backfills it from the account.
+    const leaderName =
+      answerForKey(values, 'full_name') ?? prefill?.full_name ?? ''
+    const leaderEmail =
+      answerForKey(values, 'college_email') ??
+      answerForKey(values, 'personal_email') ??
+      prefill?.college_email ??
+      prefill?.personal_email ??
+      ''
+    const leaderPhone = answerForKey(values, 'phone') ?? prefill?.phone ?? ''
+    const registerNumber =
+      answerForKey(values, 'register_number') ?? prefill?.register_number ?? ''
 
     const payload = {
-      event_id:
-        values.event_id,
-
-      registration_type:
-        teamMode
-          ? 'team'
-          : 'solo',
-
-      leader_name:
-        values.leader_name.trim(),
-
-      leader_email:
-        values.leader_email.trim(),
-
-      leader_phone:
-        values.leader_phone.trim(),
-
-      register_number:
-        values.register_number.trim(),
-
+      event_id: values.event_id,
+      registration_type: teamMode ? 'team' : 'solo',
+      leader_name: leaderName.trim(),
+      leader_email: leaderEmail.trim(),
+      leader_phone: leaderPhone.trim(),
+      register_number: registerNumber.trim(),
+      // Group-code model: creating a team registers just the creator; teammates
+      // join later. "Find a team" auto-names an open team-of-one seeker.
       ...(teamMode
         ? {
-            team_name:
-              values.team_name?.trim() ??
-              '',
-
-            members:
-              values.members.map(
-                (
-                  member
-                ) => ({
-                  full_name:
-                    member.full_name.trim(),
-
-                  email:
-                    member.email.trim(),
-
-                  answers:
-                    buildAnswers(
-                      memberFields,
-                      member.answers
-                    ),
-                })
-              ),
+            team_name: seeking
+              ? `${(leaderName || 'My').trim()}'s team`
+              : (values.team_name?.trim() ?? ''),
+            members: [],
+            seeking,
           }
         : {}),
-
-      answers:
-        buildAnswers(
-          teamFields,
-          values.answers
-        ),
+      answers: buildAnswers(registrationFields, values.answers),
     }
 
-    const parsed =
-      registrationSchema.safeParse(
-        payload
-      )
-
-    if (
-      !parsed.success
-    ) {
-      setSubmitError(
-        'Please review your form.'
-      )
+    const parsed = registrationSchema.safeParse(payload)
+    if (!parsed.success) {
+      setSubmitError(parsed.error.errors[0]?.message ?? 'Please review your form.')
       return
     }
 
     try {
-      const res =
-        await fetch(
-          '/api/registrations',
-          {
-            method:
-              'POST',
-
-            headers: {
-              'Content-Type':
-                'application/json',
-            },
-
-            body:
-              JSON.stringify(
-                parsed.data
-              ),
-          }
-        )
-
-      const {
-        data,
-        error,
-      } =
-        await res.json()
-
+      const res = await fetch('/api/registrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(parsed.data),
+      })
+      const { data, error } = await res.json()
       if (error) {
-        setSubmitError(
-          error
-        )
+        setSubmitError(error)
         return
       }
 
+      // Silently keep the participant's profile in sync (only what we captured).
+      fetch('/api/participant/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...(leaderName ? { full_name: leaderName } : {}),
+          ...(leaderPhone ? { phone: leaderPhone } : {}),
+          ...(registerNumber ? { register_number: registerNumber } : {}),
+        }),
+      }).catch(() => {})
+
       router.push(
-        `/confirmation/${data.registration_id}`
+        teamMode
+          ? seeking
+            ? `/participant/portal/events/${data.registration_id}/find`
+            : `/participant/portal/events/${data.registration_id}/team`
+          : `/confirmation/${data.registration_id}`
       )
     } catch {
-      setSubmitError(
-        'Submission failed.'
-      )
+      setSubmitError('Submission failed.')
     }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(
-        onSubmit
-      )}
-      className="space-y-6"
-    >
-      <input
-        type="hidden"
-        {...register(
-          'event_id'
-        )}
-      />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <input type="hidden" {...register('event_id')} />
+      <input type="hidden" {...register('registration_type')} />
 
-      <input
-        type="hidden"
-        {...register(
-          'registration_type'
-        )}
-      />
-
-      <div className="grid gap-4 sm:grid-cols-2">
-
-        <label>
-          <span className="mb-2 block text-sm text-slate-300">
-            Full name
-          </span>
-
-          <input
-            {...register(
-              'leader_name'
-            )}
-            className={
-              inputClass
-            }
-            placeholder="Your full name"
-          />
-        </label>
-
-        <label>
-          <span className="mb-2 block text-sm text-slate-300">
-            Email
-          </span>
-
-          <input
-            type="email"
-            {...register(
-              'leader_email'
-            )}
-            className={
-              inputClass
-            }
-            placeholder="you@example.com"
-          />
-        </label>
-
-      </div>
-
-      <label>
-        <span className="mb-2 block text-sm text-slate-300">
-          Phone number
-        </span>
-
-        <input
-          {...register(
-            'leader_phone'
-          )}
-          className={
-            inputClass
-          }
-          placeholder="10-digit mobile number"
-        />
-      </label>
-
-      <label>
-        <span className="mb-2 block text-sm text-slate-300">
-          Register Number
-        </span>
-
-        <input
-          {...register(
-            'register_number'
-          )}
-          className={
-            inputClass
-          }
-          placeholder="Enter register number"
-        />
-      </label>
-
-      {teamFields.length >
-      0 ? (
+      {/* Organizer-configured fields */}
+      {registrationFields.length > 0 ? (
         <div className="rounded-2xl border border-[#243B72] bg-[#0f1d36] p-5">
-
-          <h2 className="text-lg font-semibold text-white">
-            Additional Details
-          </h2>
-
+          <h2 className="text-lg font-semibold text-white">Your Details</h2>
           <div className="mt-4">
             <DynamicFormRenderer
-              fields={
-                teamFields
-              }
-              register={
-                register
-              }
-              errors={
-                errors as any
-              }
+              fields={registrationFields}
+              register={register}
+              errors={errors as any}
             />
           </div>
-
         </div>
-      ) : null}
+      ) : (
+        <p className="rounded-2xl border border-white/10 bg-[#0f1d36] px-4 py-4 text-sm text-slate-300">
+          No additional details required — just confirm your registration below.
+        </p>
+      )}
 
       {teamMode ? (
         <div className="rounded-2xl border border-[#243B72] bg-[#0f1d36] p-5">
+          <h2 className="text-lg font-semibold text-white">Team Details</h2>
 
-          <h2 className="text-lg font-semibold text-white">
-            Team Details
-          </h2>
+          {seeking ? (
+            <p className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-sm text-amber-100/80">
+              You&apos;ll be added to this event as <strong>looking for a team</strong>. Teams short of
+              members can invite you, and you can request to join open teams — a team forms once one side
+              accepts.
+            </p>
+          ) : (
+            <>
+              <label className="mt-4 block">
+                <span className="mb-2 block text-sm text-slate-300">Team name</span>
+                <input
+                  {...register('team_name')}
+                  className={inputClass}
+                  placeholder="Enter your team name"
+                />
+                {nameCheck.status === 'checking' && (
+                  <p className="mt-1.5 text-xs text-slate-400">Checking availability…</p>
+                )}
+                {nameCheck.status === 'available' && (
+                  <p className="mt-1.5 text-xs text-emerald-400">✓ Available</p>
+                )}
+                {nameCheck.status === 'taken' && (
+                  <p className="mt-1.5 text-xs text-red-300">
+                    Taken.
+                    {nameCheck.suggestion && (
+                      <>
+                        {' '}Try{' '}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setValue('team_name', nameCheck.suggestion!)
+                            setNameCheck({ status: 'available' })
+                          }}
+                          className="font-semibold text-amber-300 underline underline-offset-2"
+                        >
+                          {nameCheck.suggestion}
+                        </button>
+                      </>
+                    )}
+                  </p>
+                )}
+              </label>
 
-          <label className="mt-4 block">
-
-            <span className="mb-2 block text-sm text-slate-300">
-              Team name
-            </span>
-
-            <input
-              {...register(
-                'team_name'
-              )}
-              className={
-                inputClass
-              }
-              placeholder="Enter your team name"
-            />
-
-          </label>
-
-          <TeamMemberFields
-            memberRows={
-              memberRows
-            }
-            setMemberRows={
-              setMemberRows
-            }
-            memberFields={
-              memberFields
-            }
-            register={
-              register
-            }
-            errors={
-              errors
-            }
-            disabled={
-              isSubmitting ||
-              disabled
-            }
-            getValues={
-              getValues
-            }
-            setValue={
-              setValue
-            }
-          />
-
+              <p className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-sm text-amber-100/80">
+                You&apos;ll create the team now and get a shareable <strong>group code</strong>. Teammates
+                sign in and enter the code (or request to join from the Team Finder) — no need to add them
+                here.
+              </p>
+            </>
+          )}
         </div>
       ) : null}
 
       {submitError ? (
         <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-          {
-            submitError
-          }
+          {submitError}
         </div>
       ) : null}
 
       <button
         type="submit"
-        disabled={
-          isSubmitting ||
-          disabled
-        }
+        disabled={isSubmitting || disabled}
         className="w-full rounded-2xl bg-[#F5E62D] px-5 py-4 text-sm font-bold uppercase tracking-[0.12em] text-black transition hover:brightness-110 disabled:bg-slate-700 disabled:text-white"
       >
-        {disabled
-          ? 'Registration Closed'
-          : isSubmitting
-          ? 'Submitting...'
-          : 'Complete Registration'}
+        {disabled ? 'Registration Closed' : isSubmitting ? 'Submitting...' : 'Complete Registration'}
       </button>
-
     </form>
   )
 }

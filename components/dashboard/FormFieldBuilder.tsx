@@ -14,7 +14,27 @@ import {
   FieldAppliesTo,
   FieldType,
   FormField,
+  ProfileFieldKey,
 } from '@/types'
+
+// Profile-backed "standard" fields an organiser can add in one click.
+// When a logged-in participant registers, these pre-fill from their profile.
+const STANDARD_FIELDS: {
+  key: ProfileFieldKey
+  label: string
+  field_type: FieldType
+  options: string[] | null
+}[] = [
+  { key: 'full_name', label: 'Full Name', field_type: 'text', options: null },
+  { key: 'register_number', label: 'Register Number', field_type: 'text', options: null },
+  { key: 'phone', label: 'Phone', field_type: 'phone', options: null },
+  { key: 'college_email', label: 'College Email', field_type: 'email', options: null },
+  { key: 'personal_email', label: 'Personal Email', field_type: 'email', options: null },
+  { key: 'year_of_study', label: 'Year of Study', field_type: 'select', options: ['1st', '2nd', '3rd', '4th', 'Alumni'] },
+  { key: 'batch', label: 'Batch', field_type: 'text', options: null },
+  { key: 'section', label: 'Section', field_type: 'text', options: null },
+  { key: 'fa_name', label: 'Faculty Advisor', field_type: 'text', options: null },
+]
 
 interface Props {
   eventId: string
@@ -65,6 +85,7 @@ export function FormFieldBuilder({
       sort_order: 0,
       event_id: eventId,
       validation: null,
+      field_key: null,
     })
 
   useEffect(() => {
@@ -118,6 +139,7 @@ export function FormFieldBuilder({
         is_required: false,
         applies_to: 'registration',
         sort_order: fields.length,
+        field_key: null,
       })
     }, [eventId, fields.length])
 
@@ -202,6 +224,8 @@ export function FormFieldBuilder({
                   editForm.applies_to,
                 sort_order:
                   fields.length,
+                field_key:
+                  editForm.field_key ?? null,
               },
             ]
 
@@ -280,6 +304,31 @@ export function FormFieldBuilder({
     )
   }
 
+  async function addStandardField(
+    sf: (typeof STANDARD_FIELDS)[number]
+  ) {
+    setSaving(true)
+    try {
+      await saveFields([
+        ...fields,
+        {
+          id: `temp-${Date.now()}`,
+          event_id: eventId,
+          label: sf.label,
+          field_type: sf.field_type,
+          options: sf.options,
+          validation: null,
+          is_required: false,
+          applies_to: 'registration',
+          sort_order: fields.length,
+          field_key: sf.key,
+        },
+      ])
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="text-sm text-slate-400">
@@ -292,7 +341,7 @@ export function FormFieldBuilder({
     <div className="space-y-4">
 
       {/* List */}
-      <section className="app-panel rounded-[1.8rem] p-5 sm:p-6">
+      <section className="app-panel  p-5 sm:p-6">
 
         <div className="mb-5 flex items-center justify-between gap-4">
 
@@ -327,9 +376,39 @@ export function FormFieldBuilder({
 
         </div>
 
+        {(() => {
+          const usedKeys = new Set(
+            fields.map((f) => f.field_key).filter(Boolean)
+          )
+          const available = STANDARD_FIELDS.filter(
+            (sf) => !usedKeys.has(sf.key)
+          )
+          if (available.length === 0) return null
+          return (
+            <div className="mb-5 border border-[#243B72] bg-[#0B1736] p-4">
+              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+                Standard fields — pre-fill from the participant&apos;s profile
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {available.map((sf) => (
+                  <button
+                    key={sf.key}
+                    type="button"
+                    disabled={saving}
+                    onClick={() => addStandardField(sf)}
+                    className="inline-flex items-center gap-1.5 border border-amber-300/25 bg-amber-300/5 px-3 py-1.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-300/10 disabled:opacity-50"
+                  >
+                    <PlusCircle size={13} /> {sf.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
+
         {fields.length ===
         0 ? (
-          <div className="rounded-2xl border border-dashed border-[#243B72] bg-[#0B1736] p-6 text-sm text-slate-400">
+          <div className=" border border-dashed border-[#243B72] bg-[#0B1736] p-6 text-sm text-slate-400">
             No custom fields
             yet.
           </div>
@@ -345,7 +424,7 @@ export function FormFieldBuilder({
                   key={
                     field.id
                   }
-                  className="flex flex-col gap-4 rounded-[1.35rem] border border-[#243B72] bg-[#10224A] p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4  border border-[#243B72] bg-[#10224A] p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
 
                   <div>
@@ -451,7 +530,7 @@ export function FormFieldBuilder({
       {/* Form */}
       {(editingId ||
         showAddForm) && (
-        <section className="app-panel rounded-[1.8rem] p-5 sm:p-6">
+        <section className="app-panel  p-5 sm:p-6">
 
           <h3 className="text-lg font-semibold text-white">
             {editingId
@@ -569,7 +648,7 @@ export function FormFieldBuilder({
 
             </div>
 
-            <label className="flex items-center gap-3 rounded-2xl border border-[#243B72] bg-[#0B1736] px-4 py-3 text-sm font-medium text-slate-300">
+            <label className="flex items-center gap-3  border border-[#243B72] bg-[#0B1736] px-4 py-3 text-sm font-medium text-slate-300">
 
               <input
                 type="checkbox"
@@ -617,7 +696,7 @@ export function FormFieldBuilder({
                     false
                   )
                 }}
-                className="rounded-xl border border-[#243B72] px-4 py-2 text-slate-300 hover:bg-[#0B1736]"
+                className=" border border-[#243B72] px-4 py-2 text-slate-300 hover:bg-[#0B1736]"
               >
                 Cancel
               </button>

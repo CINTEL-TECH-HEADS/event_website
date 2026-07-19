@@ -19,7 +19,7 @@
 //     )
 //   }
 
-type Preset = 'register' | 'resend' | 'checkin'
+type Preset = 'register' | 'resend' | 'checkin' | 'login' | 'password-reset'
 
 interface RateLimitConfig {
   maxRequests: number   // max allowed in the window
@@ -30,6 +30,8 @@ const PRESETS: Record<Preset, RateLimitConfig> = {
   register: { maxRequests: 5, windowMs: 10 * 60 * 1000 },   // 5 per 10 min
   resend: { maxRequests: 3, windowMs: 10 * 60 * 1000 },   // 3 per 10 min
   checkin: { maxRequests: 60, windowMs: 60 * 1000 },         // 60 per 1 min
+  login: { maxRequests: 8, windowMs: 10 * 60 * 1000 },   // 8 per 10 min per IP
+  'password-reset': { maxRequests: 3, windowMs: 15 * 60 * 1000 }, // 3 per 15 min per IP
 }
 
 // In-memory store: key = `${preset}:${identifier}`, value = { count, resetAt }

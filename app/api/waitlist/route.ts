@@ -7,10 +7,15 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { uploadQrToStorage, getQrSignedUrl } from '@/lib/qr/generate'
 import { generateGoogleCalendarLink } from '@/lib/calendar/gcal-link'
 import { formatEventDate } from '@/lib/utils'
+import { requireOrganizerRole } from '@/lib/auth/get-session'
 
 export async function POST(req: NextRequest) {
   const { event_id } = await req.json()
   if (!event_id) return apiError('event_id required')
+
+  // Admin operation (promotes an attendee + emails them) — organizers only
+  const auth = await requireOrganizerRole(event_id, ['owner', 'sub_admin'])
+  if ('error' in auth) return apiError(auth.error, auth.status)
 
   const supabase = createAdminClient()
 

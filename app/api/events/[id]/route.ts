@@ -8,6 +8,9 @@ import {
   createAdminClient,
 } from '@/lib/supabase/server'
 
+import { requireOrganizerRole } from '@/lib/auth/get-session'
+import { logAction } from '@/lib/audit/log'
+
 function isUUID(
   value: string
 ) {
@@ -34,7 +37,9 @@ export async function GET(
     let query =
       supabase
         .from('events')
-        .select('*')
+        // Include the event's configured form fields so the registration page
+        // renders exactly what the organizer added.
+        .select('*, form_fields(*)')
 
     query = isUUID(id)
       ? query.eq(
@@ -51,6 +56,13 @@ export async function GET(
       error,
     } =
       await query.maybeSingle()
+
+    // Order fields by sort_order for a stable form layout.
+    if (data?.form_fields) {
+      data.form_fields.sort(
+        (a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+      )
+    }
 
     if (error)
       return apiError(
@@ -87,11 +99,28 @@ export async function PATCH(
     const { id } =
       await context.params
 
+    // Only the event owner or a sub_admin can edit an event
+    const auth = await requireOrganizerRole(id, ['owner', 'sub_admin'])
+    if ('error' in auth) {
+      return apiError(auth.error, auth.status)
+    }
+
     const body =
       await req.json()
 
     const supabase =
       createAdminClient()
+
+    // Gate publishing: an event must have at least one configured field.
+    if (body.is_published === true) {
+      const { count } = await supabase
+        .from('form_fields')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', id)
+      if ((count ?? 0) === 0) {
+        return apiError('Add at least one registration field before publishing this event.', 400)
+      }
+    }
 
     const {
       data,
@@ -109,6 +138,16 @@ export async function PATCH(
         error.message,
         500
       )
+
+    await logAction({
+      actorId: auth.user.id,
+      actorEmail: auth.user.email,
+      action: 'event.update',
+      targetType: 'event',
+      targetId: id,
+      eventId: id,
+      metadata: { fields: Object.keys(body ?? {}) },
+    })
 
     return apiSuccess(
       data
@@ -133,6 +172,12 @@ export async function DELETE(
     const { id } =
       await context.params
 
+    // Only the event owner can delete an event
+    const auth = await requireOrganizerRole(id, ['owner'])
+    if ('error' in auth) {
+      return apiError(auth.error, auth.status)
+    }
+
     const supabase =
       createAdminClient()
 
@@ -151,6 +196,15 @@ export async function DELETE(
         error.message,
         500
       )
+
+    await logAction({
+      actorId: auth.user.id,
+      actorEmail: auth.user.email,
+      action: 'event.delete',
+      targetType: 'event',
+      targetId: id,
+      eventId: id,
+    })
 
     return apiSuccess({
       message:

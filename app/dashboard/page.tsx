@@ -93,7 +93,7 @@ export default function DashboardPage() {
     <div className="space-y-8">
 
       {/* Hero */}
-      <section className="app-panel relative overflow-hidden rounded-[2rem] px-6 py-7 sm:px-8 sm:py-8">
+      <section className="app-panel relative overflow-hidden  px-6 py-7 sm:px-8 sm:py-8">
 
         <div className="absolute inset-x-0 top-0 h-24 bg-[linear-gradient(90deg,rgba(245,230,45,0.08),transparent,rgba(59,130,246,0.10))]" />
 
@@ -149,12 +149,12 @@ export default function DashboardPage() {
                 Total Events
               </p>
 
-              <p className="mt-3 text-5xl font-black text-white">
+              <p className="mt-3 text-5xl font-semibold text-white">
                 {events.length}
               </p>
             </div>
 
-            <span className="rounded-2xl bg-[#0B1736] p-3 text-[#F5E62D]">
+            <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
               <Rocket size={18} />
             </span>
 
@@ -171,7 +171,7 @@ export default function DashboardPage() {
                 Published
               </p>
 
-              <p className="mt-3 text-5xl font-black text-green-400">
+              <p className="mt-3 text-5xl font-semibold text-green-400">
                 {
                   events.filter(
                     (event) =>
@@ -181,7 +181,7 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <span className="rounded-2xl bg-[#0B1736] p-3 text-green-400">
+            <span className=" bg-[#0B1736] p-3 text-green-400">
               <Activity size={18} />
             </span>
 
@@ -198,7 +198,7 @@ export default function DashboardPage() {
                 Registrations
               </p>
 
-              <p className="mt-3 text-5xl font-black text-[#F5E62D]">
+              <p className="mt-3 text-5xl font-semibold text-[#F5E62D]">
                 {
                   events.reduce(
                     (
@@ -213,7 +213,7 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <span className="rounded-2xl bg-[#0B1736] p-3 text-[#93C5FD]">
+            <span className=" bg-[#0B1736] p-3 text-[#93C5FD]">
               <Users size={18} />
             </span>
 
@@ -231,14 +231,12 @@ export default function DashboardPage() {
           <div>
 
             <h2 className="text-xl font-bold text-white">
-              Assigned Events
+              All Events
             </h2>
 
             <p className="mt-1 text-sm text-slate-400">
-              Jump into setup,
-              registrations,
-              exports,
-              and operations.
+              Every event in the workspace — jump into setup,
+              registrations, exports, and operations.
             </p>
 
           </div>

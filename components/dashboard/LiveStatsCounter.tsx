@@ -12,10 +12,13 @@ import { createBrowserClient } from '@/lib/supabase/client'
 
 interface Props {
   eventId: string
+  // Bump after a check-in to refetch immediately (works even if Realtime is off).
+  refreshSignal?: number
 }
 
 export function LiveStatsCounter({
   eventId,
+  refreshSignal = 0,
 }: Props) {
   const [checkedIn, setCheckedIn] =
     useState(0)
@@ -23,99 +26,55 @@ export function LiveStatsCounter({
   const [loading, setLoading] =
     useState(true)
 
+  // Authoritative count from the API (admin-side, avoids RLS on a direct select).
   useEffect(() => {
-    const supabase =
-      createBrowserClient()
-
     let mounted = true
-
-    const channel =
-      supabase
-        .channel(
-          `attendance-${eventId}`
-        )
-        .on(
-          'postgres_changes',
-          {
-            event:
-              'INSERT',
-            schema:
-              'public',
-            table:
-              'attendance',
-            filter: `event_id=eq.${eventId}`,
-          },
-          () => {
-            if (
-              mounted
-            ) {
-              setCheckedIn(
-                (
-                  previous
-                ) =>
-                  previous +
-                  1
-              )
-            }
-          }
-        )
-        .subscribe()
-
-    supabase
-      .from(
-        'attendance'
-      )
-      .select(
-        'id',
-        {
-          count:
-            'exact',
-          head: true,
-        }
-      )
-      .eq(
-        'event_id',
-        eventId
-      )
-      .then(
-        ({
-          count,
-        }) => {
-          if (
-            mounted
-          ) {
-            setCheckedIn(
-              count ??
-                0
-            )
-
-            setLoading(
-              false
-            )
-          }
-        }
-      )
-
+    fetch(`/api/events/${eventId}/registrations`)
+      .then((r) => r.json())
+      .then(({ data }) => {
+        if (!mounted) return
+        const count = (data ?? []).filter((r: any) => {
+          const a = Array.isArray(r.attendance) ? r.attendance[0] : r.attendance
+          return !!a?.id
+        }).length
+        setCheckedIn(count)
+        setLoading(false)
+      })
+      .catch(() => mounted && setLoading(false))
     return () => {
-      mounted =
-        false
+      mounted = false
+    }
+  }, [eventId, refreshSignal])
 
-      supabase.removeChannel(
-        channel
+  // Bonus: live increment via Supabase Realtime, when the attendance table is
+  // in the realtime publication. (The refetch above is the reliable path.)
+  useEffect(() => {
+    const supabase = createBrowserClient()
+    let mounted = true
+    const channel = supabase
+      .channel(`attendance-${eventId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'attendance', filter: `event_id=eq.${eventId}` },
+        () => { if (mounted) setCheckedIn((p) => p + 1) }
       )
+      .subscribe()
+    return () => {
+      mounted = false
+      supabase.removeChannel(channel)
     }
   }, [eventId])
 
   if (loading) {
     return (
-      <div className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl">
-        <div className="h-16 animate-pulse rounded-2xl bg-[#0B1736]" />
+      <div className=" border border-[#243B72] bg-[#10224A] p-6 ">
+        <div className="h-16 animate-pulse  bg-[#0B1736]" />
       </div>
     )
   }
 
   return (
-    <div className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl">
+    <div className=" border border-[#243B72] bg-[#10224A] p-6 ">
 
       {/* Top */}
       <div className="flex items-start justify-between">
@@ -132,7 +91,7 @@ export function LiveStatsCounter({
 
         </div>
 
-        <span className="rounded-2xl bg-[#0B1736] p-3 text-[#F5E62D]">
+        <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
           <Users size={18} />
         </span>
 

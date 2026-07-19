@@ -130,7 +130,7 @@ export function EventTable({
 
               <div className="text-right">
 
-                <div className="text-4xl font-black text-[#F5E62D]">
+                <div className="text-4xl font-semibold text-[#F5E62D]">
                   {
                     event.confirmed_count
                   }

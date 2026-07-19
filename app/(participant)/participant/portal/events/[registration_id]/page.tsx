@@ -40,11 +40,11 @@ export default function RegistrationDetailPage() {
       </Link>
 
       {/* Event Info */}
-      <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-6 mb-4">
+      <div className="bg-slate-900/80 border border-white/10  p-6 mb-4">
         <span className="text-xs font-bold text-amber-400 uppercase tracking-widest mb-2 block">
           {event?.event_type}
         </span>
-        <h1 className="text-2xl font-black text-white mb-4">{event?.title}</h1>
+        <h1 className="text-2xl font-semibold text-white mb-4">{event?.title}</h1>
 
         <div className="space-y-2">
           {event?.starts_at && (
@@ -73,7 +73,7 @@ export default function RegistrationDetailPage() {
             </span>
           )}
           {reg.status === 'confirmed' && !attended && (
-            <span className="text-xs font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full">
+            <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
               ✓ Confirmed
             </span>
           )}
@@ -83,7 +83,7 @@ export default function RegistrationDetailPage() {
             </span>
           )}
           {hasCert && (
-            <span className="text-xs font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-3 py-1 rounded-full">
+            <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
               🎓 Certificate Ready
             </span>
           )}
@@ -94,7 +94,7 @@ export default function RegistrationDetailPage() {
       <div className="grid grid-cols-2 gap-3 mb-4">
         <Link
           href={`/participant/portal/events/${registration_id}/qr`}
-          className="bg-white text-slate-950 rounded-xl p-4 text-center font-bold hover:bg-slate-100 transition-colors flex flex-col items-center gap-2"
+          className="bg-white text-slate-950  p-4 text-center font-bold hover:bg-slate-100 transition-colors flex flex-col items-center gap-2"
         >
           <QrCode size={22} className="text-amber-500" />
           <span className="text-sm">My QR Code</span>
@@ -103,28 +103,28 @@ export default function RegistrationDetailPage() {
         {reg.registration_type === 'team' && reg.is_leader && (
           <Link
             href={`/participant/portal/events/${registration_id}/team`}
-            className="bg-slate-800 border border-white/10 text-white rounded-xl p-4 text-center font-bold hover:bg-slate-700 transition-colors flex flex-col items-center gap-2"
+            className="bg-slate-800 border border-white/10 text-white  p-4 text-center font-bold hover:bg-[#112240] transition-colors flex flex-col items-center gap-2"
           >
-            <Users size={22} className="text-blue-400" />
+            <Users size={22} className="text-amber-300" />
             <span className="text-sm">Manage Team</span>
           </Link>
         )}
 
         <Link
           href={`/participant/portal/events/${registration_id}/certificate`}
-          className={`bg-slate-800 border rounded-xl p-4 text-center font-bold transition-colors flex flex-col items-center gap-2 ${
-            hasCert ? 'border-purple-500/30 text-purple-300 hover:bg-slate-700' : 'border-white/10 text-slate-300 hover:bg-slate-700'
+          className={`bg-slate-800 border  p-4 text-center font-bold transition-colors flex flex-col items-center gap-2 ${
+            hasCert ? 'border-amber-500/30 text-amber-200 hover:bg-[#112240]' : 'border-white/10 text-slate-300 hover:bg-[#112240]'
           }`}
         >
-          <Award size={22} className={hasCert ? 'text-purple-400' : 'text-slate-500'} />
+          <Award size={22} className={hasCert ? 'text-amber-300' : 'text-slate-500'} />
           <span className="text-sm">Certificate</span>
         </Link>
       </div>
 
       {/* Registration Answers */}
       {reg.answers?.length > 0 && (
-        <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-6 mb-4">
-          <h2 className="font-black text-white mb-4">Your Answers</h2>
+        <div className="bg-slate-900/80 border border-white/10  p-6 mb-4">
+          <h2 className="font-semibold text-white mb-4">Your Answers</h2>
           <div className="space-y-4">
             {reg.answers.map((a: any) => (
               <div key={a.id} className="border-b border-white/5 pb-3 last:border-0 last:pb-0">
@@ -138,8 +138,8 @@ export default function RegistrationDetailPage() {
 
       {/* Team Members */}
       {reg.members?.length > 0 && (
-        <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-6">
-          <h2 className="font-black text-white mb-4">Team Members</h2>
+        <div className="bg-slate-900/80 border border-white/10  p-6">
+          <h2 className="font-semibold text-white mb-4">Team Members</h2>
           <div className="space-y-3">
             {reg.members.map((m: any) => (
               <div key={m.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">

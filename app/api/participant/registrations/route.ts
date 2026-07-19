@@ -8,13 +8,14 @@ export async function GET(req: NextRequest) {
     const { data: { user }, error: userError } = await sessionSupa.auth.getUser()
     if (userError || !user) return apiError('Unauthorised', 401)
 
-    const email = user.email!
-    console.log('SESSION EMAIL:', email)
+    const email = user.email!.toLowerCase()
 
     const admin = createAdminClient()
 
-    // Leader registrations
-    const { data: leaderRegs } = await admin
+    // Owned registrations — the account that created it, for both solo and
+    // team (as leader). participant_id is the identity; leader_email is only a
+    // contact field, so we key off the account, not the email.
+    const { data: ownedRegs } = await admin
       .from('registrations')
       .select(`
         *,
@@ -23,16 +24,18 @@ export async function GET(req: NextRequest) {
         attendance(id, checked_in_at),
         certificates(id, certificate_url, generated_at)
       `)
-      .eq('leader_email', email.toLowerCase())
+      .eq('participant_id', user.id)
       .order('registered_at', { ascending: false })
 
-    console.log('LEADER REGS COUNT:', leaderRegs?.length ?? 0)
-
-    // Team member registrations
+    // Team memberships — teams this account joined (group-code model links each
+    // member to their account via participant_id). Legacy rows with no account
+    // link still match by email as a fallback.
     const { data: memberRegs } = await admin
       .from('team_members')
       .select(`
         registration_id,
+        participant_id,
+        email,
         registrations(
           *,
           events(id, title, event_type, venue, starts_at, ends_at),
@@ -41,23 +44,20 @@ export async function GET(req: NextRequest) {
           certificates(id, certificate_url, generated_at)
         )
       `)
-      .eq('email', email.toLowerCase())
+      .or(`participant_id.eq.${user.id},email.eq.${email}`)
       .eq('is_leader', false)
 
     const memberRegData = (memberRegs ?? [])
       .map((m: any) => m.registrations)
       .filter(Boolean)
 
-    const allRegs = [
-      ...(leaderRegs ?? []),
-      ...memberRegData.filter((r: any) =>
-        !leaderRegs?.find((lr: any) => lr.id === r.id)
-      ),
-    ]
+    // Merge and dedupe by registration id.
+    const byId = new Map<string, any>()
+    for (const r of [...(ownedRegs ?? []), ...memberRegData]) {
+      if (r && !byId.has(r.id)) byId.set(r.id, r)
+    }
 
-    console.log('TOTAL REGS:', allRegs.length)
-
-    return apiSuccess(allRegs)
+    return apiSuccess(Array.from(byId.values()))
   } catch (err) {
     console.error('[GET /api/participant/registrations]', err)
     return apiError('Internal server error', 500)

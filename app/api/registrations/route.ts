@@ -7,8 +7,22 @@ import { uploadQrToStorage, getQrSignedUrl } from '@/lib/qr/generate'
 import { generateGoogleCalendarLink } from '@/lib/calendar/gcal-link'
 import { sendConfirmationEmail, sendWaitlistEmail } from '@/lib/email/send'
 import { sendConfirmationWhatsApp } from '@/lib/whatsapp/send'
+import { rateLimit } from '@/lib/rate-limit'
+import { getAuthUser } from '@/lib/auth/get-session'
+import { findUserRegistration } from '@/lib/registrations/is-registered'
+import { generateUniqueGroupCode } from '@/lib/registrations/group-code'
+import { isTeamNameTaken, suggestTeamName } from '@/lib/registrations/team-name'
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
+  if (!rateLimit('register', ip).success) {
+    return apiError('Too many registration attempts. Please wait and try again.', 429)
+  }
+
+  // Registration requires an account (anonymous registration removed).
+  const user = await getAuthUser()
+  if (!user) return apiError('Please sign in to register.', 401)
+
   const body = await req.json()
 
   // Step 1: Validate
@@ -16,6 +30,28 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return apiError(parsed.error.errors[0].message)
   const payload = parsed.data
   const supabase = createAdminClient()
+
+  // Step 1b: Resolve core identity. The form is organizer-driven, so name/email/
+  // phone are only present if the organizer configured them — otherwise fall back
+  // to the participant's profile and account. leader_email always resolves to the
+  // account email so the ticket/QR/confirmation have a valid recipient.
+  const { data: reqProfile } = await supabase
+    .from('participant_profiles')
+    .select('full_name, phone, college_email, personal_email')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const leaderEmail = (
+    payload.leader_email ||
+    reqProfile?.college_email ||
+    reqProfile?.personal_email ||
+    user.email ||
+    ''
+  ).toLowerCase()
+  const leaderName =
+    payload.leader_name || reqProfile?.full_name || user.email!.split('@')[0]
+  // leader_phone is NOT NULL in the schema — default to '' when not collected.
+  const leaderPhone = payload.leader_phone || reqProfile?.phone || ''
 
   // Step 2: Load event
   const { data: event } = await supabase
@@ -26,31 +62,46 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
   if (!event) return apiError('Event not found', 404)
 
+  // Step 2b: registration_type must match what the event allows.
+  if (event.registration_mode === 'solo' && payload.registration_type !== 'solo') {
+    return apiError('This event only allows solo registration')
+  }
+  if (event.registration_mode === 'team' && payload.registration_type !== 'team') {
+    return apiError('This event only allows team registration')
+  }
+
   // Step 3: Check deadline
   if (new Date() > new Date(event.registration_closes_at)) {
     return apiError('Registration has closed for this event')
   }
+
+  // Step 3b: Account-level duplicate — this user already owns or is a team
+  // member of a registration for this event.
+  const existing = await findUserRegistration(supabase, event.id, user.id, user.email!)
+  if (existing) return apiError('You are already registered for this event')
 
   // Step 4: Check duplicate leader email
   const { data: dupLeader } = await supabase
     .from('registrations')
     .select('id')
     .eq('event_id', payload.event_id)
-    .eq('leader_email', payload.leader_email)
+    .eq('leader_email', leaderEmail)
     .maybeSingle()
   if (dupLeader) return apiError('This email is already registered for this event')
 
-  // Step 5: Team-specific checks
+  // Step 5: Team-specific checks (group-code model: the creator starts the team
+  // with just themselves; other participants join later with the code, so we no
+  // longer require members up front and min-size is a soft/portal signal). Any
+  // members passed by a legacy caller are still validated + capped.
   if (payload.registration_type === 'team') {
     const members = (payload as any).members ?? []
-    if (event.min_team_size && members.length < event.min_team_size)
-      return apiError(`Minimum team size is ${event.min_team_size}`)
-    if (event.max_team_size && members.length > event.max_team_size)
+    const teamSize = members.length + 1 // + the creator
+    if (event.max_team_size && teamSize > event.max_team_size)
       return apiError(`Maximum team size is ${event.max_team_size}`)
     const emails = members.map((m: any) => m.email)
     if (new Set(emails).size !== emails.length)
       return apiError('Team has duplicate email addresses')
-    if (emails.includes(payload.leader_email))
+    if (emails.includes(leaderEmail))
       return apiError('Leader email cannot also be listed as a team member')
     if (emails.length > 0) {
       const { data: existingMembers } = await supabase
@@ -87,9 +138,28 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Step 7: Generate IDs
+  // Step 6b: Resolve the team name — unique per event. A seeker's auto-name is
+  // uniquified silently; an explicit team name that's taken is rejected.
+  let teamName: string | null = null
+  if (payload.registration_type === 'team') {
+    const rawName = ((payload as any).team_name ?? '').trim()
+    if ((payload as any).seeking) {
+      teamName = await suggestTeamName(supabase, event.id, rawName || `${leaderName}'s team`)
+    } else {
+      if (await isTeamNameTaken(supabase, event.id, rawName)) {
+        return apiError('That team name is already taken for this event. Please pick another.')
+      }
+      teamName = rawName
+    }
+  }
+
+  // Step 7: Generate IDs (+ a shareable group code for teams)
   const regId      = crypto.randomUUID()
   const display_id = regId.replace(/-/g, '').slice(0, 8).toUpperCase()
+  const group_code =
+    payload.registration_type === 'team'
+      ? await generateUniqueGroupCode(supabase)
+      : null
 
   // Step 8: Generate QR
   let qr_storage_path: string | null = null
@@ -107,22 +177,26 @@ export async function POST(req: NextRequest) {
     display_id,
     event_id:          payload.event_id,
     registration_type: payload.registration_type,
-    team_name:         (payload as any).team_name ?? null,
-    leader_name:       payload.leader_name,
-    leader_email:      payload.leader_email,
-    leader_phone:      payload.leader_phone,
+    team_name:         teamName,
+    leader_name:       leaderName,
+    leader_email:      leaderEmail,
+    leader_phone:      leaderPhone,
     qr_code_url:       qr_storage_path,
     status,
     waitlist_position,
+    participant_id:    user.id,
+    group_code,
+    is_open:           payload.registration_type === 'team',
   })
   if (insertErr) return apiError(insertErr.message, 500)
 
-  // Step 10: Insert team members
+  // Step 10: Insert team members — creator is the leader and is linked to their
+  // account so the team surfaces in their portal and gets a per-member cert.
   if (payload.registration_type === 'team') {
     const members = (payload as any).members ?? []
     const memberRows = [
-      { registration_id: regId, full_name: payload.leader_name, email: payload.leader_email, is_leader: true },
-      ...members.map((m: any) => ({ registration_id: regId, full_name: m.full_name, email: m.email, is_leader: false }))
+      { registration_id: regId, full_name: leaderName, email: leaderEmail, is_leader: true, participant_id: user.id },
+      ...members.map((m: any) => ({ registration_id: regId, full_name: m.full_name, email: m.email, is_leader: false, participant_id: null }))
     ]
     await supabase.from('team_members').insert(memberRows)
   }
@@ -145,8 +219,8 @@ export async function POST(req: NextRequest) {
     : null
   const calendarUrl = generateGoogleCalendarLink({
     title:    event.title,
-    startsAt: event.starts_at,
-    endsAt:   event.ends_at,
+    starts_at: event.starts_at,
+    ends_at:   event.ends_at,
     venue:    event.venue,
   })
   const appUrl = process.env.NEXT_PUBLIC_APP_URL
@@ -154,8 +228,8 @@ export async function POST(req: NextRequest) {
   if (status === 'confirmed' && qrSignedUrl) {
     Promise.allSettled([
       sendConfirmationEmail({
-        to:          payload.leader_email,
-        leaderName:  payload.leader_name,
+        to:          leaderEmail,
+        leaderName:  leaderName,
         teamName:    (payload as any).team_name ?? null,
         eventTitle:  event.title,
         eventVenue:  event.venue,
@@ -166,8 +240,8 @@ export async function POST(req: NextRequest) {
         resendUrl:   `${appUrl}/resend`,
       }),
       sendConfirmationWhatsApp({
-        to:         payload.leader_phone,
-        leaderName: payload.leader_name,
+        to:         leaderPhone ?? '',
+        leaderName: leaderName,
         eventTitle: event.title,
         startsAt:   event.starts_at,
         venue:      event.venue,
@@ -177,8 +251,8 @@ export async function POST(req: NextRequest) {
   } else if (status === 'waitlisted') {
     Promise.allSettled([
       sendWaitlistEmail({
-        to:               payload.leader_email,
-        leaderName:       payload.leader_name,
+        to:               leaderEmail,
+        leaderName:       leaderName,
         eventTitle:       event.title,
         waitlistPosition: waitlist_position!,
       }),
@@ -192,5 +266,6 @@ export async function POST(req: NextRequest) {
     qr_code_url:     qrSignedUrl,
     status,
     waitlist_position,
+    group_code,
   })
 }

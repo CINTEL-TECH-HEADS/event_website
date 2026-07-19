@@ -18,7 +18,7 @@ export default function ExportPage() {
     <div className="space-y-6">
 
       {/* Hero */}
-      <section className="app-panel rounded-[2rem] px-6 py-7 shadow-xl sm:px-8">
+      <section className="app-panel  px-6 py-7  sm:px-8">
 
         <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
           <Download size={14} />
@@ -42,11 +42,11 @@ export default function ExportPage() {
       <div className="grid gap-4 lg:grid-cols-2">
 
         {/* CSV */}
-        <section className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <section className=" border border-[#243B72] bg-[#10224A] p-6  transition-all duration-300 hover:-translate-y-1">
 
           <div className="mb-5 flex items-start gap-4">
 
-            <span className="rounded-2xl bg-[#0B1736] p-3 text-[#F5E62D]">
+            <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
               <FileText size={18} />
             </span>
 
@@ -74,11 +74,11 @@ export default function ExportPage() {
         </section>
 
         {/* Excel */}
-        <section className="rounded-[1.8rem] border border-[#243B72] bg-[#10224A] p-6 shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <section className=" border border-[#243B72] bg-[#10224A] p-6  transition-all duration-300 hover:-translate-y-1">
 
           <div className="mb-5 flex items-start gap-4">
 
-            <span className="rounded-2xl bg-[#0B1736] p-3 text-[#93C5FD]">
+            <span className=" bg-[#0B1736] p-3 text-[#93C5FD]">
               <FileSpreadsheet size={18} />
             </span>
 
@@ -109,7 +109,7 @@ export default function ExportPage() {
       </div>
 
       {/* Info */}
-      <div className="rounded-2xl border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
+      <div className=" border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
         Includes registrations,
         team members,
         attendance status,

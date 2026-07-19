@@ -22,15 +22,13 @@ export default function CertificatePage() {
         const attended = Array.isArray(data?.attendance)
           ? data.attendance.length > 0
           : !!data?.attendance?.id
-        const cert = Array.isArray(data?.certificates)
-          ? data.certificates[0]
-          : data?.certificates
 
         if (!attended) { setState('not_attended'); return }
-        if (!cert)     { setState('pending');      return }
 
+        // Account-based: returns THIS participant's own certificate (per-member
+        // for teams, registration-level for solo).
         const res = await fetch(
-          `/api/certificates/download?email=${encodeURIComponent(data.leader_email)}&event_id=${data.event_id}`
+          `/api/participant/registrations/${registration_id}/certificate`
         ).then(r => r.json())
 
         if (res.data?.downloadUrl) {
@@ -56,16 +54,16 @@ export default function CertificatePage() {
       title: 'Loading...', body: '', color: 'text-slate-400',
     },
     not_attended: {
-      icon: <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto"><X className="w-8 h-8 text-red-400" /></div>,
+      icon: <div className="w-16 h-16 bg-red-500/10 border border-red-500/20  flex items-center justify-center mx-auto"><X className="w-8 h-8 text-red-400" /></div>,
       title: 'Not available', body: 'Attendance was not recorded for this event.', color: 'text-red-400',
     },
     pending: {
-      icon: <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-center mx-auto"><Clock className="w-8 h-8 text-amber-400" /></div>,
+      icon: <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/20  flex items-center justify-center mx-auto"><Clock className="w-8 h-8 text-amber-400" /></div>,
       title: 'Being prepared', body: 'The organiser is generating certificates. Check back soon.', color: 'text-amber-400',
     },
     ready: {
-      icon: <div className="w-16 h-16 bg-purple-500/10 border border-purple-500/20 rounded-2xl flex items-center justify-center mx-auto"><Award className="w-8 h-8 text-purple-400" /></div>,
-      title: 'Certificate ready!', body: '', color: 'text-purple-400',
+      icon: <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/20  flex items-center justify-center mx-auto"><Award className="w-8 h-8 text-amber-300" /></div>,
+      title: 'Certificate ready!', body: '', color: 'text-amber-300',
     },
   }
 
@@ -83,16 +81,16 @@ export default function CertificatePage() {
       </div>
 
       <div className="mb-6">{current.icon}</div>
-      <h1 className={`text-xl font-black mb-2 ${current.color}`}>{current.title}</h1>
+      <h1 className={`text-xl font-semibold mb-2 ${current.color}`}>{current.title}</h1>
       {current.body && <p className="text-slate-400 text-sm">{current.body}</p>}
       {eventName && <p className="text-slate-500 text-sm mt-1">{eventName}</p>}
 
       {state === 'ready' && downloadUrl && (
         <button
           onClick={handleDownload}
-          className="inline-flex items-center gap-2 mt-8 bg-white text-slate-950 px-8 py-3 rounded-xl font-bold hover:bg-slate-100 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+          className="inline-flex items-center gap-2 mt-8 bg-white text-slate-950 px-8 py-3  font-bold hover:bg-slate-100 transition-colors "
         >
-          <Download size={16} className="text-purple-600" />
+          <Download size={16} className="text-amber-500" />
           Download Certificate
         </button>
       )}

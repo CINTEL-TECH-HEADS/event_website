@@ -117,36 +117,31 @@
 
   .app-panel {
     border: 1px solid rgb(var(--border));
-    background:
-      linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)),
-      rgb(var(--panel));
-    border-radius: 1.4rem;
-    box-shadow: var(--shadow-md);
-    backdrop-filter: blur(8px);
+    background: rgb(var(--panel));
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .app-panel-muted {
     border: 1px solid rgb(var(--border));
     background: rgb(var(--panel-muted));
-    border-radius: 1.4rem;
-    box-shadow: var(--shadow-sm);
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .app-card-hover {
-    transition: all 220ms ease;
+    transition: border-color 180ms ease, background-color 180ms ease;
   }
 
   .app-card-hover:hover {
-  transform: translateY(-6px) scale(1.01);
     border-color: rgb(var(--brand));
-    box-shadow: 0 0 0 1px rgba(250,230,45,.22), var(--shadow-lg);
   }
 
   .app-heading {
     font-size: clamp(2rem, 1.8rem + 2vw, 3.7rem);
     line-height: 1.02;
-    font-weight: 900;
-    letter-spacing: -0.05em;
+    font-weight: 600;
+    letter-spacing: -0.04em;
     color: white;
   }
 
@@ -161,7 +156,7 @@
     align-items: center;
     gap: .45rem;
     padding: .45rem .8rem;
-    border-radius: .2rem;
+    border-radius: 0;
     border: 1px solid rgba(250,230,45,.35);
     background: rgba(250,230,45,.08);
     color: rgb(var(--brand));
@@ -180,7 +175,7 @@
     justify-content: center;
     gap: .55rem;
     padding: .82rem 1.35rem;
-    border-radius: .2rem;
+    border-radius: 0;
     font-size: .95rem;
     font-weight: 700;
     transition: all 180ms ease;
@@ -197,12 +192,11 @@
     background: rgb(var(--brand));
     color: #0b1022;
     border: 1px solid rgba(255,255,255,.15);
-    box-shadow: 0 0 20px rgba(250,230,45,.12);
+    box-shadow: none;
   }
 
   .app-button-primary:hover {
     background: rgb(var(--brand-strong));
-    transform: translateY(-1px);
   }
 
   .app-button-secondary {
@@ -232,7 +226,7 @@
     border: 1px solid rgb(var(--border));
     background: rgba(8,18,40,.75);
     color: white;
-    border-radius: .2rem;
+    border-radius: 0;
     padding: .85rem 1rem;
     font-size: .95rem;
     transition: all 160ms ease;
@@ -254,10 +248,10 @@
   }
 
   .app-stat-card {
-    border-radius: .3rem;
+    border-radius: 0;
     border: 1px solid rgb(var(--border));
     background: rgb(var(--panel));
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
   }
 
   .app-badge {
@@ -265,7 +259,7 @@
     align-items: center;
     gap: .35rem;
     padding: .25rem .6rem;
-    border-radius: .15rem;
+    border-radius: 0;
     font-size: .7rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -295,7 +289,7 @@
   .app-empty-state {
     border: 1px dashed rgb(var(--border));
     background: rgb(var(--panel));
-    border-radius: 1.4rem;
+    border-radius: 0;
     padding: 3rem 2rem;
     text-align: center;
     color: rgb(var(--foreground-soft));
@@ -304,7 +298,7 @@
   .app-alert-info,
   .app-alert-success,
   .app-alert-warning {
-    border-radius: .3rem;
+    border-radius: 0;
     padding: 1rem 1.25rem;
     font-size: .94rem;
     border: 1px solid rgb(var(--border));
@@ -379,9 +373,7 @@
 }
 
 .app-panel:hover {
-  box-shadow:
-    0 0 0 1px rgba(250,230,45,.10),
-    0 24px 48px rgba(0,0,0,.35);
+  border-color: rgba(250,230,45,.25);
 }
 /* Luxury DatePicker Theme */
 
@@ -658,8 +650,17 @@ html[data-theme='light'] .bg-\[\#2563EB\] {
   color: #ffffff !important;
 }
 
-html[data-theme='light'] .public-theme-shell .bg-\[\#112240\] {
+html[data-theme='light'] .public-theme-shell .bg-\[\#112240\],
+html[data-theme='light'] .auth-theme-shell .bg-\[\#112240\],
+html[data-theme='light'] .dashboard-theme-shell .bg-\[\#112240\],
+html[data-theme='light'] .participant-theme-shell .bg-\[\#112240\] {
   background-color: #eaf3ff !important;
+}
+
+html[data-theme='light'] .auth-theme-shell .bg-\[\#0a1629\],
+html[data-theme='light'] .dashboard-theme-shell .bg-\[\#0a1629\],
+html[data-theme='light'] .participant-theme-shell .bg-\[\#0a1629\] {
+  background-color: #f5f9ff !important;
 }
 
 html[data-theme='light'] .public-theme-shell .bg-\[\#0d1b31\],

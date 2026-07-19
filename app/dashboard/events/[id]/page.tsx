@@ -23,12 +23,15 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<EventWithStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [fieldsCount, setFieldsCount] = useState<number | null>(null)
   const [tab, setTab] = useState<'details' | 'form' | 'organizers'>('details')
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     capacity: '',
-    registration_mode: 'both' as const,
+    registration_mode: 'both' as 'solo' | 'team' | 'both',
+    min_team_size: '',
+    max_team_size: '',
   })
 
   useEffect(() => {
@@ -51,7 +54,15 @@ export default function EventDetailPage() {
         description: data.description ?? '',
         capacity: data.capacity?.toString() ?? '',
         registration_mode: data.registration_mode ?? 'both',
+        min_team_size: data.min_team_size?.toString() ?? '',
+        max_team_size: data.max_team_size?.toString() ?? '',
       })
+
+      // Fields count gates publishing.
+      fetch(`/api/events/${id}/form-fields`)
+        .then((r) => r.json())
+        .then((j) => setFieldsCount((j.data ?? []).length))
+        .catch(() => setFieldsCount(0))
     } catch (error) {
       console.error('Failed to load event:', error)
       setEvent(null)
@@ -72,6 +83,14 @@ export default function EventDetailPage() {
         body: JSON.stringify({
           ...formData,
           capacity: formData.capacity ? Number(formData.capacity) : null,
+          min_team_size:
+            formData.registration_mode !== 'solo' && formData.min_team_size
+              ? Number(formData.min_team_size)
+              : null,
+          max_team_size:
+            formData.registration_mode !== 'solo' && formData.max_team_size
+              ? Number(formData.max_team_size)
+              : null,
         }),
       })
 
@@ -102,14 +121,13 @@ export default function EventDetailPage() {
         body: JSON.stringify({ is_published: !event.is_published }),
       })
 
+      const json = await res.json().catch(() => null)
       if (!res.ok) {
-  const text = await res.text()
-  console.log(text)
-  throw new Error(text || 'Failed to toggle publish')
-}
-
-      const { data } = await res.json()
-      setEvent(data)
+        // Surface the server's reason (e.g. "add at least one field").
+        alert(json?.error ?? 'Failed to update event status')
+        return
+      }
+      setEvent(json.data)
     } catch (error) {
       console.error('Failed to toggle publish:', error)
       alert('Failed to update event status')
@@ -128,7 +146,7 @@ export default function EventDetailPage() {
 
   return (
     <div className="space-y-6">
-      <section className="app-panel rounded-[2rem] px-6 py-7 sm:px-8">
+      <section className="app-panel  px-6 py-7 sm:px-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-4">
             <span className="app-kicker">
@@ -150,14 +168,19 @@ export default function EventDetailPage() {
             </div>
           </div>
 
-          <button
-            onClick={togglePublish}
-            disabled={saving}
-            className={event.is_published ? 'app-button-secondary' : 'app-button-primary'}
-          >
-            {event.is_published ? <CheckCircle2 size={16} /> : <CircleDashed size={16} />}
-            {event.is_published ? 'Published' : 'Publish Event'}
-          </button>
+          <div className="flex flex-col items-end gap-1">
+            <button
+              onClick={togglePublish}
+              disabled={saving || (!event.is_published && fieldsCount === 0)}
+              className={event.is_published ? 'app-button-secondary' : 'app-button-primary'}
+            >
+              {event.is_published ? <CheckCircle2 size={16} /> : <CircleDashed size={16} />}
+              {event.is_published ? 'Published' : 'Publish Event'}
+            </button>
+            {!event.is_published && fieldsCount === 0 && (
+              <p className="text-xs text-amber-300/80">Add at least one field (Form tab) to publish.</p>
+            )}
+          </div>
         </div>
       </section>
 
@@ -170,9 +193,9 @@ export default function EventDetailPage() {
           <button
             key={item.key}
             onClick={() => setTab(item.key)}
-            className={`rounded-xl px-4 py-3 text-sm font-bold tracking-widest uppercase transition-all border ${
+            className={` px-4 py-3 text-sm font-bold tracking-widest uppercase transition-all border ${
               tab === item.key
-               ? 'bg-[#F5E62D] text-[#0B1736] border-[#FFF27A] shadow-[0_0_18px_rgba(245,230,45,0.18)]'
+               ? 'bg-[#F5E62D] text-[#0B1736] border-[#FFF27A] '
                : 'bg-[#10224A] text-slate-300 border-[#243B72] hover:text-white hover:border-[#F5E62D]'
             }`}
           >
@@ -186,7 +209,7 @@ export default function EventDetailPage() {
           <Link
             key={item.path}
             href={`/dashboard/events/${id}/${item.path}`}
-            className={`rounded-xl border px-3 mt-2 py-2 text-xs font-bold tracking-widest uppercase transition-all ${
+            className={` border px-3 mt-2 py-2 text-xs font-bold tracking-widest uppercase transition-all ${
               pathname.includes(item.path)
              ? 'border-[#FFF27A] bg-[#F5E62D] text-[#0B1736]'
              : 'border-[#243B72] bg-[#10224A] text-slate-300 hover:border-[#F5E62D] hover:text-white'
@@ -199,7 +222,7 @@ export default function EventDetailPage() {
 
       {tab === 'details' && (
         <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-          <section className="app-panel rounded-[1.8rem] p-6">
+          <section className="app-panel  p-6">
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-white">Event details</h2>
               <p className="mt-1 text-sm text-slate-400">
@@ -261,6 +284,33 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
+              {formData.registration_mode !== 'solo' && (
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-300">Min team size</label>
+                    <input
+                      type="number"
+                      min={2}
+                      value={formData.min_team_size}
+                      onChange={(e) => setFormData({ ...formData, min_team_size: e.target.value })}
+                      placeholder="2"
+                      className="app-input"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-300">Max team size</label>
+                    <input
+                      type="number"
+                      min={2}
+                      value={formData.max_team_size}
+                      onChange={(e) => setFormData({ ...formData, max_team_size: e.target.value })}
+                      placeholder="4"
+                      className="app-input"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-end border-t border-[#243B72] pt-5">
                 <button onClick={handleSaveEvent} disabled={saving} className="app-button-primary">
                   {saving ? 'Saving...' : 'Save Changes'}
@@ -269,9 +319,9 @@ export default function EventDetailPage() {
             </div>
           </section>
 
-          <aside className="app-panel rounded-[1.8rem] p-6 h-fit">
+          <aside className="app-panel  p-6 h-fit">
             <div className="mb-6 flex items-center gap-3 border-b border-[#243B72] pb-4">
-              <span className="rounded-xl border border-[#243B72] bg-[#0B1736] p-2 text-[#F5E62D] shrink-0">
+              <span className=" border border-[#243B72] bg-[#0B1736] p-2 text-[#F5E62D] shrink-0">
                 <Users size={16} />
               </span>
               <div>
@@ -280,13 +330,13 @@ export default function EventDetailPage() {
               </div>
             </div>
             <div className="space-y-2 text-xs font-mono text-slate-400">
-              <div className="rounded-xl border border-[#243B72] bg-[#0B1736] px-4 py-3">
+              <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3">
                 Protocol: <span className="font-bold text-[#F5E62D] tracking-wider">{(event.registration_mode ?? 'both').toUpperCase()}</span>
               </div>
-              <div className="rounded-xl border border-[#243B72] bg-[#0B1736] px-4 py-3">
+              <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3">
                 Capacity: <span className="font-bold text-[#93C5FD] tracking-wider">{event.capacity ?? 'UNRESTRICTED'}</span>
               </div>
-              <div className="rounded-xl border border-[#243B72] bg-[#0B1736] px-4 py-3">
+              <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3">
                 State: <span className="font-bold text-[#F5E62D] tracking-wider">{event.is_published ? 'LIVE_STREAM' : 'DORMANT'}</span>
               </div>
             </div>

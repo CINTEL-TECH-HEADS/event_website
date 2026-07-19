@@ -13,12 +13,12 @@ export function CertificatePanel({
   children,
 }: Props) {
   return (
-    <section className="rounded-[1.8rem] border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
+    <section className=" border border-slate-200 bg-white p-6  transition-all duration-300 hover:-translate-y-0.5 ">
 
       {/* Header */}
       <div className="mb-5 flex items-start gap-3">
 
-        <span className="rounded-2xl bg-[#EFF6FF] p-3 text-[#1E3A8A]">
+        <span className=" bg-[#EFF6FF] p-3 text-[#1E3A8A]">
           <FileBadge2 size={18} />
         </span>
 

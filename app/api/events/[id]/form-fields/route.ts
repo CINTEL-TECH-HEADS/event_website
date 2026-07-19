@@ -15,6 +15,9 @@ import {
   formFieldsPayloadSchema,
 } from '@/lib/validators/form-fields'
 
+import { requireOrganizerRole } from '@/lib/auth/get-session'
+import { logAction } from '@/lib/audit/log'
+
 export async function GET(
   req: NextRequest,
   context: {
@@ -62,6 +65,12 @@ export async function POST(
   const { id } =
     await context.params
 
+  // Only organizers may rewrite an event's form
+  const auth = await requireOrganizerRole(id, ['owner', 'sub_admin'])
+  if ('error' in auth) {
+    return apiError(auth.error, auth.status)
+  }
+
   const body =
     await req.json()
 
@@ -108,6 +117,16 @@ export async function POST(
       error.message,
       500
     )
+
+  await logAction({
+    actorId: auth.user.id,
+    actorEmail: auth.user.email,
+    action: 'form_fields.update',
+    targetType: 'event',
+    targetId: id,
+    eventId: id,
+    metadata: { count: rows.length },
+  })
 
   const { data } =
     await supabase

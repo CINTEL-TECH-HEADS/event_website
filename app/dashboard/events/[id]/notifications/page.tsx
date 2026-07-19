@@ -162,7 +162,7 @@ export default function NotificationsPage() {
   const optionClass = (
     active: boolean
   ) =>
-    `cursor-pointer rounded-2xl border px-4 py-4 transition ${
+    `cursor-pointer  border px-4 py-4 transition ${
       active
         ? 'border-[#F5E62D] bg-[#0B1736] text-[#F5E62D]'
         : 'border-[#243B72] bg-[#10224A] text-slate-300 hover:border-[#F5E62D] hover:text-white'
@@ -172,7 +172,7 @@ export default function NotificationsPage() {
     <div className="space-y-6">
 
       {/* Hero */}
-      <section className="app-panel rounded-[2rem] px-6 py-7 sm:px-8">
+      <section className="app-panel  px-6 py-7 sm:px-8">
 
         <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
           <Bell size={14} />
@@ -194,7 +194,7 @@ export default function NotificationsPage() {
       </section>
 
       {/* Main */}
-      <section className="app-panel rounded-[2rem] p-6">
+      <section className="app-panel  p-6">
 
         <div className="grid gap-6">
 
@@ -416,7 +416,7 @@ export default function NotificationsPage() {
               disabled={
                 sending
               }
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F5E62D] px-6 py-3 text-sm font-semibold text-[#0B1736] transition hover:bg-[#FFF27A]"
+              className="inline-flex items-center justify-center gap-2  bg-[#F5E62D] px-6 py-3 text-sm font-semibold text-[#0B1736] transition hover:bg-[#FFF27A]"
             >
 
               {sending ? (
@@ -458,7 +458,7 @@ export default function NotificationsPage() {
       </section>
 
       {/* Note */}
-      <div className="rounded-2xl border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
+      <div className=" border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
         Notifications are sent
         immediately. Please
         review content before

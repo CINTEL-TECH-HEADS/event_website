@@ -30,6 +30,7 @@ interface GenerateCertificateParams {
   attendeeName: string
   eventName: string
   eventDate: string   // ISO string
+  teamMemberId?: string | null   // set for team members so each gets a distinct file/verify id
 }
 
 // ── Main export ───────────────────────────────────────────────
@@ -37,10 +38,11 @@ interface GenerateCertificateParams {
 export async function generateCertificate(
   params: GenerateCertificateParams
 ): Promise<string> {
-  const { registrationId, eventId, attendeeName, eventName, eventDate } = params
+  const { registrationId, eventId, attendeeName, eventName, eventDate, teamMemberId } = params
 
-  // Use registrationId as the certificate UUID — already unique
-  const certUUID = registrationId
+  // Certificate UUID — unique per recipient. For a team each member gets their
+  // own (registration + member); solo uses the registration id.
+  const certUUID = teamMemberId ? `${registrationId}-${teamMemberId}` : registrationId
 
   const admin = createAdminClient()
 
@@ -149,7 +151,8 @@ export async function generateCertificate(
 
   // ── Save PDF to Supabase Storage ─────────────────────────────
   const pdfBytes = await pdfDoc.save()
-  const outputPath = `generated/${eventId}/${registrationId}.pdf`
+  // Distinct file per recipient so team members don't overwrite each other.
+  const outputPath = `generated/${eventId}/${certUUID}.pdf`
 
   const { error: uploadError } = await admin
     .storage

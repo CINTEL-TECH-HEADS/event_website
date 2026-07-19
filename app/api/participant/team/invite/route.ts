@@ -1,93 +1,67 @@
 // app/api/participant/team/invite/route.ts
-// POST — generate invite code for team leader
+// POST — a team short of members invites an individual seeker.
+// Body: { team_registration_id, seeker_participant_id }. The seeker accepts later.
 
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
-import { createAdminClient, createSessionClient } from '@/lib/supabase/server'
-
-function generateInviteCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  let code = 'CINTEL-'
-  for (let i = 0; i < 4; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)]
-  }
-  return code
-}
+import { createAdminClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth/get-session'
+import { isTeamCreator } from '@/lib/registrations/access'
 
 export async function POST(req: NextRequest) {
   try {
-    const sessionSupa = await createSessionClient()
-    const { data: { user } } = await sessionSupa.auth.getUser()
+    const user = await getAuthUser()
     if (!user) return apiError('Unauthorised', 401)
 
-    const { registration_id, max_uses = 1 } = await req.json()
-    const email = user.email!
+    const { team_registration_id, seeker_participant_id } = await req.json()
+    if (!team_registration_id || !seeker_participant_id) {
+      return apiError('team_registration_id and seeker_participant_id are required')
+    }
+
     const admin = createAdminClient()
 
-    // Verify requester is the leader
-    const { data: reg } = await admin
+    // Caller must be the team creator.
+    if (!(await isTeamCreator(admin, team_registration_id, user.id, user.email!))) {
+      return apiError('Only the team creator can invite members', 403)
+    }
+
+    const { data: team } = await admin
       .from('registrations')
-      .select('id, event_id, team_name, members:team_members(id)')
-      .eq('id', registration_id)
-      .eq('leader_email', email.toLowerCase())
+      .select('id, event_id, is_open, status, members:team_members(id), events(max_team_size)')
+      .eq('id', team_registration_id)
       .maybeSingle()
+    if (!team) return apiError('Team not found', 404)
+    if (team.status !== 'confirmed' || !team.is_open) return apiError('This team is not accepting members')
+    const maxSize = (team.events as any)?.max_team_size ?? null
+    if (maxSize != null && (team.members as any[]).length >= maxSize) return apiError('Your team is already full')
 
-    if (!reg) return apiError('Registration not found or you are not the leader')
-
-    // Check event max_team_size
-    const { data: event } = await admin
-      .from('events')
-      .select('max_team_size')
-      .eq('id', reg.event_id)
+    // Target must be an open size-1 seeker for the same event.
+    const { data: seekerReg } = await admin
+      .from('registrations')
+      .select('id, members:team_members(id)')
+      .eq('event_id', team.event_id)
+      .eq('participant_id', seeker_participant_id)
+      .eq('registration_type', 'team')
+      .eq('is_open', true)
       .maybeSingle()
-
-    const currentSize = (reg.members as any[])?.length ?? 0
-    if (event?.max_team_size && currentSize >= event.max_team_size) {
-      return apiError('Team is already at maximum size')
+    if (!seekerReg || (seekerReg.members as any[]).length !== 1) {
+      return apiError('That participant is not available to invite')
     }
 
-    // Expire existing active codes
-    await admin
-      .from('team_invite_codes')
-      .update({ is_revoked: true })
-      .eq('registration_id', registration_id)
-      .eq('is_revoked', false)
-
-    // Generate unique code
-    let code = generateInviteCode()
-    for (let i = 0; i < 5; i++) {
-      const { data: existing } = await admin
-        .from('team_invite_codes')
-        .select('id')
-        .eq('code', code)
-        .maybeSingle()
-      if (!existing) break
-      code = generateInviteCode()
-    }
-
-    const expires_at = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
-
-    const { data: invite, error } = await admin
-      .from('team_invite_codes')
-      .insert({
-        code,
-        registration_id,
-        event_id: reg.event_id,
-        created_by_email: email,
-        max_uses,
-        expires_at,
-      })
-      .select()
-      .single()
-
-    if (error) return apiError(error.message, 500)
-
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL
-    return apiSuccess({
-      code:       invite.code,
-      link:       `${appUrl}/join/${invite.code}`,
-      expires_at: invite.expires_at,
+    const { error } = await admin.from('team_invites').insert({
+      event_id:               team.event_id,
+      team_registration_id,
+      seeker_participant_id,
+      seeker_registration_id: seekerReg.id,
+      direction:              'invite',
+      initiated_by:           user.id,
     })
+    if (error) {
+      if ((error as any).code === '23505') return apiError('You already have a pending invite to this participant')
+      return apiError(error.message, 500)
+    }
+
+    return apiSuccess({ message: 'Invitation sent' })
   } catch (err) {
     console.error('[POST /api/participant/team/invite]', err)
     return apiError('Internal server error', 500)

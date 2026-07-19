@@ -5,6 +5,7 @@ import {
   createAdminClient,
   createSessionClient,
 } from '@/lib/supabase/server'
+import { logAction } from '@/lib/audit/log'
 
 export async function GET(
   req: NextRequest
@@ -51,7 +52,38 @@ export async function GET(
           )
         }
 
-        console.log('Fetching events for user:', userId)
+        // Organizers and superadmins see EVERY event (kept in sync with the
+        // full events list); other roles (e.g. judges) see only their assigned events.
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle()
+
+        const isGlobalOrganizer =
+          profile?.role === 'organizer' || profile?.role === 'superadmin'
+
+        if (isGlobalOrganizer) {
+          const { data, error } = await supabase
+            .from('events')
+            .select('id, title, venue, is_published, registrations(count)')
+            .eq('is_deleted', false)
+            .order('starts_at', { ascending: false })
+
+          if (error) {
+            console.error('DB error:', error)
+            return apiSuccess([])
+          }
+
+          const events = (data ?? []).map((e: any) => ({
+            id: e.id,
+            title: e.title,
+            venue: e.venue,
+            is_published: e.is_published,
+            confirmed_count: e.registrations?.[0]?.count ?? 0,
+          }))
+          return apiSuccess(events)
+        }
 
         const { data, error } =
           await supabase
@@ -89,7 +121,6 @@ export async function GET(
               }] : []
           ) || []
 
-        console.log('Events found:', events.length)
         return apiSuccess(events)
       } catch (err) {
         console.error('Session error:', err)
@@ -204,6 +235,24 @@ export async function POST(
     const payload =
       await req.json()
 
+    // Team-size cap: required and 2 <= min <= max for team/both; null for solo.
+    const isTeamMode = payload.registration_mode !== 'solo'
+    let minTeam: number | null = null
+    let maxTeam: number | null = null
+    if (isTeamMode) {
+      minTeam = payload.min_team_size ?? null
+      maxTeam = payload.max_team_size ?? null
+      if (minTeam == null || maxTeam == null) {
+        return apiError('Team and both events require a min and max team size', 400)
+      }
+      if (minTeam < 2 || maxTeam < 2) {
+        return apiError('Team size must be at least 2', 400)
+      }
+      if (minTeam > maxTeam) {
+        return apiError('Max team size must be greater than or equal to min team size', 400)
+      }
+    }
+
     const supabase =
       createAdminClient()
 
@@ -254,11 +303,9 @@ export async function POST(
             registration_mode:
               payload.registration_mode,
             min_team_size:
-              payload.min_team_size ??
-              null,
+              minTeam,
             max_team_size:
-              payload.max_team_size ??
-              null,
+              maxTeam,
             is_published:
               false,
           },
@@ -284,7 +331,7 @@ export async function POST(
             event_id:
               event.id,
             profile_id:
-              session.user.id,
+              user.id,
             role: 'owner',
           },
         ])
@@ -294,6 +341,16 @@ export async function POST(
         orgError.message,
         500
       )
+
+    await logAction({
+      actorId: user.id,
+      actorEmail: user.email,
+      action: 'event.create',
+      targetType: 'event',
+      targetId: event.id,
+      eventId: event.id,
+      metadata: { title: event.title },
+    })
 
     return apiSuccess(
       event

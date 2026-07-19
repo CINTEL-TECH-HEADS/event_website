@@ -2,6 +2,8 @@
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireOrganizerRole } from '@/lib/auth/get-session'
+import { logAction } from '@/lib/audit/log'
 
 export async function DELETE(
   req: NextRequest,
@@ -15,6 +17,12 @@ export async function DELETE(
   try {
     const { id, organizerId } =
       await context.params
+
+    // Only the event owner can remove organizers
+    const auth = await requireOrganizerRole(id, ['owner'])
+    if ('error' in auth) {
+      return apiError(auth.error, auth.status)
+    }
 
     const supabase =
       createAdminClient()
@@ -36,6 +44,15 @@ export async function DELETE(
         error.message,
         500
       )
+
+    await logAction({
+      actorId: auth.user.id,
+      actorEmail: auth.user.email,
+      action: 'organizer.remove',
+      targetType: 'organizer',
+      targetId: organizerId,
+      eventId: id,
+    })
 
     return apiSuccess({
       message:

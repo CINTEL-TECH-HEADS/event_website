@@ -1,82 +1,84 @@
 // app/api/participant/team/join/route.ts
-// POST — join a team using an invite code (public, no auth required)
+// POST — join a team (group-code model, authenticated).
+// Body: { code } (group code) OR { registration_id } (from the Team Finder).
+// The joiner is linked to their account (participant_id) and shares the team QR.
 
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth/get-session'
+import { findUserRegistration } from '@/lib/registrations/is-registered'
 
 export async function POST(req: NextRequest) {
   try {
-    const { code, full_name, email } = await req.json()
+    const user = await getAuthUser()
+    if (!user) return apiError('Please sign in to join a team.', 401)
 
-    if (!code || !full_name || !email) {
-      return apiError('code, full_name and email are required')
+    const body = await req.json().catch(() => ({}))
+    const rawCode: string | undefined = body.code
+    const registrationId: string | undefined = body.registration_id
+    if (!rawCode && !registrationId) {
+      return apiError('A team code or team is required')
     }
 
     const admin = createAdminClient()
 
-    const { data: invite } = await admin
-      .from('team_invite_codes')
-      .select('*, registrations(*, events(*))')
-      .eq('code', code.toUpperCase())
-      .maybeSingle()
-
-    if (!invite)           return apiError('Invalid invite code')
-    if (invite.is_revoked) return apiError('This invite code has been revoked')
-    if (new Date() > new Date(invite.expires_at)) return apiError('This invite code has expired')
-    if (invite.uses >= invite.max_uses) return apiError('This invite code has already been used')
-
-    const reg   = invite.registrations as any
-    const event = reg?.events
-
-    if (reg?.status !== 'confirmed') return apiError('This registration is no longer active')
-
-    // Check email not already in team
-    const { data: existingMember } = await admin
-      .from('team_members')
-      .select('id')
-      .eq('registration_id', invite.registration_id)
-      .eq('email', email.toLowerCase())
-      .maybeSingle()
-
-    if (existingMember) return apiError('This email is already in the team')
-
-    // Check not already registered for this event
-    const { data: alreadyReg } = await admin
+    // Resolve the team registration by group code or id.
+    let query = admin
       .from('registrations')
-      .select('id')
-      .eq('event_id', invite.event_id)
-      .eq('leader_email', email.toLowerCase())
-      .maybeSingle()
+      .select('id, event_id, team_name, status, is_open, registration_type, events(title, max_team_size, registration_closes_at)')
+    query = rawCode
+      ? query.eq('group_code', rawCode.toUpperCase().trim())
+      : query.eq('id', registrationId!)
+    const { data: team } = await query.maybeSingle()
 
-    if (alreadyReg) return apiError('This email is already registered for this event')
+    if (!team || team.registration_type !== 'team') return apiError('Team not found')
+    if (team.status !== 'confirmed') return apiError('This team is no longer active')
+    if (!team.is_open) return apiError('This team is not accepting new members')
 
-    // Check team max size
-    if (event?.max_team_size) {
-      const { count } = await admin
-        .from('team_members')
-        .select('id', { count: 'exact', head: true })
-        .eq('registration_id', invite.registration_id)
-
-      if ((count ?? 0) >= event.max_team_size) return apiError('Team is already full')
+    const event = team.events as any
+    if (event?.registration_closes_at && new Date() > new Date(event.registration_closes_at)) {
+      return apiError('Registration has closed for this event')
     }
 
-    await admin.from('team_members').insert({
-      registration_id: invite.registration_id,
-      full_name,
-      email: email.toLowerCase(),
-      is_leader: false,
-    })
+    // Already registered for this event (own reg or another team)?
+    const existing = await findUserRegistration(admin, team.event_id, user.id, user.email!)
+    if (existing) {
+      if (existing.id === team.id) return apiError('You are already in this team')
+      return apiError('You are already registered for this event')
+    }
 
-    await admin
-      .from('team_invite_codes')
-      .update({ uses: invite.uses + 1 })
-      .eq('id', invite.id)
+    // Team capacity (members incl. the creator).
+    const { count } = await admin
+      .from('team_members')
+      .select('id', { count: 'exact', head: true })
+      .eq('registration_id', team.id)
+    if (event?.max_team_size && (count ?? 0) >= event.max_team_size) {
+      return apiError('This team is already full')
+    }
+
+    // Pull name from the participant's profile (fallback to email local-part).
+    const { data: profile } = await admin
+      .from('participant_profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .maybeSingle()
+    const fullName = profile?.full_name || user.email!.split('@')[0]
+
+    const { error: insertErr } = await admin.from('team_members').insert({
+      registration_id: team.id,
+      participant_id:  user.id,
+      full_name:       fullName,
+      email:           user.email!.toLowerCase(),
+      is_leader:       false,
+    })
+    if (insertErr) return apiError(insertErr.message, 500)
 
     return apiSuccess({
-      message:    `Successfully joined team for ${event?.title}`,
-      team_name:  reg?.team_name,
-      event_name: event?.title,
+      message:         `You joined ${team.team_name ?? 'the team'} for ${event?.title ?? 'the event'}`,
+      registration_id: team.id,
+      team_name:       team.team_name,
+      event_name:      event?.title,
     })
   } catch (err) {
     console.error('[POST /api/participant/team/join]', err)

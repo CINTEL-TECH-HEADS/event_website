@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireOrganizerRole } from '@/lib/auth/get-session'
 import { buildCsv } from '@/lib/export/csv'
 import { buildExcel } from '@/lib/export/excel'
+import { logAction } from '@/lib/audit/log'
 
 export async function GET(req: NextRequest) {
   try {
@@ -35,6 +36,16 @@ export async function GET(req: NextRequest) {
       )
     }
 
+    await logAction({
+      actorId: auth.user.id,
+      actorEmail: auth.user.email,
+      action: 'export.download',
+      targetType: 'event',
+      targetId: event_id,
+      eventId: event_id,
+      metadata: { format },
+    })
+
     const timestamp = new Date().toISOString().slice(0, 10)
 
     if (format === 'csv') {
@@ -49,7 +60,7 @@ export async function GET(req: NextRequest) {
 
     // xlsx
     const buffer = await buildExcel(event_id)
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="registrations-${timestamp}.xlsx"`,

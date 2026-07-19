@@ -1,88 +1,103 @@
 'use client'
 
-import { useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Users, KeyRound } from 'lucide-react'
+
+type State = 'checking' | 'ready' | 'joining' | 'success' | 'error'
 
 export default function JoinTeamPage() {
   const { code } = useParams<{ code: string }>()
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail]       = useState('')
-  const [status, setStatus]     = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [message, setMessage]   = useState('')
+  const router = useRouter()
+  const [state, setState]     = useState<State>('checking')
+  const [message, setMessage] = useState('')
+  const [regId, setRegId]     = useState<string | null>(null)
 
-  async function handleJoin(e: React.FormEvent) {
-    e.preventDefault()
-    setStatus('loading')
+  // Require login: bounce to /login with a redirect back here.
+  useEffect(() => {
+    fetch('/api/auth/me', { cache: 'no-store' })
+      .then(r => r.json())
+      .then((me) => {
+        if (!me.authenticated) {
+          window.location.href = `/login?redirect=${encodeURIComponent(`/join/${code}`)}`
+          return
+        }
+        setState('ready')
+      })
+      .catch(() => setState('ready'))
+  }, [code])
 
-    const res = await fetch('/api/participant/team/join', {
+  async function handleJoin() {
+    setState('joining')
+    const { data, error } = await fetch('/api/participant/team/join', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ code: code.toUpperCase(), full_name: fullName, email }),
-    })
+      body:    JSON.stringify({ code: code.toUpperCase() }),
+    }).then(r => r.json())
 
-    const { data, error } = await res.json()
-    if (error) { setMessage(error); setStatus('error') }
-    else       { setMessage(data.message); setStatus('success') }
+    if (error) { setMessage(error); setState('error') }
+    else {
+      setMessage(data.message)
+      setRegId(data.registration_id)
+      setState('success')
+    }
   }
 
-  if (status === 'success') return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white rounded-2xl border p-8 max-w-sm w-full text-center">
-        <div className="text-5xl mb-4">🎉</div>
-        <h2 className="text-xl font-bold mb-2">You're in!</h2>
-        <p className="text-gray-500 text-sm">{message}</p>
-        <p className="text-gray-400 text-xs mt-3">Check your email for a confirmation with your QR code.</p>
-      </div>
-    </div>
-  )
-
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl border p-8 max-w-sm w-full">
-        <div className="text-center mb-6">
-          <div className="text-3xl mb-2">👥</div>
-          <h1 className="text-xl font-bold">Join Team</h1>
-          <p className="text-sm text-gray-500 mt-1">You've been invited to join a team</p>
+    <div className="mx-auto flex min-h-[70vh] max-w-md items-center justify-center px-4">
+      <div className="w-full border border-white/10 bg-[#0a1629] p-8 text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center border border-amber-300/30 bg-amber-300/10">
+          <Users className="h-7 w-7 text-amber-300" />
         </div>
 
-        <form onSubmit={handleJoin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
-            <input
-              type="text"
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              placeholder="Full name"
-              required
-              className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Your email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              className="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
-          </div>
+        {state === 'checking' && (
+          <p className="text-sm text-slate-400">Checking your session…</p>
+        )}
 
-          {status === 'error' && (
-            <p className="text-red-600 text-sm bg-red-50 px-3 py-2 rounded-lg">{message}</p>
-          )}
+        {(state === 'ready' || state === 'joining') && (
+          <>
+            <h1 className="text-xl font-semibold text-white">Join a team</h1>
+            <p className="mt-2 text-sm text-slate-400">
+              You&apos;re about to join the team for this event with your account.
+            </p>
+            <div className="mt-4 inline-flex items-center gap-2 border border-white/10 bg-[#07101f] px-4 py-2 font-mono text-sm font-bold tracking-widest text-white">
+              <KeyRound size={14} className="text-amber-300" />
+              {code?.toUpperCase()}
+            </div>
+            <button
+              onClick={handleJoin}
+              disabled={state === 'joining'}
+              className="mt-6 w-full bg-amber-300 py-3 text-sm font-bold text-slate-950 transition hover:bg-amber-200 disabled:opacity-50"
+            >
+              {state === 'joining' ? 'Joining…' : 'Join Team'}
+            </button>
+          </>
+        )}
 
-          <button
-            type="submit"
-            disabled={status === 'loading'}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
-          >
-            {status === 'loading' ? 'Joining...' : 'Join Team'}
-          </button>
-        </form>
+        {state === 'error' && (
+          <>
+            <h1 className="text-xl font-semibold text-white">Couldn&apos;t join</h1>
+            <p className="mt-2 text-sm text-red-300">{message}</p>
+            <Link href="/participant/portal" className="mt-6 inline-block text-sm font-semibold text-amber-300 hover:text-amber-200">
+              Go to My Events
+            </Link>
+          </>
+        )}
 
-        <p className="text-xs text-gray-400 text-center mt-4">Invite code: {code?.toUpperCase()}</p>
+        {state === 'success' && (
+          <>
+            <div className="text-4xl">🎉</div>
+            <h1 className="mt-2 text-xl font-semibold text-white">You&apos;re in!</h1>
+            <p className="mt-2 text-sm text-slate-400">{message}</p>
+            <button
+              onClick={() => router.push(regId ? `/participant/portal/events/${regId}` : '/participant/portal')}
+              className="mt-6 w-full bg-white py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-100"
+            >
+              View in Portal
+            </button>
+          </>
+        )}
       </div>
     </div>
   )
