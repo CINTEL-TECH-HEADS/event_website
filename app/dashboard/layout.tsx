@@ -1,6 +1,7 @@
 // Owner: FE2 - Dashboard shell layout with sidebar
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/dashboard/Sidebar'
+import { DashboardBreadcrumbs } from '@/components/dashboard/DashboardBreadcrumbs'
 import { SessionGuard } from '@/components/auth/SessionGuard'
 import { getUserAccess } from '@/lib/auth/get-session'
 
@@ -35,6 +36,7 @@ export default async function DashboardLayout({
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px,24px_24px]" />
 
         <div className="relative mx-auto max-w-7xl animate-in fade-in duration-500">
+          <DashboardBreadcrumbs />
           {children}
         </div>
 
