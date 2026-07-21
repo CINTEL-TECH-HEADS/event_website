@@ -6,7 +6,6 @@ import { registrationSchema } from '@/lib/validators/registration'
 import { uploadQrToStorage, getQrSignedUrl } from '@/lib/qr/generate'
 import { generateGoogleCalendarLink } from '@/lib/calendar/gcal-link'
 import { sendConfirmationEmail, sendWaitlistEmail } from '@/lib/email/send'
-import { sendConfirmationWhatsApp } from '@/lib/whatsapp/send'
 import { rateLimit } from '@/lib/rate-limit'
 import { getAuthUser } from '@/lib/auth/get-session'
 import { findUserRegistration } from '@/lib/registrations/is-registered'
@@ -213,7 +212,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Step 12: Send email + WhatsApp
+  // Step 12: Send confirmation email
   const qrSignedUrl = qr_storage_path
     ? await getQrSignedUrl(qr_storage_path).catch(() => null)
     : null
@@ -239,14 +238,6 @@ export async function POST(req: NextRequest) {
         calendarUrl,
         resendUrl:   `${appUrl}/resend`,
       }),
-      sendConfirmationWhatsApp({
-        to:         leaderPhone ?? '',
-        leaderName: leaderName,
-        eventTitle: event.title,
-        startsAt:   event.starts_at,
-        venue:      event.venue,
-        displayId:  display_id,
-      }),
     ])
   } else if (status === 'waitlisted') {
     Promise.allSettled([
@@ -254,7 +245,7 @@ export async function POST(req: NextRequest) {
         to:               leaderEmail,
         leaderName:       leaderName,
         eventTitle:       event.title,
-        waitlistPosition: waitlist_position!,
+        waitlistPosition: waitlist_position ?? undefined,
       }),
     ])
   }

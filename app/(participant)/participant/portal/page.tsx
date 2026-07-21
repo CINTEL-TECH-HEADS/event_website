@@ -113,7 +113,10 @@ export default function PortalPage() {
   const actionRequired    = upcoming.filter(r => !isRegistrationComplete(r))
   const upcomingComplete  = upcoming.filter(r => isRegistrationComplete(r))
   const registeredIds     = registrations.map(r => r.event_id)
-  const availableEvents   = activeEvents.filter(e => !registeredIds.includes(e.id))
+  // "Register Now" = not already registered AND the event hasn't ended.
+  const availableEvents   = activeEvents.filter(
+    e => !registeredIds.includes(e.id) && !(e.ends_at && isPast(e.ends_at))
+  )
   const greeting          = getGreeting(userName || 'there')
 
   return (

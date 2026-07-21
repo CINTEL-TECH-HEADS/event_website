@@ -13,11 +13,14 @@ import {
 } from 'lucide-react'
 
 import { EventTable } from '@/components/dashboard/EventTable'
+import { isPast } from '@/lib/utils'
 
 type EventWithStats = {
   id: string
   title: string
   venue: string
+  starts_at?: string
+  ends_at?: string
   confirmed_count: number
   is_published: boolean
 }
@@ -223,35 +226,42 @@ export default function DashboardPage() {
 
       </section>
 
-      {/* Events */}
-      <section>
+      {/* Events — active/upcoming and past are split by end date */}
+      {(() => {
+        const isEnded = (e: EventWithStats) => !!(e.ends_at && isPast(e.ends_at))
+        const active = events.filter((e) => !isEnded(e))
+        const pastEvents = events.filter(isEnded)
+        return (
+          <>
+            <section>
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Managed Events</h2>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Active and upcoming events — jump into setup, registrations, exports, and operations.
+                  </p>
+                </div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#F5E62D]">
+                  Live Workspace
+                </p>
+              </div>
+              <EventTable events={active} />
+            </section>
 
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-
-          <div>
-
-            <h2 className="text-xl font-bold text-white">
-              All Events
-            </h2>
-
-            <p className="mt-1 text-sm text-slate-400">
-              Every event in the workspace — jump into setup,
-              registrations, exports, and operations.
-            </p>
-
-          </div>
-
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#F5E62D]">
-            Live Workspace
-          </p>
-
-        </div>
-
-        <EventTable
-          events={events}
-        />
-
-      </section>
+            {pastEvents.length > 0 && (
+              <section>
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-white">Past Events</h2>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Concluded events (end date has passed).
+                  </p>
+                </div>
+                <EventTable events={pastEvents} />
+              </section>
+            )}
+          </>
+        )
+      })()}
 
     </div>
   )

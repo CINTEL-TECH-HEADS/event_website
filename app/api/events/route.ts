@@ -66,7 +66,7 @@ export async function GET(
         if (isGlobalOrganizer) {
           const { data, error } = await supabase
             .from('events')
-            .select('id, title, venue, is_published, registrations(count)')
+            .select('id, title, venue, starts_at, ends_at, is_published, registrations(count)')
             .eq('is_deleted', false)
             .order('starts_at', { ascending: false })
 
@@ -79,6 +79,8 @@ export async function GET(
             id: e.id,
             title: e.title,
             venue: e.venue,
+            starts_at: e.starts_at,
+            ends_at: e.ends_at,
             is_published: e.is_published,
             confirmed_count: e.registrations?.[0]?.count ?? 0,
           }))
@@ -95,6 +97,8 @@ export async function GET(
                 id,
                 title,
                 venue,
+                starts_at,
+                ends_at,
                 is_published,
                 registrations(count)
               )

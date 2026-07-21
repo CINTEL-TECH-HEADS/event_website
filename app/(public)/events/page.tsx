@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import type { Event } from '@/types'
 import { EventGrid } from '@/components/public/EventGrid'
+import { isPast } from '@/lib/utils'
 
 type PublicEvent = Event & {
   confirmed_count: number
@@ -38,7 +39,12 @@ export default function EventsPage() {
       try {
         const res = await fetch('/api/events')
         const { data } = await res.json()
-        setEvents(((data ?? []) as PublicEvent[]).map(normalizeEvent))
+        // Only show active/upcoming events (hide events whose end date has passed).
+        setEvents(
+          ((data ?? []) as PublicEvent[])
+            .filter((e) => !(e.ends_at && isPast(e.ends_at)))
+            .map(normalizeEvent)
+        )
       } catch (err) {
         console.error('Failed to load events:', err)
         setError('Unable to load events right now.')
