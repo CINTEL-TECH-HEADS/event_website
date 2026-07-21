@@ -12,6 +12,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 const nullableStr = z.string().trim().max(200).optional().nullable()
+const nullableText = z.string().trim().max(600).optional().nullable()
 
 const profileSchema = z.object({
   full_name: nullableStr,
@@ -23,6 +24,12 @@ const profileSchema = z.object({
   batch: nullableStr,
   section: nullableStr,
   fa_name: nullableStr,
+  // Networking fields (Find Teammates)
+  department: nullableStr,
+  skills: nullableText,
+  interests: nullableText,
+  linkedin_url: nullableStr,
+  github_url: nullableStr,
 })
 
 const empty = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? null : v)
@@ -65,6 +72,11 @@ export async function GET() {
       batch: null,
       section: null,
       fa_name: null,
+      department: null,
+      skills: null,
+      interests: null,
+      linkedin_url: null,
+      github_url: null,
       updated_at: null,
     },
   })
