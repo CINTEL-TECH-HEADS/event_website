@@ -12,6 +12,33 @@ interface Props {
   refreshSignal?: number
 }
 
+// Renders a file/image answer (a storage path) by fetching a signed URL.
+function FileAnswer({ path }: { path: string }) {
+  const [state, setState] = useState<{ url: string; kind: string } | null>(null)
+  useEffect(() => {
+    let on = true
+    fetch(`/api/uploads/file?path=${encodeURIComponent(path)}`)
+      .then((r) => r.json())
+      .then((j) => on && j.data && setState({ url: j.data.url, kind: j.data.kind }))
+      .catch(() => {})
+    return () => { on = false }
+  }, [path])
+
+  if (!state) return <p className="text-xs text-slate-400">Loading file…</p>
+  if (state.kind === 'image') {
+    return (
+      <a href={state.url} target="_blank" rel="noopener noreferrer">
+        <img src={state.url} alt="upload" className="mt-1 max-h-28 rounded border border-white/10" />
+      </a>
+    )
+  }
+  return (
+    <a href={state.url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-[#F5E62D] hover:underline">
+      Download file
+    </a>
+  )
+}
+
 // Attendance embeds as a single object (unique per registration), not an array.
 function attendanceRow(reg: any): { id: string; checked_in_at?: string } | null {
   const a = Array.isArray(reg?.attendance) ? reg.attendance[0] : reg?.attendance
@@ -460,7 +487,11 @@ export function RegistrationTable({
                                         {r.answers.map((a: any) => (
                                           <div key={a.id} className="border border-[#243B72] bg-[#0B1736] px-3 py-2">
                                             <p className="text-xs text-slate-500">{a.form_fields?.label ?? 'Field'}</p>
-                                            <p className="text-sm text-white">{a.answer}</p>
+                                            {typeof a.answer === 'string' && a.answer.startsWith('submissions/') ? (
+                                              <FileAnswer path={a.answer} />
+                                            ) : (
+                                              <p className="text-sm text-white">{a.answer}</p>
+                                            )}
                                           </div>
                                         ))}
                                       </div>

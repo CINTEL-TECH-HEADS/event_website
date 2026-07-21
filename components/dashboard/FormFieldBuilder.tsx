@@ -648,6 +648,41 @@ export function FormFieldBuilder({
 
             </div>
 
+            {/* Accepted file types — only for file/upload fields */}
+            {editForm.field_type === 'file' && (
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-300">
+                  Accepted files
+                </label>
+                <select
+                  className="app-select"
+                  value={(() => {
+                    const a = editForm.validation?.allowed_types ?? []
+                    const hasImg = a.some((t) => /png|jpg|jpeg|webp/.test(t))
+                    const hasDoc = a.some((t) => /pdf|ppt/.test(t))
+                    if (hasImg && !hasDoc) return 'images'
+                    if (hasDoc && !hasImg) return 'documents'
+                    return 'any'
+                  })()}
+                  onChange={(e) => {
+                    const map: Record<string, string[]> = {
+                      images: ['.png', '.jpg', '.jpeg', '.webp'],
+                      documents: ['.pdf', '.ppt', '.pptx'],
+                      any: ['.pdf', '.ppt', '.pptx', '.png', '.jpg', '.jpeg', '.webp'],
+                    }
+                    setEditForm({
+                      ...editForm,
+                      validation: { ...(editForm.validation ?? {}), allowed_types: map[e.target.value] },
+                    })
+                  }}
+                >
+                  <option value="images">Images (photo, payment proof)</option>
+                  <option value="documents">Documents (PDF, PPT/PPTX)</option>
+                  <option value="any">Any (images + documents)</option>
+                </select>
+              </div>
+            )}
+
             <label className="flex items-center gap-3  border border-[#243B72] bg-[#0B1736] px-4 py-3 text-sm font-medium text-slate-300">
 
               <input

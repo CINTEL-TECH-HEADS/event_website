@@ -237,6 +237,7 @@ export function RegistrationForm({
               fields={registrationFields}
               register={register}
               errors={errors as any}
+              setValue={setValue}
             />
           </div>
         </div>
