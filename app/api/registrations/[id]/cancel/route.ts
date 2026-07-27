@@ -43,24 +43,8 @@ export async function POST(
     return apiError(cancelError.message, 500)
   }
 
- 
-  const { data: nextWaitlisted, error: waitlistError } = await table
-    .select('*')
-    .eq('event_id', registration.event_id)
-    .eq('status', 'waitlisted')
-    .order('registered_at', { ascending: true })
-    .limit(1)
-    .maybeSingle()
-
-  if (!waitlistError && nextWaitlisted) {
-    await table
-      .update({
-        status: 'confirmed',
-      })
-      .eq('id', nextWaitlisted.id)
-  }
-
-
+  // Cancelling only frees the spot — the organizer offers it to a waitlisted
+  // participant from the portal (they then accept + pay). No silent auto-promote.
   await logAction({
     actorId: auth.user.id,
     actorEmail: auth.user.email,
@@ -68,11 +52,7 @@ export async function POST(
     targetType: 'registration',
     targetId: id,
     eventId: registration.event_id,
-    metadata: { waitlist_promoted: !!nextWaitlisted },
   })
 
-  return apiSuccess({
-    message: 'Registration cancelled',
-    waitlist_promoted: !!nextWaitlisted,
-  })
+  return apiSuccess({ message: 'Registration cancelled' })
 }

@@ -211,6 +211,12 @@ export function RegistrationForm({
         }),
       }).catch(() => {})
 
+      // Paid confirmed registration → payment step before the pass.
+      if (data.requires_payment) {
+        router.push(`/participant/portal/events/${data.registration_id}/pay`)
+        return
+      }
+
       router.push(
         teamMode
           ? seeking

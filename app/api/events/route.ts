@@ -310,6 +310,10 @@ export async function POST(
               minTeam,
             max_team_size:
               maxTeam,
+            waitlist_capacity:
+              payload.waitlist_capacity ?? null,
+            fee:
+              payload.fee ?? 0,
             is_published:
               false,
           },

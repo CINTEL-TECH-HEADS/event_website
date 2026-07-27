@@ -95,6 +95,22 @@ export default function PortalPage() {
     await Promise.all([loadRegistrations(), loadInvites()])
   }
 
+  // Respond to a waitlist spot offer.
+  async function respondOffer(regId: string, action: 'accept' | 'decline') {
+    setRespBusy('offer' + regId + action)
+    const { data, error } = await fetch(`/api/participant/registrations/${regId}/offer`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action }),
+    }).then(r => r.json())
+    setRespBusy(null)
+    if (error) { alert(error); return }
+    if (action === 'accept' && data?.requires_payment) {
+      router.push(`/participant/portal/events/${regId}/pay`); return
+    }
+    await loadRegistrations()
+  }
+
   if (loading) return (
     <div className="flex items-center justify-center py-32">
       <div className="flex flex-col items-center gap-4">
@@ -144,6 +160,35 @@ export default function PortalPage() {
 
       {tab === 'events' && (
       <>
+      {/* ── WAITLIST SPOT OFFERS (needs your response) ── */}
+      {registrations.filter((r: any) => r.offer_status === 'offered').length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center gap-3 mb-3">
+            <Zap size={13} className="text-amber-300" />
+            <h2 className="text-xs font-bold text-amber-300 uppercase tracking-widest">Spot Offered</h2>
+          </div>
+          <div className="space-y-2">
+            {registrations.filter((r: any) => r.offer_status === 'offered').map((r: any) => {
+              const paid = (r.events?.fee ?? 0) > 0
+              return (
+                <div key={r.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between bg-amber-500/5 border border-amber-500/20 px-4 py-3">
+                  <p className="text-sm text-white">
+                    A spot opened for <strong>{r.events?.title}</strong>
+                    {paid && <span className="text-amber-300"> · ₹{r.events.fee} on accept</span>}
+                  </p>
+                  <div className="flex gap-2 shrink-0">
+                    <button onClick={() => respondOffer(r.id, 'accept')} disabled={respBusy === 'offer' + r.id + 'accept'}
+                      className="inline-flex items-center gap-1 bg-amber-400 text-slate-950 px-3 py-1.5 text-xs font-bold hover:bg-amber-300 disabled:opacity-50"><Check size={12}/>Accept{paid ? ' & Pay' : ''}</button>
+                    <button onClick={() => respondOffer(r.id, 'decline')} disabled={respBusy === 'offer' + r.id + 'decline'}
+                      className="inline-flex items-center gap-1 border border-white/10 text-slate-300 px-3 py-1.5 text-xs font-semibold hover:bg-white/5 disabled:opacity-50">Decline</button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
       {/* ── TEAM INVITES / REQUESTS (needs your response) ── */}
       {invites.filter((i: any) => i.incoming).length > 0 && (
         <section className="mb-8">

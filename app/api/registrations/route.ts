@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
   // Step 2: Load event
   const { data: event } = await supabase
     .from('events')
-    .select('id, title, venue, starts_at, ends_at, capacity, registration_closes_at, registration_mode, min_team_size, max_team_size')
+    .select('id, title, venue, starts_at, ends_at, capacity, waitlist_capacity, fee, registration_closes_at, registration_mode, min_team_size, max_team_size')
     .eq('id', payload.event_id)
     .eq('is_published', true)
     .maybeSingle()
@@ -113,29 +113,41 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Step 6: Capacity check
+  // Step 6: Capacity → confirmed / waitlisted / closed(full)
   let status: 'confirmed' | 'waitlisted' = 'confirmed'
   let waitlist_position: number | null = null
 
   if (event.capacity !== null) {
-    const { count } = await supabase
+    const { count: confirmedCount } = await supabase
       .from('registrations')
       .select('id', { count: 'exact', head: true })
       .eq('event_id', event.id)
       .eq('status', 'confirmed')
-    if ((count ?? 0) >= event.capacity) {
-      status = 'waitlisted'
-      const { data: lastWaitlist } = await supabase
+
+    if ((confirmedCount ?? 0) >= event.capacity) {
+      // Confirmed spots are full — try the waitlist.
+      const waitlistCap = event.waitlist_capacity ?? 0
+      if (waitlistCap <= 0) {
+        return apiError('Registration is closed — this event is full.')
+      }
+      const { count: waitlistCount } = await supabase
         .from('registrations')
-        .select('waitlist_position')
+        .select('id', { count: 'exact', head: true })
         .eq('event_id', event.id)
         .eq('status', 'waitlisted')
-        .order('waitlist_position', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      waitlist_position = (lastWaitlist?.waitlist_position ?? 0) + 1
+      if ((waitlistCount ?? 0) >= waitlistCap) {
+        return apiError('Registration is closed — this event and its waitlist are full.')
+      }
+      status = 'waitlisted'
+      waitlist_position = (waitlistCount ?? 0) + 1
     }
   }
+
+  // Paid events collect payment before issuing the pass; free events don't.
+  const isPaid = (event.fee ?? 0) > 0
+  const payment_status = isPaid ? 'pending' : 'not_required'
+  // A confirmed spot on a paid event must pay before the QR/pass is issued.
+  const requiresPayment = isPaid && status === 'confirmed'
 
   // Step 6b: Resolve the team name — unique per event. A seeker's auto-name is
   // uniquified silently; an explicit team name that's taken is rejected.
@@ -160,9 +172,9 @@ export async function POST(req: NextRequest) {
       ? await generateUniqueGroupCode(supabase)
       : null
 
-  // Step 8: Generate QR
+  // Step 8: Generate QR — only for a confirmed spot that doesn't still owe payment.
   let qr_storage_path: string | null = null
-  if (status === 'confirmed') {
+  if (status === 'confirmed' && !requiresPayment) {
     try {
       qr_storage_path = await uploadQrToStorage(regId, event.id)
     } catch (err) {
@@ -186,6 +198,7 @@ export async function POST(req: NextRequest) {
     participant_id:    user.id,
     group_code,
     is_open:           payload.registration_type === 'team',
+    payment_status,
   })
   if (insertErr) return apiError(insertErr.message, 500)
 
@@ -258,5 +271,7 @@ export async function POST(req: NextRequest) {
     status,
     waitlist_position,
     group_code,
+    requires_payment: requiresPayment,
+    fee:              event.fee ?? 0,
   })
 }

@@ -11,6 +11,7 @@ import { EventWithStats } from '@/types'
 const SUBNAV = [
   { label: 'Registrations', path: 'registrations' },
   { label: 'Check-In', path: 'checkin' },
+  { label: 'Payments', path: 'payments' },
   { label: 'Export', path: 'export' },
   { label: 'Certificates', path: 'certificates' },
   { label: 'Notifications', path: 'notifications' },
@@ -32,6 +33,8 @@ export default function EventDetailPage() {
     registration_mode: 'both' as 'solo' | 'team' | 'both',
     min_team_size: '',
     max_team_size: '',
+    fee: '',
+    waitlist_capacity: '',
   })
 
   useEffect(() => {
@@ -56,6 +59,8 @@ export default function EventDetailPage() {
         registration_mode: data.registration_mode ?? 'both',
         min_team_size: data.min_team_size?.toString() ?? '',
         max_team_size: data.max_team_size?.toString() ?? '',
+        fee: data.fee ? data.fee.toString() : '',
+        waitlist_capacity: data.waitlist_capacity?.toString() ?? '',
       })
 
       // Fields count gates publishing.
@@ -91,6 +96,8 @@ export default function EventDetailPage() {
             formData.registration_mode !== 'solo' && formData.max_team_size
               ? Number(formData.max_team_size)
               : null,
+          fee: formData.fee ? Number(formData.fee) : 0,
+          waitlist_capacity: formData.waitlist_capacity ? Number(formData.waitlist_capacity) : null,
         }),
       })
 
@@ -310,6 +317,31 @@ export default function EventDetailPage() {
                   </div>
                 </div>
               )}
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-300">Fee (₹) — 0 for free</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={formData.fee}
+                    onChange={(e) => setFormData({ ...formData, fee: e.target.value })}
+                    placeholder="0"
+                    className="app-input"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-300">Waitlist spots — blank for none</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={formData.waitlist_capacity}
+                    onChange={(e) => setFormData({ ...formData, waitlist_capacity: e.target.value })}
+                    placeholder="No waitlist"
+                    className="app-input"
+                  />
+                </div>
+              </div>
 
               <div className="flex justify-end border-t border-[#243B72] pt-5">
                 <button onClick={handleSaveEvent} disabled={saving} className="app-button-primary">
