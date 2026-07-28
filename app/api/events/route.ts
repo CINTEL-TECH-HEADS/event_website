@@ -181,6 +181,7 @@ export async function GET(
           venue,
           starts_at,
           ends_at,
+          registration_closes_at,
           capacity,
           registration_mode,
           is_published

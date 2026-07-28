@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { isPast, formatShortDate } from '@/lib/utils'
+import { isPast, isRegistrationOpen, formatShortDate } from '@/lib/utils'
 import {
   Ticket, LogOut, Sun, Moon, Sunset, Calendar,
   Users, Copy, Check, ChevronRight, AlertTriangle,
@@ -129,9 +129,9 @@ export default function PortalPage() {
   const actionRequired    = upcoming.filter(r => !isRegistrationComplete(r))
   const upcomingComplete  = upcoming.filter(r => isRegistrationComplete(r))
   const registeredIds     = registrations.map(r => r.event_id)
-  // "Register Now" = not already registered AND the event hasn't ended.
+  // "Register Now" = not already registered AND registration is still open.
   const availableEvents   = activeEvents.filter(
-    e => !registeredIds.includes(e.id) && !(e.ends_at && isPast(e.ends_at))
+    e => !registeredIds.includes(e.id) && isRegistrationOpen(e)
   )
   const greeting          = getGreeting(userName || 'there')
 

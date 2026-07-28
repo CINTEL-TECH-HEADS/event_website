@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import type { Event } from '@/types'
 import { EventGrid } from '@/components/public/EventGrid'
-import { isPast } from '@/lib/utils'
+import { isRegistrationOpen } from '@/lib/utils'
 
 type PublicEvent = Event & {
   confirmed_count: number
@@ -39,10 +39,10 @@ export default function EventsPage() {
       try {
         const res = await fetch('/api/events')
         const { data } = await res.json()
-        // Only show active/upcoming events (hide events whose end date has passed).
+        // Only show events still open for registration (hide closed/past ones).
         setEvents(
           ((data ?? []) as PublicEvent[])
-            .filter((e) => !(e.ends_at && isPast(e.ends_at)))
+            .filter(isRegistrationOpen)
             .map(normalizeEvent)
         )
       } catch (err) {
