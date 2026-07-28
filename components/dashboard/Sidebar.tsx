@@ -10,6 +10,7 @@ import {
   LogOut,
   ShieldCheck,
   Home,
+  Contact,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/public/ThemeToggle'
 
@@ -109,6 +110,19 @@ export function Sidebar({
               size={18}
             />
             New Event
+          </Link>
+
+          <Link
+            href="/dashboard/contacts"
+            className={navClass(
+              pathname ===
+                '/dashboard/contacts'
+            )}
+          >
+            <Contact
+              size={18}
+            />
+            Contacts
           </Link>
 
           <Link

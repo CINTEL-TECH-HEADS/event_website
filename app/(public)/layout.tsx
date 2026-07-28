@@ -50,6 +50,12 @@ export default function PublicLayout({
             >
               Certificate
             </Link>
+            <Link
+              href="/contact"
+              className="border border-transparent px-2 py-1.5 font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white sm:px-4 sm:py-2"
+            >
+              Contact
+            </Link>
             <AuthNav />
             <ThemeToggle />
           </nav>
