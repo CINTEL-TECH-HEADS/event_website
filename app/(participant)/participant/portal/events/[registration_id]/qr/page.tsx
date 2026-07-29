@@ -22,7 +22,10 @@ export default function QRPage() {
         setEventName(data?.events?.title ?? '')
         setEventDate(data?.events?.starts_at ?? '')
         setDisplayId(data?.display_id ?? '')
-        setCheckedInAt(data?.attendance?.[0]?.checked_in_at ?? null)
+        // attendance has a UNIQUE(registration_id) constraint, so PostgREST may
+        // return it as a single object rather than an array — handle both.
+        const att = Array.isArray(data?.attendance) ? data.attendance[0] : data?.attendance
+        setCheckedInAt(att?.checked_in_at ?? null)
         setLoading(false)
       })
   }, [registration_id])
