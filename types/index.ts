@@ -49,6 +49,7 @@ export interface Event {
   is_deleted: boolean
   created_by: string | null
   created_at: string
+  certificates_released_at?: string | null
 }
 
 export interface EventOrganizer {
@@ -178,6 +179,29 @@ export interface Certificate {
   template_version: number
 }
 
+export interface CertificateTemplate {
+  id: string
+  event_id: string
+  name: string
+  storage_path: string
+  is_default: boolean
+  created_at: string
+  template_type: string | null
+  certificate_type: string | null
+  layout_config: any | null
+}
+
+export interface CertificateAssignment {
+  id: string
+  event_id: string
+  registration_id: string
+  team_member_id: string | null
+  template_id: string | null
+  created_at: string
+  certificate_type: string | null
+  certificate_file_url?: string | null
+}
+
 // ── Joined / enriched types (used in API responses) ──────────
 
 // Registration with its team members attached
@@ -268,6 +292,16 @@ export interface Database {
         Row: Certificate
         Insert: Omit<Certificate, 'id' | 'generated_at'>
         Update: Partial<Omit<Certificate, 'id' | 'generated_at'>>
+      }
+      certificate_templates: {
+        Row: CertificateTemplate
+        Insert: Omit<CertificateTemplate, 'id' | 'created_at'>
+        Update: Partial<Omit<CertificateTemplate, 'id' | 'created_at'>>
+      }
+      certificate_assignments: {
+        Row: CertificateAssignment
+        Insert: Omit<CertificateAssignment, 'id' | 'created_at'>
+        Update: Partial<Omit<CertificateAssignment, 'id' | 'created_at'>>
       }
     }
   }

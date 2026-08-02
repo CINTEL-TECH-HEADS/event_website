@@ -1,406 +1,236 @@
-// Owner: FE2 - Certificates page
+// app/dashboard/events/[id]/certificates/page.tsx
+//
+// CINTEL EVENTS & REGISTRATION PORTAL — CERTIFICATE MANAGEMENT MODULE
+//
+// Complete image-based certificate workflow:
+//   1. Upload PNG/JPG Templates & Configure Layout (Participant Name, Team Name, QR)
+//   2. Team-wise & Solo Certificate Type Assignment (Persists individual assignment per person)
+//   3. JS Canvas PNG rendering & Batch ZIP Export
+//   4. Public QR Verification (/verify/<assignment-id>)
+
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
+import { Award, Loader2, RefreshCw } from 'lucide-react'
 import {
-  Check,
-  Loader2,
-  Mail,
-  Upload,
-  Award,
-} from 'lucide-react'
+  TemplateConfig,
+  TeamGroup,
+  SoloParticipant,
+  AssignmentRow,
+} from '@/components/certificates/types'
+import { CertificateTemplates } from '@/components/certificates/CertificateTemplates'
+import { TemplateEditor } from '@/components/certificates/TemplateEditor'
+import { CertificateAssignments } from '@/components/certificates/CertificateAssignments'
+import { GenerateDownloadPanel } from '@/components/certificates/GenerateDownloadPanel'
+import { PreviewModal } from '@/components/certificates/PreviewModal'
 
 export default function CertificatesPage() {
-  const { id } =
-    useParams<{ id: string }>()
+  const { id } = useParams<{ id: string }>()
 
-  const fileInputRef =
-    useRef<HTMLInputElement>(
-      null
-    )
+  const [loading, setLoading] = useState(true)
+  const [eventTitle, setEventTitle] = useState('CINTEL Event')
+  const [certificatesReleasedAt, setCertificatesReleasedAt] = useState<string | null>(null)
 
-  const [uploading, setUploading] =
-    useState(false)
+  // Data states
+  const [templates, setTemplates] = useState<TemplateConfig[]>([])
+  const [teams, setTeams] = useState<TeamGroup[]>([])
+  const [solos, setSolos] = useState<SoloParticipant[]>([])
+  const [assignments, setAssignments] = useState<AssignmentRow[]>([])
 
-  const [
-    templateUploaded,
-    setTemplateUploaded,
-  ] = useState(false)
+  // Editor modal state
+  const [editingTemplate, setEditingTemplate] = useState<TemplateConfig | null>(null)
 
-  const [
-    generating,
-    setGenerating,
-  ] = useState(false)
+  // Preview modal state
+  const [previewTarget, setPreviewTarget] = useState<{
+    registrationId: string
+    teamMemberId: string | null
+    name: string
+    teamName: string | null
+    certType: string
+    registrationType: 'solo' | 'team'
+  } | null>(null)
 
-  const [
-    releasing,
-    setReleasing,
-  ] = useState(false)
-
-  const [
-    generatedCount,
-    setGeneratedCount,
-  ] = useState(0)
-
-  async function handleUploadTemplate(
-    e: React.ChangeEvent<HTMLInputElement>
-  ) {
-    const file =
-      e.target.files?.[0]
-
-    if (!file) return
-
-    setUploading(true)
-
+  // Load all initial data for the event
+  const loadAllData = useCallback(async () => {
+    if (!id) return
+    setLoading(true)
     try {
-      const formData =
-        new FormData()
-
-      formData.append(
-        'file',
-        file
-      )
-
-      formData.append(
-        'event_id',
-        id
-      )
-
-      const res = await fetch(
-        '/api/certificates/upload-template',
-        {
-          method: 'POST',
-          body: formData,
-        }
-      )
-
-      if (!res.ok)
-        throw new Error()
-
-      setTemplateUploaded(
-        true
-      )
-    } catch {
-      alert(
-        'Failed to upload template.'
-      )
-    } finally {
-      setUploading(false)
-
-      if (
-        fileInputRef.current
-      ) {
-        fileInputRef.current.value =
-          ''
+      // 1. Fetch event info
+      const eventRes = await fetch(`/api/events/${id}`)
+      const eventJson = await eventRes.json()
+      if (eventJson.data?.title) setEventTitle(eventJson.data.title)
+      if (eventJson.data?.certificates_released_at) {
+        setCertificatesReleasedAt(eventJson.data.certificates_released_at)
       }
+
+      // 2. Fetch checked-in participants (team-grouped + solo)
+      const checkedInRes = await fetch(`/api/certificates/checked-in?event_id=${id}`)
+      const checkedInJson = await checkedInRes.json()
+      if (checkedInJson.data) {
+        setTeams(checkedInJson.data.teams ?? [])
+        setSolos(checkedInJson.data.solos ?? [])
+      }
+
+      // 3. Fetch configured templates
+      const templatesRes = await fetch(`/api/certificates/templates?event_id=${id}`)
+      const templatesJson = await templatesRes.json()
+      if (templatesJson.data) {
+        setTemplates(templatesJson.data ?? [])
+      }
+
+      // 4. Fetch saved assignments
+      const assignmentsRes = await fetch(`/api/certificates/assignments?event_id=${id}`)
+      const assignmentsJson = await assignmentsRes.json()
+      if (assignmentsJson.data) {
+        setAssignments(assignmentsJson.data ?? [])
+      }
+    } catch (err) {
+      console.error('[CertificatesPage] Failed to load data:', err)
+    } finally {
+      setLoading(false)
     }
+  }, [id])
+
+  useEffect(() => {
+    loadAllData()
+  }, [loadAllData])
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center space-x-2 text-slate-400">
+        <Loader2 size={24} className="animate-spin text-[#F5E62D]" />
+        <span className="text-sm font-semibold">Loading Certificate Management Module...</span>
+      </div>
+    )
   }
 
-  async function handleGenerateCertificates() {
-    if (
-      !confirm(
-        'Generate certificates for all attendees?'
-      )
+  // If in Template Layout Editor mode
+  if (editingTemplate) {
+    return (
+      <TemplateEditor
+        template={editingTemplate}
+        onSave={(updated) => {
+          setTemplates((prev) =>
+            prev.map((t) => (t.id === updated.id ? updated : t))
+          )
+          setEditingTemplate(null)
+        }}
+        onClose={() => setEditingTemplate(null)}
+      />
     )
-      return
-
-    setGenerating(true)
-
-    try {
-      const res = await fetch(
-        '/api/certificates/generate',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':
-              'application/json',
-          },
-          body: JSON.stringify(
-            {
-              event_id:
-                id,
-            }
-          ),
-        }
-      )
-
-      const { count } =
-        await res.json()
-
-      setGeneratedCount(
-        count || 0
-      )
-    } catch {
-      alert(
-        'Failed to generate certificates.'
-      )
-    } finally {
-      setGenerating(false)
-    }
-  }
-
-  async function handleReleaseCertificates() {
-    if (
-      !confirm(
-        'Send certificates to all attendees?'
-      )
-    )
-      return
-
-    setReleasing(true)
-
-    try {
-      await fetch(
-        '/api/certificates/release',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':
-              'application/json',
-          },
-          body: JSON.stringify(
-            {
-              event_id:
-                id,
-            }
-          ),
-        }
-      )
-    } catch {
-      alert(
-        'Failed to release certificates.'
-      )
-    } finally {
-      setReleasing(false)
-    }
   }
 
   return (
-    <div className="space-y-6">
-
-      {/* Hero */}
-      <section className="app-panel  px-6 py-7  sm:px-8">
-
-        <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
-          <Award size={14} />
-          Certificates
-        </span>
-
-        <h1 className="mt-5 text-3xl font-bold text-white">
-          Template, generate,
-          release.
-        </h1>
-
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
-          Deliver certificates
-          in one clean workflow
-          after attendance
-          completion.
-        </p>
-
-      </section>
-
-      {/* Step 1 */}
-      <section className=" border border-[#243B72] bg-[#10224A] p-6  transition-all duration-300 hover:-translate-y-1">
-
+    <div className="space-y-8">
+      {/* Hero Header */}
+      <section className="app-panel px-6 py-7 sm:px-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
           <div>
-
-            <span className="rounded-full bg-[#0B1736] px-3 py-1 text-xs font-semibold text-[#F5E62D]">
-              Step 1
+            <span className="inline-flex items-center gap-2 border border-[#F5E62D]/40 bg-[#0B1736] px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
+              <Award size={14} />
+              Certificate System
             </span>
 
-            <h2 className="mt-3 text-lg font-semibold text-white">
-              Upload Certificate
-              Template
-            </h2>
+            <h1 className="mt-4 text-3xl font-bold text-white">
+              Image Certificate Generator
+            </h1>
 
-            <p className="mt-2 text-sm text-slate-400">
-              Upload your PDF
-              design template.
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-400">
+              Manage image templates, assign certificate types team-wise or solo, render canvas PNGs, and export bulk ZIP archives with public QR verification.
             </p>
-
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-
-            <input
-              ref={
-                fileInputRef
-              }
-              type="file"
-              accept=".pdf"
-              onChange={
-                handleUploadTemplate
-              }
-              className="hidden"
-            />
-
-            <button
-              onClick={() =>
-                fileInputRef.current?.click()
-              }
-              disabled={
-                uploading
-              }
-              className="inline-flex items-center gap-2  bg-[#F5E62D] px-5 py-3 text-sm font-semibold text-[#0B1736] hover:bg-[#FFF27A]"
-            >
-              {uploading ? (
-                <Loader2
-                  size={16}
-                  className="animate-spin"
-                />
-              ) : (
-                <Upload size={16} />
-              )}
-
-              {uploading
-                ? 'Uploading...'
-                : 'Choose PDF'}
-            </button>
-
-            {templateUploaded && (
-              <span className="rounded-full bg-green-500/10 px-4 py-2 text-sm font-semibold text-green-400">
-                <Check
-                  size={14}
-                  className="mr-1 inline"
-                />
-                Ready
-              </span>
-            )}
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* Step 2 */}
-      <section className=" border border-[#243B72] bg-[#10224A] p-6  transition-all duration-300 hover:-translate-y-1">
-
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-          <div>
-
-            <span className="rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-400">
-              Step 2
-            </span>
-
-            <h2 className="mt-3 text-lg font-semibold text-white">
-              Generate
-              Certificates
-            </h2>
-
-            <p className="mt-2 text-sm text-slate-400">
-              Creates
-              certificates for
-              all attendees.
-            </p>
-
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-
-            <button
-              onClick={
-                handleGenerateCertificates
-              }
-              disabled={
-                generating ||
-                !templateUploaded
-              }
-              className="inline-flex items-center gap-2  bg-green-500 px-5 py-3 text-sm font-semibold text-white hover:bg-green-400 disabled:opacity-50"
-            >
-              {generating && (
-                <Loader2
-                  size={16}
-                  className="animate-spin"
-                />
-              )}
-
-              {generating
-                ? 'Generating...'
-                : 'Generate Now'}
-            </button>
-
-            {generatedCount >
-              0 && (
-              <span className="rounded-full bg-[#0B1736] px-4 py-2 text-sm font-semibold text-[#F5E62D]">
-                {
-                  generatedCount
-                }{' '}
-                Generated
-              </span>
-            )}
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* Step 3 */}
-      <section className=" border border-[#243B72] bg-[#10224A] p-6  transition-all duration-300 hover:-translate-y-1">
-
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-          <div>
-
-            <span className="rounded-full bg-[#0B1736] px-3 py-1 text-xs font-semibold text-[#93C5FD]">
-              Step 3
-            </span>
-
-            <h2 className="mt-3 text-lg font-semibold text-white">
-              Release by Email
-            </h2>
-
-            <p className="mt-2 text-sm text-slate-400">
-              Send generated
-              certificates to
-              attendees.
-            </p>
-
           </div>
 
           <button
-            onClick={
-              handleReleaseCertificates
-            }
-            disabled={
-              releasing ||
-              generatedCount ===
-                0
-            }
-            className="inline-flex items-center gap-2  bg-[#1E3A8A] px-5 py-3 text-sm font-semibold text-white hover:bg-[#2563EB] disabled:opacity-50"
+            onClick={loadAllData}
+            className="inline-flex items-center gap-2 border border-[#243B72] bg-[#10224A] px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white"
           >
-            {releasing ? (
-              <Loader2
-                size={16}
-                className="animate-spin"
-              />
-            ) : (
-              <Mail size={16} />
-            )}
-
-            {releasing
-              ? 'Sending...'
-              : 'Send Certificates'}
+            <RefreshCw size={14} />
+            Refresh Data
           </button>
-
         </div>
-
       </section>
 
-      {/* Note */}
-      <div className=" border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
-        Ensure all eligible
-        participants are marked
-        attended before
-        generating certificates.
-      </div>
+      {/* Step 1: Templates & Layout Editor */}
+      <section className="app-panel p-6">
+        <CertificateTemplates
+          eventId={id}
+          templates={templates}
+          onTemplatesChange={setTemplates}
+          onEditTemplate={(tmpl) => setEditingTemplate(tmpl)}
+        />
+      </section>
 
+      {/* Step 2: Assignments (Team-Wise & Solo) */}
+      <section className="app-panel p-6 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#243B72] pb-4">
+          <div>
+            <span className="rounded-none bg-[#F5E62D]/10 px-3 py-1 text-xs font-semibold text-[#F5E62D] uppercase tracking-wider">
+              Step 2
+            </span>
+            <h2 className="mt-2 text-lg font-bold text-white">Certificate Type Assignments</h2>
+            <p className="mt-1 text-xs text-slate-400">
+              For team registrations, choose certificate type at the TEAM level (all members inherit the selection). For solo registrations, assign individually.
+            </p>
+          </div>
+        </div>
+
+        <CertificateAssignments
+          eventId={id}
+          teams={teams}
+          solos={solos}
+          assignments={assignments}
+          onAssignmentsSaved={setAssignments}
+          onPreviewIndividual={(registrationId, teamMemberId, name, teamName, certType, registrationType) => {
+            setPreviewTarget({
+              registrationId,
+              teamMemberId,
+              name,
+              teamName,
+              certType,
+              registrationType,
+            })
+          }}
+        />
+      </section>
+
+      {/* Step 3: Post & Batch Export ZIP */}
+      <section className="app-panel p-6">
+        <GenerateDownloadPanel
+          eventId={id}
+          eventTitle={eventTitle}
+          teams={teams}
+          solos={solos}
+          assignments={assignments}
+          templates={templates}
+          certificatesReleasedAt={certificatesReleasedAt}
+          onPostCertificatesSuccess={(releasedAt) => setCertificatesReleasedAt(releasedAt)}
+        />
+      </section>
+
+      {/* Single Preview Modal */}
+      {previewTarget && (() => {
+        const asgn = assignments.find(
+          (a) =>
+            a.registration_id === previewTarget.registrationId &&
+            (previewTarget.teamMemberId
+              ? a.team_member_id === previewTarget.teamMemberId
+              : a.team_member_id === null)
+        )
+        return (
+          <PreviewModal
+            registrationId={previewTarget.registrationId}
+            teamMemberId={previewTarget.teamMemberId}
+            assignmentId={asgn?.id}
+            name={previewTarget.name}
+            teamName={previewTarget.teamName}
+            certType={previewTarget.certType}
+            registrationType={previewTarget.registrationType}
+            templates={templates}
+            onClose={() => setPreviewTarget(null)}
+          />
+        )
+      })()}
     </div>
   )
 }
