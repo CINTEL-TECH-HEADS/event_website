@@ -9,7 +9,8 @@ interface Props {
 export function RegistrationCard({ reg }: Props) {
   const event    = reg.events
   const attended = Array.isArray(reg.attendance) ? reg.attendance.length > 0 : !!reg.attendance?.id
-  const hasCert  = Array.isArray(reg.certificates) ? reg.certificates.length > 0 : !!reg.certificates?.id
+  const released = !!event?.certificates_released_at
+  const hasCert  = released && (Array.isArray(reg.certificates) ? reg.certificates.length > 0 : !!reg.certificates?.id || Array.isArray(reg.assignments) ? reg.assignments.length > 0 : !!reg.assignments?.id)
 
   const statusBadge = () => {
     if (reg.status === 'waitlisted')
