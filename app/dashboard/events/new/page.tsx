@@ -31,6 +31,9 @@ export default function NewEventPage() {
 
   const isTeamMode = registrationMode !== 'solo'
 
+  const [isPaid, setIsPaid] = useState(false)
+  const [hasWaitlist, setHasWaitlist] = useState(false)
+
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
   ) {
@@ -81,6 +84,13 @@ export default function NewEventPage() {
       max_team_size: isTeamMode && form.get('max_team_size')
         ? Number(form.get('max_team_size'))
         : null,
+
+      fee: isPaid && form.get('fee') ? Number(form.get('fee')) : 0,
+
+      waitlist_capacity:
+        hasWaitlist && form.get('waitlist_capacity')
+          ? Number(form.get('waitlist_capacity'))
+          : null,
     }
 
     const res = await fetch(
@@ -302,6 +312,38 @@ export default function NewEventPage() {
               </div>
             </div>
           )}
+
+          {/* Paid event + Waitlist toggles */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="border border-[#243B72] bg-[#0B1736] p-4">
+              <label className="flex items-center gap-3 text-sm font-semibold text-slate-200">
+                <input type="checkbox" checked={isPaid} onChange={(e) => setIsPaid(e.target.checked)} className="accent-[#F5E62D]" />
+                Paid event
+              </label>
+              {isPaid && (
+                <div className="mt-3">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">Fee (₹)</label>
+                  <input name="fee" type="number" min={1} defaultValue={100} required
+                    className="w-full border border-[#243B72] bg-[#07142E] px-5 py-3 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20" />
+                </div>
+              )}
+            </div>
+
+            <div className="border border-[#243B72] bg-[#0B1736] p-4">
+              <label className="flex items-center gap-3 text-sm font-semibold text-slate-200">
+                <input type="checkbox" checked={hasWaitlist} onChange={(e) => setHasWaitlist(e.target.checked)} className="accent-[#F5E62D]" />
+                Enable waitlist
+              </label>
+              {hasWaitlist && (
+                <div className="mt-3">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">Waitlist spots</label>
+                  <input name="waitlist_capacity" type="number" min={1} defaultValue={10} required
+                    className="w-full border border-[#243B72] bg-[#07142E] px-5 py-3 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20" />
+                </div>
+              )}
+              <p className="mt-2 text-xs text-slate-500">Requires a capacity. When full, extra registrants join the waitlist.</p>
+            </div>
+          </div>
 
           {/* Textarea */}
           <LuxuryTextarea

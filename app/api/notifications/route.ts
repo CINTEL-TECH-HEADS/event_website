@@ -12,14 +12,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { requireOrganizerRole } from '@/lib/auth/get-session'
-import { sendReminderEmail } from '@/lib/email/send'
-import { sendReminderWhatsApp } from '@/lib/whatsapp/send'
+import { sendNotificationEmail } from '@/lib/email/send'
 import { z } from 'zod'
+
+// Human labels for the notification types the dashboard offers.
+const TYPE_LABELS: Record<string, string> = {
+  confirmation: 'Registration Confirmation',
+  reminder_24h: '24-Hour Reminder',
+  reminder_1h: '1-Hour Reminder',
+  venue_change: 'Venue Change',
+  time_change: 'Time Change',
+  cancellation: 'Cancellation Notice',
+}
 
 const notifySchema = z.object({
   event_id: z.string().uuid(),
-  type: z.enum(['confirmation', 'reminder', 'custom']),
-  message: z.string().optional(),
+  type: z.string().min(1),
+  custom_message: z.string().max(500).optional(),
+  target: z.enum(['all_confirmed', 'custom']).optional(),
   registration_ids: z.array(z.string().uuid()).optional(),
 })
 
@@ -35,7 +45,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { event_id, type, registration_ids } = parsed.data
+    const { event_id, type, custom_message, target, registration_ids } = parsed.data
+    if (target === 'custom' && !(registration_ids && registration_ids.length > 0)) {
+      return NextResponse.json(
+        { data: null, error: 'Select at least one participant for a custom send.' },
+        { status: 400 }
+      )
+    }
 
     // Auth — owner or sub_admin only
     const auth = await requireOrganizerRole(event_id, ['owner', 'sub_admin'])
@@ -82,31 +98,22 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Send notifications (fire and forget per registrant)
+    const label = TYPE_LABELS[type] ?? 'Notification'
+    const subject = `${event.title} — ${label}`
+    const message =
+      custom_message?.trim() ||
+      `This is a ${label.toLowerCase()} for ${event.title}${event.venue ? ` at ${event.venue}` : ''}.`
+
+    // Send emails to the target registrants.
     let sent = 0
     for (const reg of registrations) {
-      if (type === 'reminder') {
-        // Send email + WhatsApp reminder
-        await sendReminderEmail({
-          to: reg.leader_email,
-          leaderName: reg.leader_name,
-          eventTitle: event.title,
-          eventVenue: event.venue,
-          startsAt: event.starts_at,
-          displayId: reg.display_id,
-          isOneHour: false,
-        })
-        await sendReminderWhatsApp({
-          to: reg.leader_phone,
-          leaderName: reg.leader_name,
-          eventTitle: event.title,
-          startsAt: event.starts_at,
-          venue: event.venue,
-          isOneHour: false,
-        })
-      }
+      await sendNotificationEmail({
+        to: reg.leader_email,
+        leaderName: reg.leader_name,
+        subject,
+        message,
+      })
 
-      // Log to notifications_log
       await admin.from('notifications_log').insert({
         event_id: event_id,
         registration_id: reg.id,
@@ -120,7 +127,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      data: { sent, total: registrations.length },
+      data: { sent_count: sent, total: registrations.length },
       error: null,
     })
   } catch (err) {

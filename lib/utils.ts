@@ -26,6 +26,18 @@ export function isPast(dateStr: string): boolean {
   return new Date(dateStr) < new Date()
 }
 
+// An event is open for registration if its close date (falling back to end,
+// then start) has not passed. Handles null ends_at / registration_closes_at,
+// which the old ends_at-only check let slip through.
+export function isRegistrationOpen(e: {
+  registration_closes_at?: string | null
+  ends_at?: string | null
+  starts_at?: string | null
+}): boolean {
+  const cutoff = e.registration_closes_at ?? e.ends_at ?? e.starts_at
+  return !(cutoff && isPast(cutoff))
+}
+
 // Calculate spots left — returns null if unlimited
 export function spotsLeft(capacity: number | null, confirmedCount: number): number | null {
   if (capacity === null) return null

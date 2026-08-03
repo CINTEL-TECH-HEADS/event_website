@@ -31,6 +31,7 @@ interface GenerateCertificateParams {
   eventName: string
   eventDate: string   // ISO string
   teamMemberId?: string | null   // set for team members so each gets a distinct file/verify id
+  templatePath?: string          // storage path of the template to use (else the event default)
 }
 
 // ── Main export ───────────────────────────────────────────────
@@ -46,9 +47,8 @@ export async function generateCertificate(
 
   const admin = createAdminClient()
 
-  // Download template from Supabase Storage
-  // Upload your template at: templates/[eventId].pdf
-  const templatePath = `templates/${eventId}.pdf`
+  // Download the template — a specific one (named templates) or the event default.
+  const templatePath = params.templatePath ?? `templates/${eventId}.pdf`
   const { data: templateFile, error: downloadError } = await admin
     .storage
     .from('uploads')

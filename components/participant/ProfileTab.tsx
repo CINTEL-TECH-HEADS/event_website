@@ -6,23 +6,32 @@ import { formatShortDate } from '@/lib/utils'
 import type { ParticipantProfile } from '@/types'
 
 const YEARS = ['1st', '2nd', '3rd', '4th', 'Alumni']
-const SECTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 const BATCHES = ['2021-2025', '2022-2026', '2023-2027', '2024-2028', '2025-2029', 'Alumni']
 
 type FormProfile = Omit<ParticipantProfile, 'id' | 'updated_at'>
 
-const TEXT_FIELDS: { key: keyof FormProfile; label: string }[] = [
+const TEXT_FIELDS: { key: keyof FormProfile; label: string; placeholder?: string }[] = [
   { key: 'full_name', label: 'Full Name' },
   { key: 'register_number', label: 'Register Number' },
   { key: 'phone', label: 'Phone' },
   { key: 'college_email', label: 'College Email' },
   { key: 'personal_email', label: 'Personal Email' },
   { key: 'fa_name', label: 'Faculty Advisor (FA)' },
+  { key: 'department', label: 'Department', placeholder: 'e.g. CSE' },
+]
+
+// Networking fields shown in Find Teammates.
+const NETWORK_FIELDS: { key: keyof FormProfile; label: string; placeholder?: string }[] = [
+  { key: 'skills', label: 'Skills', placeholder: 'e.g. AI/ML, Web Dev, UI/UX' },
+  { key: 'interests', label: 'Interests', placeholder: 'e.g. Hackathons, Robotics' },
+  { key: 'linkedin_url', label: 'LinkedIn (optional)', placeholder: 'https://linkedin.com/in/…' },
+  { key: 'github_url', label: 'GitHub (optional)', placeholder: 'https://github.com/…' },
 ]
 
 const empty: FormProfile = {
   full_name: '', register_number: '', phone: '', college_email: '',
   personal_email: '', year_of_study: '', batch: '', section: '', fa_name: '',
+  department: '', skills: '', interests: '', linkedin_url: '', github_url: '',
 }
 
 export function ProfileTab() {
@@ -132,10 +141,34 @@ export function ProfileTab() {
 
         <div>
           <label className="mb-1.5 block text-xs font-bold text-slate-400 tracking-wide">Section</label>
-          <select value={form.section ?? ''} onChange={(e) => set('section', e.target.value)} disabled={!editing} className={inputCls}>
-            <option value="">—</option>
-            {SECTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <input
+            value={form.section ?? ''}
+            onChange={(e) => set('section', e.target.value)}
+            disabled={!editing}
+            placeholder={editing ? 'e.g. AH1' : ''}
+            className={inputCls}
+          />
+        </div>
+      </div>
+
+      {/* Networking — shown to teams in Find Teammates */}
+      <div className="mt-6 border-t border-white/10 pt-6">
+        <p className="mb-4 text-xs font-bold uppercase tracking-widest text-amber-300">
+          Networking (Find Teammates)
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {NETWORK_FIELDS.map(({ key, label, placeholder }) => (
+            <div key={key}>
+              <label className="mb-1.5 block text-xs font-bold text-slate-400 tracking-wide">{label}</label>
+              <input
+                value={(form[key] as string) ?? ''}
+                onChange={(e) => set(key, e.target.value)}
+                disabled={!editing}
+                placeholder={editing ? placeholder ?? '—' : ''}
+                className={inputCls}
+              />
+            </div>
+          ))}
         </div>
       </div>
 

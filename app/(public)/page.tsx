@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { Event } from '@/types'
 import { EventGrid } from '@/components/public/EventGrid'
+import { EventCard } from '@/components/public/EventCard'
+import { isRegistrationOpen } from '@/lib/utils'
 
 type PublicEvent = Event & {
   confirmed_count: number
@@ -50,6 +52,9 @@ export default function HomePage() {
 
     loadEvents()
   }, [])
+
+  const openEvents = events.filter(isRegistrationOpen)
+  const completedEvents = events.filter((e) => !isRegistrationOpen(e))
 
   return (
     <div>
@@ -176,7 +181,7 @@ export default function HomePage() {
           </div>
         ) : (
           <>
-            <EventGrid events={events} />
+            <EventGrid events={openEvents} />
             <div className="mt-8 flex justify-center">
               <Link
                 href="/events"
@@ -186,6 +191,23 @@ export default function HomePage() {
               </Link>
             </div>
           </>
+        )}
+
+        {!loading && !error && completedEvents.length > 0 && (
+          <div className="mt-14 border-t border-white/10 pt-10">
+            <div className="mb-6">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-slate-400">Archive</p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">Completed Events</h2>
+              <p className="mt-1 text-sm text-slate-500">Registration has closed for these events.</p>
+            </div>
+            <div className="grid gap-5 opacity-70 sm:grid-cols-2 xl:grid-cols-3">
+              {completedEvents.slice(0, 6).map((event) => (
+                <div key={event.id} className="h-full">
+                  <EventCard event={event} />
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </section>
     </div>

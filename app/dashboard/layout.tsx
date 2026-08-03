@@ -1,6 +1,8 @@
 // Owner: FE2 - Dashboard shell layout with sidebar
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/dashboard/Sidebar'
+import { MobileNav } from '@/components/dashboard/MobileNav'
+import { DashboardBreadcrumbs } from '@/components/dashboard/DashboardBreadcrumbs'
 import { SessionGuard } from '@/components/auth/SessionGuard'
 import { getUserAccess } from '@/lib/auth/get-session'
 
@@ -23,8 +25,13 @@ export default async function DashboardLayout({
 
       <SessionGuard />
 
-      {/* Sidebar */}
-      <Sidebar />
+      {/* Mobile top bar + drawer (< lg) */}
+      <MobileNav />
+
+      {/* Static sidebar (>= lg) */}
+      <div className="hidden lg:block">
+        <Sidebar />
+      </div>
 
       {/* Main Content */}
       <main className="app-main relative flex-1 bg-transparent px-4 py-4 sm:px-6 lg:px-8 lg:py-8">
@@ -35,6 +42,7 @@ export default async function DashboardLayout({
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px,24px_24px]" />
 
         <div className="relative mx-auto max-w-7xl animate-in fade-in duration-500">
+          <DashboardBreadcrumbs />
           {children}
         </div>
 

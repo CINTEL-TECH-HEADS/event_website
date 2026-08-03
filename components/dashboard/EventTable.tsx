@@ -93,17 +93,13 @@ export function EventTable({
                     className="text-[#F5E62D]"
                   />
 
-                  {new Date(
-                    event.starts_at ??
-                      ''
-                  ).toLocaleDateString(
-                    'en-IN',
-                    {
-                      month:
-                        'short',
-                      day: 'numeric',
-                    }
-                  )}
+                  {event.starts_at
+                    ? new Date(event.starts_at).toLocaleDateString('en-IN', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
+                    : '—'}
 
                 </div>
 

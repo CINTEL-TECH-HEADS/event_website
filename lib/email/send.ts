@@ -17,6 +17,30 @@ import { CertificateReadyEmail } from '@/lib/email/templates/CertificateReadyEma
 
 const FROM = process.env.EMAIL_FROM!
 
+// ── Generic organizer notification (manual sends from the dashboard) ──
+export async function sendNotificationEmail(params: {
+  to: string
+  leaderName: string
+  subject: string
+  message: string
+}) {
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: params.to,
+      subject: params.subject,
+      html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#111">
+        <p>Hi ${params.leaderName || 'there'},</p>
+        <div style="white-space:pre-wrap;line-height:1.6">${params.message}</div>
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0"/>
+        <p style="font-size:13px;color:#6b7280">— Cintel, SRM Institute of Science and Technology</p>
+      </div>`,
+    })
+  } catch (err) {
+    console.error('[sendNotificationEmail] failed:', err)
+  }
+}
+
 // ── 1. Confirmation email ─────────────────────────────────────
 // Called after successful registration (confirmed status)
 
@@ -54,7 +78,8 @@ interface SendWaitlistParams {
   to: string
   leaderName: string
   eventTitle: string
-  waitlistPosition: number
+  // Optional — a missing position sends a generic waitlist confirmation.
+  waitlistPosition?: number | null
 }
 
 export async function sendWaitlistEmail(params: SendWaitlistParams) {
@@ -63,7 +88,10 @@ export async function sendWaitlistEmail(params: SendWaitlistParams) {
     await resend.emails.send({
       from: FROM,
       to: params.to,
-      subject: `You're on the waitlist for ${params.eventTitle} — position #${params.waitlistPosition}`,
+      subject:
+        params.waitlistPosition != null
+          ? `You're on the waitlist for ${params.eventTitle} — position #${params.waitlistPosition}`
+          : `You're on the waitlist for ${params.eventTitle}`,
       html,
     })
   } catch (err) {
