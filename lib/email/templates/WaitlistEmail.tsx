@@ -10,7 +10,8 @@ import * as React from 'react'
 interface WaitlistEmailProps {
   leaderName: string
   eventTitle: string
-  waitlistPosition: number
+  // May be absent — the email falls back to a generic waitlist confirmation.
+  waitlistPosition?: number | null
 }
 
 export function WaitlistEmail({
@@ -18,10 +19,15 @@ export function WaitlistEmail({
   eventTitle,
   waitlistPosition,
 }: WaitlistEmailProps) {
+  const hasPosition = waitlistPosition != null
   return (
     <Html>
       <Head />
-      <Preview>{`You're on the waitlist for ${eventTitle} — position #${waitlistPosition}`}</Preview>
+      <Preview>
+        {hasPosition
+          ? `You're on the waitlist for ${eventTitle} — position #${waitlistPosition}`
+          : `You're on the waitlist for ${eventTitle}`}
+      </Preview>
       <Body style={main}>
         <Container style={container}>
 
@@ -34,10 +40,12 @@ export function WaitlistEmail({
             added to the waitlist.
           </Text>
 
-          <Section style={positionBox}>
-            <Text style={positionLabel}>Your position</Text>
-            <Text style={positionNumber}>#{waitlistPosition}</Text>
-          </Section>
+          {hasPosition && (
+            <Section style={positionBox}>
+              <Text style={positionLabel}>Your position</Text>
+              <Text style={positionNumber}>#{waitlistPosition}</Text>
+            </Section>
+          )}
 
           <Text style={text}>
             If a spot opens up, you'll be automatically promoted and receive

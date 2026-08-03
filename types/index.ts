@@ -97,6 +97,11 @@ export interface ParticipantProfile {
   batch: string | null
   section: string | null
   fa_name: string | null
+  department: string | null
+  skills: string | null
+  interests: string | null
+  linkedin_url: string | null
+  github_url: string | null
   updated_at: string
 }
 

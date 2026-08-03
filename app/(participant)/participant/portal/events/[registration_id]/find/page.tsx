@@ -136,12 +136,30 @@ export default function FindTeamPage() {
             {seekers.length === 0 ? (
               <p className="rounded border border-white/10 bg-[#0a1629] px-4 py-5 text-center text-sm text-slate-400">No one looking right now.</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {seekers.map((s: any) => (
-                  <div key={s.registration_id} className="flex items-center justify-between bg-[#0a1629] border border-white/10 px-4 py-3">
-                    <p className="text-sm font-semibold text-white">{s.name}</p>
-                    <button onClick={() => act('inv'+s.participant_id, '/api/participant/team/invite', { team_registration_id: mine, seeker_participant_id: s.participant_id })} disabled={busy==='inv'+s.participant_id}
-                      className="inline-flex items-center gap-1 border border-white/10 text-slate-200 px-3 py-1.5 text-xs font-bold hover:bg-white/5 disabled:opacity-50"><UserPlus size={12}/>Invite</button>
+                  <div key={s.registration_id} className="bg-[#0a1629] border border-white/10 px-4 py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white">{s.name}</p>
+                        {(s.department || s.year_of_study) && (
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            {[s.department, s.year_of_study].filter(Boolean).join(' · ')}
+                          </p>
+                        )}
+                      </div>
+                      <button onClick={() => act('inv'+s.participant_id, '/api/participant/team/invite', { team_registration_id: mine, seeker_participant_id: s.participant_id })} disabled={busy==='inv'+s.participant_id}
+                        className="inline-flex items-center gap-1 border border-white/10 text-slate-200 px-3 py-1.5 text-xs font-bold hover:bg-white/5 disabled:opacity-50 shrink-0"><UserPlus size={12}/>Invite</button>
+                    </div>
+                    {s.skills && <p className="mt-2 text-xs text-slate-300"><span className="text-slate-500">Skills:</span> {s.skills}</p>}
+                    {s.interests && <p className="mt-1 text-xs text-slate-300"><span className="text-slate-500">Interests:</span> {s.interests}</p>}
+                    {(s.linkedin_url || s.github_url || s.email) && (
+                      <div className="mt-2 flex flex-wrap gap-3 text-xs">
+                        {s.email && <a href={`mailto:${s.email}`} className="text-amber-300 hover:text-amber-200">Email</a>}
+                        {s.linkedin_url && <a href={s.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-amber-300 hover:text-amber-200">LinkedIn</a>}
+                        {s.github_url && <a href={s.github_url} target="_blank" rel="noopener noreferrer" className="text-amber-300 hover:text-amber-200">GitHub</a>}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

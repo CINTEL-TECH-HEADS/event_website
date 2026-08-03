@@ -1,70 +1,55 @@
-// Owner: BE2
-// POST /api/waitlist — internal route: promote next waitlisted registration
-// Called by /api/registrations/[id]/cancel — not called directly by frontend
+// app/api/waitlist/route.ts
+// POST — organizer OFFERS a spot to a waitlisted registration. This does not
+// confirm them; it flags the offer and emails them to accept in their portal.
+// The participant accepts/declines via /api/participant/registrations/[id]/offer.
+//
+// Body: { event_id, registration_id? }  (registration_id omitted → next in line)
+
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
-import { uploadQrToStorage, getQrSignedUrl } from '@/lib/qr/generate'
-import { generateGoogleCalendarLink } from '@/lib/calendar/gcal-link'
-import { formatEventDate } from '@/lib/utils'
 import { requireOrganizerRole } from '@/lib/auth/get-session'
+import { sendNotificationEmail } from '@/lib/email/send'
 
 export async function POST(req: NextRequest) {
-  const { event_id } = await req.json()
+  const { event_id, registration_id } = await req.json()
   if (!event_id) return apiError('event_id required')
 
-  // Admin operation (promotes an attendee + emails them) — organizers only
   const auth = await requireOrganizerRole(event_id, ['owner', 'sub_admin'])
   if ('error' in auth) return apiError(auth.error, auth.status)
 
-  const supabase = createAdminClient()
+  const admin = createAdminClient()
 
-  // Find next in waitlist (lowest position number)
-  const { data: next } = await supabase
+  // Pick the target: a specific waitlisted reg, or the next in line.
+  let query = admin
     .from('registrations')
-    .select('*, events(title, venue, starts_at, ends_at)')
+    .select('id, leader_name, leader_email, offer_status, events(title)')
     .eq('event_id', event_id)
     .eq('status', 'waitlisted')
-    .order('waitlist_position', { ascending: true })
-    .limit(1)
-    .maybeSingle()
+  query = registration_id
+    ? query.eq('id', registration_id)
+    : query.neq('offer_status', 'declined').order('waitlist_position', { ascending: true })
+  const { data: target } = await query.limit(1).maybeSingle()
 
-  if (!next) return apiSuccess({ promoted: false, message: 'No one on the waitlist' })
-
-  // Generate QR for the promoted person
-  let qr_storage_path: string | null = null
-  try {
-    qr_storage_path = await uploadQrToStorage(next.id, event_id)
-  } catch (err) {
-    console.error('QR generation failed for promoted registration:', err)
+  if (!target) return apiSuccess({ offered: false, message: 'No one available on the waitlist' })
+  if (target.offer_status === 'offered') {
+    return apiSuccess({ offered: true, registration_id: target.id, message: 'Already offered' })
   }
 
-  // Promote — update status and clear waitlist_position
-  const { error: updateErr } = await supabase
+  const { error } = await admin
     .from('registrations')
-    .update({ status: 'confirmed', qr_code_url: qr_storage_path, waitlist_position: null })
-    .eq('id', next.id)
+    .update({ offer_status: 'offered' })
+    .eq('id', target.id)
+  if (error) return apiError(error.message, 500)
 
-  if (updateErr) return apiError(updateErr.message, 500)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  const eventTitle = (target.events as any)?.title ?? 'the event'
+  sendNotificationEmail({
+    to: target.leader_email,
+    leaderName: target.leader_name,
+    subject: `A spot has opened for ${eventTitle}`,
+    message: `Good news — a spot has opened up for ${eventTitle} and you've been offered it from the waitlist.\n\nOpen your portal to accept and confirm your spot: ${appUrl}/participant/portal`,
+  }).catch(() => {})
 
-  // Decrement remaining waitlist positions
-  // NOTE: Requires decrement_waitlist_positions RPC function — BE1 creates this in Supabase
-  // If it doesn't exist yet, this will fail silently — positions will be fixed on next promotion
-  try {
-    await supabase.rpc('decrement_waitlist_positions', { p_event_id: event_id })
-  } catch {
-    console.warn('decrement_waitlist_positions RPC not yet available — skipping')
-  }
-
-  // Send promotion email
-  // TODO BE2: Uncomment once BE3 has lib/email/send.ts ready
-  // const qrSignedUrl = qr_storage_path ? await getQrSignedUrl(qr_storage_path) : null
-  // const event = next.events
-  // const calendarLink = generateGoogleCalendarLink({ title: event.title, startAt: event.starts_at,
-  //   endAt: event.ends_at, location: event.venue })
-  // await sendPromotionEmail({ to: next.leader_email, name: next.leader_name,
-  //   eventName: event.title, eventDate: formatEventDate(event.starts_at),
-  //   venue: event.venue, qrCodeUrl: qrSignedUrl ?? '', calendarLink })
-
-  return apiSuccess({ promoted: true, registration_id: next.id })
+  return apiSuccess({ offered: true, registration_id: target.id })
 }

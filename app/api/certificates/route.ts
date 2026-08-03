@@ -101,6 +101,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ data: null, error: 'No eligible attendees found.' }, { status: 404 })
     }
 
+    // Named templates + per-attendee assignments (fall back to the default / legacy template).
+    const { data: templates } = await admin
+      .from('certificate_templates')
+      .select('id, storage_path, is_default')
+      .eq('event_id', event_id)
+    const templatePathById = new Map((templates ?? []).map((t: any) => [t.id, t.storage_path]))
+    const defaultTemplatePath = (templates ?? []).find((t: any) => t.is_default)?.storage_path
+
+    const { data: assignments } = await admin
+      .from('certificate_assignments')
+      .select('registration_id, team_member_id, template_id')
+      .eq('event_id', event_id)
+    const assignKey = (regId: string, memberId: string | null) => `${regId}:${memberId ?? 'solo'}`
+    const assignedTemplateId = new Map(
+      (assignments ?? []).map((a: any) => [assignKey(a.registration_id, a.team_member_id), a.template_id])
+    )
+    const resolveTemplatePath = (regId: string, memberId: string | null): string | undefined => {
+      const tid = assignedTemplateId.get(assignKey(regId, memberId))
+      return (tid && templatePathById.get(tid)) || defaultTemplatePath || undefined
+    }
+
     // Expand each attended registration into per-recipient certificate targets.
     // Solo → one (team_member_id null). Team → one per member (own name + cert).
     type Target = { regId: string; teamMemberId: string | null; name: string; email: string }
@@ -148,6 +169,7 @@ export async function POST(req: NextRequest) {
             eventName: event.title,
             eventDate: event.starts_at,
             teamMemberId: t.teamMemberId,
+            templatePath: resolveTemplatePath(t.regId, t.teamMemberId),
           })
 
           if (certUrl) {

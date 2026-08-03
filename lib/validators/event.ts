@@ -13,6 +13,10 @@ export const eventBaseSchema = z.object({
   registration_mode: z.enum(['solo', 'team', 'both']),
   min_team_size: z.number().int().min(2).nullable().optional(),
   max_team_size: z.number().int().min(2).nullable().optional(),
+  // Optional waitlist size (null = no waitlist → close when capacity is full).
+  waitlist_capacity: z.number().int().min(0).nullable().optional(),
+  // Fee in rupees (0 = free).
+  fee: z.number().int().min(0).optional(),
 })
 
 export const createEventSchema = eventBaseSchema.refine(d => new Date(d.ends_at) > new Date(d.starts_at), {
