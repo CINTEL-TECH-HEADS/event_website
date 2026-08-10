@@ -192,9 +192,12 @@ export default function PortalPage() {
       {/* ── TEAM INVITES / REQUESTS (needs your response) ── */}
       {invites.filter((i: any) => i.incoming).length > 0 && (
         <section className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-2 mb-3">
             <Users size={13} className="text-amber-300" />
             <h2 className="text-xs font-bold text-amber-300 uppercase tracking-widest">Team Invites</h2>
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-slate-950">
+              {invites.filter((i: any) => i.incoming).length}
+            </span>
           </div>
           <div className="space-y-2">
             {invites.filter((i: any) => i.incoming).map((i: any) => (
@@ -314,9 +317,17 @@ export default function PortalPage() {
                         </Link>
                         <Link
                           href={`/participant/portal/events/${r.id}/find`}
-                          className="flex-1 flex items-center justify-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 py-2 text-xs font-bold transition-colors"
+                          className="relative flex-1 flex items-center justify-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 py-2 text-xs font-bold transition-colors"
                         >
                           <Users size={12} /> Find Teammates
+                          {(() => {
+                            const pending = invites.filter((i: any) => i.incoming && i.team_registration_id === r.id).length
+                            return pending > 0 ? (
+                              <span className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[10px] font-bold text-slate-950">
+                                {pending}
+                              </span>
+                            ) : null
+                          })()}
                         </Link>
                       </div>
                     </div>
