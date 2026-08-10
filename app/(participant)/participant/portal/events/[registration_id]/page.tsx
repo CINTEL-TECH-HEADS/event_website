@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { formatEventDate } from '@/lib/utils'
-import { QrCode, Users, Award, ArrowLeft, MapPin, Calendar, Hash } from 'lucide-react'
+import { QrCode, Users, Award, ArrowLeft, MapPin, Calendar, Hash, Phone } from 'lucide-react'
 
 export default function RegistrationDetailPage() {
   const { registration_id } = useParams<{ registration_id: string }>()
@@ -32,6 +32,8 @@ export default function RegistrationDetailPage() {
   const event    = reg.events
   const attended = Array.isArray(reg.attendance) ? reg.attendance.length > 0 : !!reg.attendance?.id
   const hasCert  = Array.isArray(reg.certificates) ? reg.certificates.length > 0 : !!reg.certificates?.id
+  const feeVal   = event?.fee ?? 0
+  const confirmed = reg.status === 'confirmed' && (reg.payment_status === 'paid' || feeVal === 0)
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
@@ -143,7 +145,7 @@ export default function RegistrationDetailPage() {
           <div className="space-y-3">
             {reg.members.map((m: any) => (
               <div key={m.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-bold text-white">
                     {m.full_name}
                     {m.is_leader && (
@@ -151,10 +153,18 @@ export default function RegistrationDetailPage() {
                     )}
                   </p>
                   <p className="text-xs text-slate-400">{m.email}</p>
+                  {confirmed && m.phone && (
+                    <a href={`tel:${m.phone}`} className="mt-0.5 inline-flex items-center gap-1 text-xs text-amber-300 hover:text-amber-200">
+                      <Phone size={11} /> {m.phone}
+                    </a>
+                  )}
                 </div>
               </div>
             ))}
           </div>
+          {confirmed && (
+            <p className="mt-4 text-xs text-slate-500">Contact numbers are shared so your team can coordinate.</p>
+          )}
         </div>
       )}
     </div>

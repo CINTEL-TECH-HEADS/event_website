@@ -28,3 +28,17 @@ export async function isTeamCreator(
     (m) => m.is_leader && (m.participant_id === userId || m.email?.toLowerCase() === lower)
   )
 }
+
+// Once a team's payment is verified (payment_status='paid') the roster is
+// frozen — no rename, open/close, add, or remove. Returns true if locked.
+export async function isTeamLocked(
+  admin: SupabaseClient,
+  registrationId: string
+): Promise<boolean> {
+  const { data } = await admin
+    .from('registrations')
+    .select('payment_status')
+    .eq('id', registrationId)
+    .maybeSingle()
+  return data?.payment_status === 'paid'
+}

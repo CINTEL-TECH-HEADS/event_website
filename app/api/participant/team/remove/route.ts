@@ -4,7 +4,7 @@
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient, createSessionClient } from '@/lib/supabase/server'
-import { isTeamCreator } from '@/lib/registrations/access'
+import { isTeamCreator, isTeamLocked } from '@/lib/registrations/access'
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,6 +18,9 @@ export async function POST(req: NextRequest) {
     // Verify requester is the team creator (account-based).
     if (!(await isTeamCreator(admin, registration_id, user.id, user.email!))) {
       return apiError('Only the team creator can remove members')
+    }
+    if (await isTeamLocked(admin, registration_id)) {
+      return apiError('Team is locked after payment')
     }
 
     const { data: member } = await admin
