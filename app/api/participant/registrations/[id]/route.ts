@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient, createSessionClient } from '@/lib/supabase/server'
+import { isRegistrationOwner, linkParticipantIfUnset } from '@/lib/registrations/access'
 
 export async function GET(
   req: NextRequest,
@@ -38,11 +39,14 @@ export async function GET(
     const myMember = reg.members?.find(
       (m: any) => m.participant_id === user.id || m.email?.toLowerCase() === lowerEmail
     )
-    const isOwner =
-      reg.participant_id === user.id || reg.leader_email?.toLowerCase() === lowerEmail
+    const isOwner = await isRegistrationOwner(admin, reg, user)
     const isLeader = isOwner || !!myMember?.is_leader
 
     if (!isOwner && !myMember) return apiError('Forbidden', 403)
+
+    // Self-heal the account link so owner-only actions (payment, offer) resolve
+    // by participant_id going forward.
+    if (isOwner) await linkParticipantIfUnset(admin, reg, user.id)
 
     // Get fresh QR signed URL
     let qr_code_url = reg.qr_code_url

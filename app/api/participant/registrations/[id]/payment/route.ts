@@ -10,6 +10,7 @@ import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
+import { isRegistrationOwner, linkParticipantIfUnset } from '@/lib/registrations/access'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,11 +33,14 @@ export async function POST(
     const admin = createAdminClient()
     const { data: reg } = await admin
       .from('registrations')
-      .select('id, event_id, participant_id, registration_type, payment_status, events(fee, payment_method, min_team_size)')
+      .select('id, event_id, participant_id, leader_email, registration_type, payment_status, events(fee, payment_method, min_team_size)')
       .eq('id', id)
       .maybeSingle()
     if (!reg) return apiError('Registration not found', 404)
-    if (reg.participant_id !== user.id) return apiError('Forbidden', 403)
+    // Owner = the account linked as participant_id, or whoever leader_email
+    // belongs to (auth or profile email) — the same rule the pay page's GET uses.
+    if (!(await isRegistrationOwner(admin, reg, user))) return apiError('Forbidden', 403)
+    await linkParticipantIfUnset(admin, reg, user.id)
 
     const event = reg.events as any
     const fee = event?.fee ?? 0
