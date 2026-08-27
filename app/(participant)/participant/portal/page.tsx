@@ -7,7 +7,7 @@ import { isPast, isRegistrationOpen, formatShortDate } from '@/lib/utils'
 import {
   Ticket, LogOut, Sun, Moon, Sunset, Calendar,
   Users, Copy, Check, ChevronRight, AlertTriangle,
-  Zap,
+  Zap, IndianRupee, Clock,
 } from 'lucide-react'
 import { PortalTabs, type PortalTab } from '@/components/participant/PortalTabs'
 import { PastEventCard } from '@/components/participant/PastEventCard'
@@ -458,6 +458,14 @@ function EventCard({ reg }: { reg: any }) {
   const attended   = Array.isArray(reg.attendance) ? reg.attendance.length > 0 : !!reg.attendance?.id
   const hasCert    = Array.isArray(reg.certificates) ? reg.certificates.length > 0 : !!reg.certificates?.id
 
+  // Payment state — only the owner (solo owner / team leader) pays, and for a
+  // team only once it has reached the minimum size.
+  const fee               = event?.fee ?? 0
+  const teamComplete      = !isTeam || (reg.members?.length ?? 0) >= (event?.min_team_size ?? 1)
+  const owesPayment       = reg._owner && fee > 0 && reg.status === 'confirmed' && teamComplete &&
+                            (reg.payment_status === 'pending' || reg.payment_status === 'rejected')
+  const paymentUnderReview = fee > 0 && reg.payment_status === 'submitted'
+
   // Color scheme: blue for team, purple for solo
   const accent = isTeam
     ? { border: 'border-amber-500/20',  bg: 'bg-amber-500/5',  text: 'text-amber-300',   badge: 'bg-amber-500/10 border-amber-500/20 text-amber-300'   }
@@ -466,12 +474,15 @@ function EventCard({ reg }: { reg: any }) {
   const statusBadge = () => {
     if (reg.status === 'waitlisted')  return <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">Waitlisted</span>
     if (reg.status === 'cancelled')   return <span className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full">Cancelled</span>
+    if (owesPayment)                  return <span className="text-xs font-bold text-red-300 bg-red-500/10 border border-red-500/25 px-2 py-0.5 rounded-full">Payment due</span>
+    if (paymentUnderReview)           return <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 rounded-full">Under review</span>
     if (attended && hasCert)          return <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">🎓 Certificate</span>
     if (attended)                     return <span className="text-xs font-bold text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">✓ Attended</span>
     return <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${accent.badge}`}>Confirmed</span>
   }
 
   return (
+    <div>
     <Link href={`/participant/portal/events/${reg.id}`}>
       <div className={`border  p-5 hover:opacity-90 transition-all cursor-pointer group ${accent.border} ${accent.bg}`}>
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -507,5 +518,20 @@ function EventCard({ reg }: { reg: any }) {
         </div>
       </div>
     </Link>
+
+    {owesPayment && (
+      <Link
+        href={`/participant/portal/events/${reg.id}/pay`}
+        className="mt-2 flex items-center justify-center gap-2 bg-[#F5E62D] text-black py-2.5 text-sm font-bold hover:brightness-110 transition"
+      >
+        <IndianRupee size={14} /> Complete payment — ₹{fee}
+      </Link>
+    )}
+    {paymentUnderReview && (
+      <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-amber-300">
+        <Clock size={12} /> Payment submitted — awaiting organizer verification
+      </p>
+    )}
+    </div>
   )
 }
