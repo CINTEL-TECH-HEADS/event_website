@@ -43,6 +43,7 @@ export default function PortalPage() {
   const [invites, setInvites]             = useState<any[]>([])
   const [respBusy, setRespBusy]           = useState<string | null>(null)
   const [tab, setTab]                     = useState<PortalTab>('events')
+  const [profileComplete, setProfileComplete] = useState(true)
   const router = useRouter()
 
   async function loadRegistrations() {
@@ -65,6 +66,7 @@ export default function PortalPage() {
       loadRegistrations(),
       loadInvites(),
       fetch('/api/events').then(r => r.json()).then(({ data }) => setActiveEvents(data ?? [])),
+      fetch('/api/participant/profile').then(r => r.json()).then(j => setProfileComplete(!!j.data?.complete)).catch(() => {}),
     ]).finally(() => setLoading(false))
   }, [])
 
@@ -122,6 +124,24 @@ export default function PortalPage() {
 
   if (error) return (
     <div className="flex items-center justify-center py-32"><p className="text-red-400">{error}</p></div>
+  )
+
+  // First sign-in gate: participants must record their college email + registration
+  // number before using the portal.
+  if (!profileComplete) return (
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-white tracking-tight">Welcome — complete your details</h1>
+        <p className="mt-1 text-sm text-slate-400">
+          Before you register for events, add your <strong className="text-slate-200">college email</strong> and
+          <strong className="text-slate-200"> registration number</strong>. These are required and unique to your account.
+        </p>
+      </div>
+      <ProfileTab required onSaved={(p) => { if (p?.college_email && p?.register_number) setProfileComplete(true) }} />
+      <div className="mt-6 text-center">
+        <button onClick={handleLogout} className="text-xs font-semibold text-slate-500 hover:text-slate-300">Sign out</button>
+      </div>
+    </div>
   )
 
   const upcoming          = registrations.filter(r => !isPast(r.events?.starts_at))

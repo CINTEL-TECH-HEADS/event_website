@@ -10,15 +10,18 @@ const BATCHES = ['2021-2025', '2022-2026', '2023-2027', '2024-2028', '2025-2029'
 
 type FormProfile = Omit<ParticipantProfile, 'id' | 'updated_at'>
 
-const TEXT_FIELDS: { key: keyof FormProfile; label: string; placeholder?: string }[] = [
+const TEXT_FIELDS: { key: keyof FormProfile; label: string; placeholder?: string; required?: boolean; hint?: string }[] = [
   { key: 'full_name', label: 'Full Name' },
-  { key: 'register_number', label: 'Register Number' },
+  { key: 'register_number', label: 'Register Number', required: true, placeholder: 'RA2411…', hint: 'Starts with RA followed by digits.' },
   { key: 'phone', label: 'Phone' },
-  { key: 'college_email', label: 'College Email' },
+  { key: 'college_email', label: 'College Email', required: true, placeholder: 'name@srmist.edu.in', hint: 'Must be your @srmist.edu.in address.' },
   { key: 'personal_email', label: 'Personal Email' },
   { key: 'fa_name', label: 'Faculty Advisor (FA)' },
   { key: 'department', label: 'Department', placeholder: 'e.g. CSE' },
 ]
+
+const COLLEGE_EMAIL_RE = /@srmist\.edu\.in$/i
+const REGISTER_NUMBER_RE = /^RA\d+$/i
 
 // Networking fields shown in Find Teammates.
 const NETWORK_FIELDS: { key: keyof FormProfile; label: string; placeholder?: string }[] = [
@@ -34,7 +37,13 @@ const empty: FormProfile = {
   department: '', skills: '', interests: '', linkedin_url: '', github_url: '',
 }
 
-export function ProfileTab() {
+export function ProfileTab({
+  required = false,
+  onSaved,
+}: {
+  required?: boolean
+  onSaved?: (profile: any) => void
+} = {}) {
   const [form, setForm] = useState<FormProfile>(empty)
   const [exists, setExists] = useState(false)
   const [updatedAt, setUpdatedAt] = useState<string | null>(null)
@@ -63,7 +72,24 @@ export function ProfileTab() {
     setMsg(null)
   }
 
+  function validate(): string | null {
+    const college = (form.college_email ?? '').trim()
+    const regNo = (form.register_number ?? '').trim()
+    if (required && (!college || !regNo)) {
+      return 'College email and registration number are required.'
+    }
+    if (college && !COLLEGE_EMAIL_RE.test(college)) {
+      return 'College email must be a valid @srmist.edu.in address.'
+    }
+    if (regNo && !REGISTER_NUMBER_RE.test(regNo)) {
+      return 'Registration number must start with "RA" followed by digits.'
+    }
+    return null
+  }
+
   async function save() {
+    const problem = validate()
+    if (problem) { setMsg(problem); return }
     setSaving(true)
     setMsg(null)
     try {
@@ -77,6 +103,7 @@ export function ProfileTab() {
       setUpdatedAt(data?.profile?.updated_at ?? new Date().toISOString())
       setEditing(false)
       setMsg('Profile saved.')
+      onSaved?.(data?.profile)
     } catch {
       setMsg('Could not save. Try again.')
     } finally {
@@ -110,16 +137,19 @@ export function ProfileTab() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {TEXT_FIELDS.map(({ key, label }) => (
+        {TEXT_FIELDS.map(({ key, label, placeholder, required: req, hint }) => (
           <div key={key}>
-            <label className="mb-1.5 block text-xs font-bold text-slate-400 tracking-wide">{label}</label>
+            <label className="mb-1.5 block text-xs font-bold text-slate-400 tracking-wide">
+              {label}{req && <span className="ml-1 text-amber-300">*</span>}
+            </label>
             <input
               value={(form[key] as string) ?? ''}
               onChange={(e) => set(key, e.target.value)}
               disabled={!editing}
-              placeholder={editing ? '—' : ''}
+              placeholder={editing ? placeholder ?? '—' : ''}
               className={inputCls}
             />
+            {req && editing && hint && <p className="mt-1 text-[11px] text-slate-500">{hint}</p>}
           </div>
         ))}
 
