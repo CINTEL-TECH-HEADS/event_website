@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
           message: 'Please verify your email — we sent a confirmation link to your inbox.',
         })
       }
-      return apiError('Invalid email or password. New here? Create an account with Sign up.', 401)
+      return apiError('Invalid email or password. Participants: use Continue with Google instead.', 401)
     }
 
     const userId = signInData.user.id

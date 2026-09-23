@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     if (profileError || !profile) {
       return NextResponse.json(
-        { data: null, error: 'No organizer account found with that email. They need to sign up first.' },
+        { data: null, error: 'No account found with that email. Organizer accounts are created by an admin.' },
         { status: 404 }
       )
     }
