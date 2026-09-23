@@ -26,7 +26,7 @@ try {
           }}
         />
       </head>
-      <body className={`${outfit.className} bg-background text-foreground antialiased selection:bg-brand/30 selection:text-brand`}>
+      <body className={`${outfit.className} bg-background text-foreground antialiased selection:bg-brand/30 selection:text-brand`} suppressHydrationWarning>
         {children}
       </body>
     </html>
