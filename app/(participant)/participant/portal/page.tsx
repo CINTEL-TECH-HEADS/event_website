@@ -13,6 +13,10 @@ import { PortalTabs, type PortalTab } from '@/components/participant/PortalTabs'
 import { PastEventCard } from '@/components/participant/PastEventCard'
 import { ProfileTab } from '@/components/participant/ProfileTab'
 
+function firstName(full: string) {
+  return full.trim().split(/\s+/)[0] ?? ''
+}
+
 function getGreeting(name: string) {
   const hour = new Date().getHours()
   if (hour < 12) return { text: `Good morning, ${name}`, icon: <Sun size={18} className="text-amber-400" /> }
@@ -36,7 +40,8 @@ function isRegistrationComplete(reg: any): boolean {
 export default function PortalPage() {
   const [registrations, setRegistrations] = useState<any[]>([])
   const [activeEvents, setActiveEvents]   = useState<any[]>([])
-  const [userName, setUserName]           = useState('')
+  const [profileName, setProfileName]     = useState('')
+  const [regName, setRegName]             = useState('')
   const [loading, setLoading]             = useState(true)
   const [error, setError]                 = useState<string | null>(null)
   const [copied, setCopied]               = useState<string | null>(null)
@@ -53,7 +58,7 @@ export default function PortalPage() {
     const regs = data ?? []
     setRegistrations(regs)
     const first = regs[0]
-    if (first?.leader_name) setUserName(first.leader_name.split(' ')[0])
+    if (first?.leader_name) setRegName(firstName(first.leader_name))
   }
 
   async function loadInvites() {
@@ -66,7 +71,10 @@ export default function PortalPage() {
       loadRegistrations(),
       loadInvites(),
       fetch('/api/events').then(r => r.json()).then(({ data }) => setActiveEvents(data ?? [])),
-      fetch('/api/participant/profile').then(r => r.json()).then(j => setProfileComplete(!!j.data?.complete)).catch(() => {}),
+      fetch('/api/participant/profile').then(r => r.json()).then(j => {
+        setProfileComplete(!!j.data?.complete)
+        if (j.data?.profile?.full_name) setProfileName(firstName(j.data.profile.full_name))
+      }).catch(() => {}),
     ]).finally(() => setLoading(false))
   }, [])
 
@@ -153,7 +161,7 @@ export default function PortalPage() {
   const availableEvents   = activeEvents.filter(
     e => !registeredIds.includes(e.id) && isRegistrationOpen(e)
   )
-  const greeting          = getGreeting(userName || 'there')
+  const greeting          = getGreeting(profileName || regName || 'there')
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
