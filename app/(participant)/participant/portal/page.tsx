@@ -7,7 +7,7 @@ import { isPast, isRegistrationOpen, formatShortDate } from '@/lib/utils'
 import {
   Ticket, LogOut, Sun, Moon, Sunset, Calendar,
   Users, Copy, Check, ChevronRight, AlertTriangle,
-  Zap,
+  Zap, IndianRupee, Clock,
 } from 'lucide-react'
 import { PortalTabs, type PortalTab } from '@/components/participant/PortalTabs'
 import { PastEventCard } from '@/components/participant/PastEventCard'
@@ -43,6 +43,7 @@ export default function PortalPage() {
   const [invites, setInvites]             = useState<any[]>([])
   const [respBusy, setRespBusy]           = useState<string | null>(null)
   const [tab, setTab]                     = useState<PortalTab>('events')
+  const [profileComplete, setProfileComplete] = useState(true)
   const router = useRouter()
 
   async function loadRegistrations() {
@@ -65,6 +66,7 @@ export default function PortalPage() {
       loadRegistrations(),
       loadInvites(),
       fetch('/api/events').then(r => r.json()).then(({ data }) => setActiveEvents(data ?? [])),
+      fetch('/api/participant/profile').then(r => r.json()).then(j => setProfileComplete(!!j.data?.complete)).catch(() => {}),
     ]).finally(() => setLoading(false))
   }, [])
 
@@ -122,6 +124,24 @@ export default function PortalPage() {
 
   if (error) return (
     <div className="flex items-center justify-center py-32"><p className="text-red-400">{error}</p></div>
+  )
+
+  // First sign-in gate: participants must record their college email + registration
+  // number before using the portal.
+  if (!profileComplete) return (
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-white tracking-tight">Welcome — complete your details</h1>
+        <p className="mt-1 text-sm text-slate-400">
+          Before you register for events, add your <strong className="text-slate-200">college email</strong> and
+          <strong className="text-slate-200"> registration number</strong>. These are required and unique to your account.
+        </p>
+      </div>
+      <ProfileTab required onSaved={(p) => { if (p?.college_email && p?.register_number) setProfileComplete(true) }} />
+      <div className="mt-6 text-center">
+        <button onClick={handleLogout} className="text-xs font-semibold text-slate-500 hover:text-slate-300">Sign out</button>
+      </div>
+    </div>
   )
 
   const upcoming          = registrations.filter(r => !isPast(r.events?.starts_at))
@@ -192,9 +212,12 @@ export default function PortalPage() {
       {/* ── TEAM INVITES / REQUESTS (needs your response) ── */}
       {invites.filter((i: any) => i.incoming).length > 0 && (
         <section className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-2 mb-3">
             <Users size={13} className="text-amber-300" />
             <h2 className="text-xs font-bold text-amber-300 uppercase tracking-widest">Team Invites</h2>
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-slate-950">
+              {invites.filter((i: any) => i.incoming).length}
+            </span>
           </div>
           <div className="space-y-2">
             {invites.filter((i: any) => i.incoming).map((i: any) => (
@@ -314,9 +337,17 @@ export default function PortalPage() {
                         </Link>
                         <Link
                           href={`/participant/portal/events/${r.id}/find`}
-                          className="flex-1 flex items-center justify-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 py-2 text-xs font-bold transition-colors"
+                          className="relative flex-1 flex items-center justify-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 py-2 text-xs font-bold transition-colors"
                         >
                           <Users size={12} /> Find Teammates
+                          {(() => {
+                            const pending = invites.filter((i: any) => i.incoming && i.team_registration_id === r.id).length
+                            return pending > 0 ? (
+                              <span className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[10px] font-bold text-slate-950">
+                                {pending}
+                              </span>
+                            ) : null
+                          })()}
                         </Link>
                       </div>
                     </div>
@@ -427,6 +458,14 @@ function EventCard({ reg }: { reg: any }) {
   const attended   = Array.isArray(reg.attendance) ? reg.attendance.length > 0 : !!reg.attendance?.id
   const hasCert    = Array.isArray(reg.certificates) ? reg.certificates.length > 0 : !!reg.certificates?.id
 
+  // Payment state — only the owner (solo owner / team leader) pays, and for a
+  // team only once it has reached the minimum size.
+  const fee               = event?.fee ?? 0
+  const teamComplete      = !isTeam || (reg.members?.length ?? 0) >= (event?.min_team_size ?? 1)
+  const owesPayment       = reg._owner && fee > 0 && reg.status === 'confirmed' && teamComplete &&
+                            (reg.payment_status === 'pending' || reg.payment_status === 'rejected')
+  const paymentUnderReview = fee > 0 && reg.payment_status === 'submitted'
+
   // Color scheme: blue for team, purple for solo
   const accent = isTeam
     ? { border: 'border-amber-500/20',  bg: 'bg-amber-500/5',  text: 'text-amber-300',   badge: 'bg-amber-500/10 border-amber-500/20 text-amber-300'   }
@@ -435,12 +474,15 @@ function EventCard({ reg }: { reg: any }) {
   const statusBadge = () => {
     if (reg.status === 'waitlisted')  return <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">Waitlisted</span>
     if (reg.status === 'cancelled')   return <span className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full">Cancelled</span>
+    if (owesPayment)                  return <span className="text-xs font-bold text-red-300 bg-red-500/10 border border-red-500/25 px-2 py-0.5 rounded-full">Payment due</span>
+    if (paymentUnderReview)           return <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 rounded-full">Under review</span>
     if (attended && hasCert)          return <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">🎓 Certificate</span>
     if (attended)                     return <span className="text-xs font-bold text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">✓ Attended</span>
     return <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${accent.badge}`}>Confirmed</span>
   }
 
   return (
+    <div>
     <Link href={`/participant/portal/events/${reg.id}`}>
       <div className={`border  p-5 hover:opacity-90 transition-all cursor-pointer group ${accent.border} ${accent.bg}`}>
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -476,5 +518,20 @@ function EventCard({ reg }: { reg: any }) {
         </div>
       </div>
     </Link>
+
+    {owesPayment && (
+      <Link
+        href={`/participant/portal/events/${reg.id}/pay`}
+        className="mt-2 flex items-center justify-center gap-2 bg-[#F5E62D] text-black py-2.5 text-sm font-bold hover:brightness-110 transition"
+      >
+        <IndianRupee size={14} /> Complete payment — ₹{fee}
+      </Link>
+    )}
+    {paymentUnderReview && (
+      <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-amber-300">
+        <Clock size={12} /> Payment submitted — awaiting organizer verification
+      </p>
+    )}
+    </div>
   )
 }

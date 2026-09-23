@@ -32,6 +32,7 @@ export default function NewEventPage() {
   const isTeamMode = registrationMode !== 'solo'
 
   const [isPaid, setIsPaid] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'bank'>('upi')
   const [hasWaitlist, setHasWaitlist] = useState(false)
 
   async function handleSubmit(
@@ -86,6 +87,14 @@ export default function NewEventPage() {
         : null,
 
       fee: isPaid && form.get('fee') ? Number(form.get('fee')) : 0,
+
+      payment_method: isPaid ? paymentMethod : null,
+      upi_id: isPaid && paymentMethod === 'upi' ? (form.get('upi_id') as string) : null,
+      upi_payee_name: isPaid && paymentMethod === 'upi' ? (form.get('upi_payee_name') as string) : null,
+      bank_account_name: isPaid && paymentMethod === 'bank' ? (form.get('bank_account_name') as string) : null,
+      bank_account_number: isPaid && paymentMethod === 'bank' ? (form.get('bank_account_number') as string) : null,
+      bank_ifsc: isPaid && paymentMethod === 'bank' ? (form.get('bank_ifsc') as string) : null,
+      bank_name: isPaid && paymentMethod === 'bank' ? (form.get('bank_name') as string) : null,
 
       waitlist_capacity:
         hasWaitlist && form.get('waitlist_capacity')
@@ -344,6 +353,50 @@ export default function NewEventPage() {
               <p className="mt-2 text-xs text-slate-500">Requires a capacity. When full, extra registrants join the waitlist.</p>
             </div>
           </div>
+
+          {/* Payment method (paid events) */}
+          {isPaid && (
+            <div className="border border-[#243B72] bg-[#0B1736] p-4">
+              <p className="mb-1 text-sm font-semibold text-slate-200">Payment method</p>
+              <p className="mb-3 text-xs text-slate-500">
+                Participants pay to these details and submit proof; you verify each payment in the Payments tab. You can switch method any time.
+              </p>
+              <div className="mb-4 inline-flex overflow-hidden border border-[#243B72]">
+                {(['upi', 'bank'] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setPaymentMethod(m)}
+                    className={`px-4 py-2 text-sm font-semibold transition ${
+                      paymentMethod === m ? 'bg-[#F5E62D] text-[#0B1736]' : 'bg-[#07142E] text-slate-300 hover:bg-[#132B59]'
+                    }`}
+                  >
+                    {m === 'upi' ? 'UPI ID' : 'Bank transfer'}
+                  </button>
+                ))}
+              </div>
+
+              {paymentMethod === 'upi' ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input name="upi_id" placeholder="UPI ID (e.g. cintel@oksbi)" required
+                    className="w-full border border-[#243B72] bg-[#07142E] px-4 py-3 text-white outline-none transition focus:border-[#F5E62D]" />
+                  <input name="upi_payee_name" placeholder="Payee name (shown to payer)"
+                    className="w-full border border-[#243B72] bg-[#07142E] px-4 py-3 text-white outline-none transition focus:border-[#F5E62D]" />
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input name="bank_account_name" placeholder="Account holder name" required
+                    className="w-full border border-[#243B72] bg-[#07142E] px-4 py-3 text-white outline-none transition focus:border-[#F5E62D]" />
+                  <input name="bank_account_number" placeholder="Account number" required
+                    className="w-full border border-[#243B72] bg-[#07142E] px-4 py-3 text-white outline-none transition focus:border-[#F5E62D]" />
+                  <input name="bank_ifsc" placeholder="IFSC code" required
+                    className="w-full border border-[#243B72] bg-[#07142E] px-4 py-3 text-white outline-none transition focus:border-[#F5E62D]" />
+                  <input name="bank_name" placeholder="Bank name"
+                    className="w-full border border-[#243B72] bg-[#07142E] px-4 py-3 text-white outline-none transition focus:border-[#F5E62D]" />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Textarea */}
           <LuxuryTextarea

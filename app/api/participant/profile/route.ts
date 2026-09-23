@@ -34,6 +34,15 @@ const profileSchema = z.object({
 
 const empty = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? null : v)
 
+const COLLEGE_EMAIL_RE = /@srmist\.edu\.in$/i
+const REGISTER_NUMBER_RE = /^RA\d+$/i
+
+// A participant's mandatory identity is complete once both a valid college email
+// and a valid registration number are on file.
+function isComplete(p: { college_email?: string | null; register_number?: string | null } | null): boolean {
+  return !!p?.college_email && !!p?.register_number
+}
+
 export async function GET() {
   const user = await getAuthUser()
   if (!user) return apiError('Not authenticated', 401)
@@ -47,7 +56,7 @@ export async function GET() {
     .maybeSingle()
 
   if (profile) {
-    return apiSuccess({ profile, exists: true })
+    return apiSuccess({ profile, exists: true, complete: isComplete(profile) })
   }
 
   // No profile yet — seed from the person's most recent registration (name/phone/email)
@@ -61,6 +70,7 @@ export async function GET() {
 
   return apiSuccess({
     exists: false,
+    complete: false,
     profile: {
       id: user.id,
       full_name: reg?.leader_name ?? null,
@@ -94,12 +104,32 @@ export async function PATCH(req: NextRequest) {
   const row: Record<string, unknown> = { id: user.id, updated_at: new Date().toISOString() }
   for (const [k, v] of Object.entries(parsed.data)) row[k] = empty(v)
 
+  // Mandatory-identity format checks (only when a value is present).
+  const collegeEmail = row.college_email as string | null
+  if (collegeEmail && !COLLEGE_EMAIL_RE.test(collegeEmail)) {
+    return apiError('College email must be a valid @srmist.edu.in address.', 400)
+  }
+  let registerNumber = row.register_number as string | null
+  if (registerNumber) {
+    registerNumber = registerNumber.toUpperCase()
+    if (!REGISTER_NUMBER_RE.test(registerNumber)) {
+      return apiError('Registration number must start with "RA" followed by digits.', 400)
+    }
+    row.register_number = registerNumber
+  }
+
   const { data, error } = await admin
     .from('participant_profiles')
     .upsert(row)
     .select()
     .single()
 
-  if (error) return apiError(error.message, 500)
-  return apiSuccess({ profile: data, exists: true })
+  if (error) {
+    // Partial unique index violation → this college email / reg number is taken.
+    if ((error as any).code === '23505') {
+      return apiError('That college email or registration number is already linked to another account.', 409)
+    }
+    return apiError(error.message, 500)
+  }
+  return apiSuccess({ profile: data, exists: true, complete: isComplete(data) })
 }
