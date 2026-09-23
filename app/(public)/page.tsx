@@ -6,6 +6,11 @@ import type { Event } from '@/types'
 import { EventGrid } from '@/components/public/EventGrid'
 import { EventCard } from '@/components/public/EventCard'
 import { isRegistrationOpen } from '@/lib/utils'
+import { PosterHeading } from '@/components/brand/PosterHeading'
+import { Starburst, Sparkle } from '@/components/brand/Starburst'
+import { RockShape } from '@/components/brand/RockShape'
+import { ShipShape } from '@/components/brand/ShipShape'
+import PixelTrail from '@/components/brand/PixelTrail'
 
 type PublicEvent = Event & {
   confirmed_count: number
@@ -58,135 +63,153 @@ export default function HomePage() {
 
   return (
     <div>
-      <section className="border-b border-slate-200 dark:border-white/10">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-          <div className="grid gap-6 lg:grid-cols-[0.88fr_1.12fr]">
-            <div className="border border-slate-200 bg-white dark:border-white/10 dark:bg-[#112240]">
-              <div className="border-b border-slate-200 px-6 py-4 dark:border-white/10">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-blue-700 dark:text-amber-200">Cintel Archive</p>
-              </div>
-              <div className="space-y-8 p-6 sm:p-8">
-                <div className="space-y-2">
-                  <h1 className="max-w-xl text-3xl font-semibold leading-[0.98] tracking-[-0.04em] text-slate-950 dark:text-white sm:text-4xl lg:text-[2.95rem]">
-                    Events &amp; Registration Portal
-                  </h1>
-                  <p className="max-w-lg text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">
-                    The official event portal for CINTEL Student Association at SRM. Browse upcoming workshops, hackathons, and talks, register for events, and manage your team and certificates.
-                  </p>
-                </div>
+      {/* HERO — the poster scene */}
+      <section className="px-3 pt-6 sm:px-6 sm:pt-10 lg:px-8">
+        <div className="poster-panel relative mx-auto max-w-6xl overflow-hidden">
+          <div className="halftone pointer-events-none absolute inset-0 z-0 opacity-[0.15]" />
 
-                <div className="grid gap-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <Link
-                      href="#event-grid"
-                      className="public-force-white inline-flex items-center justify-center border border-blue-600 bg-blue-600 px-4 py-3 text-center text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-blue-700 dark:border-amber-300/35 dark:bg-amber-300 dark:text-slate-950 dark:hover:bg-amber-200"
-                    >
-                      Explore Events
-                    </Link>
-                    <Link
-                      href="/resend"
-                      className="public-force-white inline-flex items-center justify-center border border-blue-600 bg-blue-600 px-4 py-3 text-center text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-blue-700 dark:border-amber-300/35 dark:bg-amber-300 dark:text-slate-950 dark:hover:bg-amber-200"
-                    >
-                      Resend Pass
-                    </Link>
-                  </div>
-                  <Link
-                    href="/login"
-                    className="public-force-white inline-flex w-full items-center justify-center border border-blue-600 bg-blue-600 px-5 py-3 text-center text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-blue-700 dark:border-amber-300/35 dark:bg-amber-300 dark:text-slate-950 dark:hover:bg-amber-200"
-                  >
-                    Login
-                  </Link>
-                </div>
+          {/* interactive gooey pixel trail — follows the pointer, themed gold */}
+          <div className="absolute inset-0 z-[1]">
+            <PixelTrail
+              gridSize={46}
+              trailSize={0.12}
+              maxAge={350}
+              interpolate={6}
+              color="#F2C230"
+              gooeyFilter={{ id: 'hero-goo-filter', strength: 3 }}
+            />
+          </div>
 
-                <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="border border-slate-200 bg-white px-4 py-4 dark:border-slate-700 dark:bg-slate-800/50">
-                      <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Published</p>
-                      <p className="mt-2 text-3xl font-semibold text-slate-950 dark:text-white">{events.length}</p>
-                    </div>
-                    <div className="border border-slate-200 bg-white px-4 py-4 dark:border-slate-700 dark:bg-slate-800/50">
-                      <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Hands-on</p>
-                      <p className="mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
-                        {events.filter(event => event.event_type === 'hackathon' || event.event_type === 'workshop').length}
-                      </p>
-                    </div>
-                    <div className="border border-slate-200 bg-white px-4 py-4 dark:border-slate-700 dark:bg-slate-800/50">
-                      <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Open</p>
-                      <p className="mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
-                        {events.filter(event => event.capacity === null || event.confirmed_count < event.capacity).length}
-                      </p>
-                    </div>
-                </div>
-              </div>
+          {/* orbit rings + scattered rocks + ship, all decorative */}
+          <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden opacity-90">
+            <svg className="absolute -right-10 top-0 h-full w-2/3 opacity-40" viewBox="0 0 400 400" fill="none">
+              <ellipse cx="200" cy="200" rx="190" ry="70" stroke="#F2C230" strokeWidth="1" transform="rotate(-10 200 200)" />
+              <ellipse cx="200" cy="200" rx="150" ry="55" stroke="#F2C230" strokeWidth="1" transform="rotate(-10 200 200)" />
+            </svg>
+            <RockShape variant={1} className="absolute -left-6 top-8 h-16 w-16 rotate-[-8deg] opacity-95 sm:h-24 sm:w-24" />
+            <RockShape variant={2} className="absolute right-6 top-4 h-12 w-12 rotate-[16deg] opacity-90 sm:h-16 sm:w-16" />
+            <RockShape variant={3} className="absolute bottom-6 left-10 hidden h-14 w-14 rotate-[24deg] opacity-90 sm:block" />
+            <RockShape variant={1} className="absolute -bottom-4 right-16 h-20 w-20 rotate-[10deg] opacity-95 sm:h-28 sm:w-28" />
+            <ShipShape className="absolute bottom-0 right-0 h-32 w-52 translate-x-6 translate-y-4 opacity-95 sm:h-44 sm:w-72 lg:h-56 lg:w-[26rem]" />
+            <Starburst rings color="#F2C230" className="absolute right-[28%] top-1/4 h-24 w-24 opacity-90 sm:h-32 sm:w-32" />
+            <Sparkle className="absolute left-1/3 top-8 h-3 w-3 text-primary-yellow" />
+            <Sparkle className="absolute right-1/4 bottom-10 h-2.5 w-2.5 text-[#F5F0E3]" />
+          </div>
+
+          <div className="relative z-20 px-5 py-10 sm:px-10 sm:py-16 lg:py-20">
+            <p className="inline-flex items-center gap-2 rounded-full border-2 border-[#F5F0E3] bg-primary-red px-4 py-1.5 font-tech text-[10px] font-bold uppercase tracking-[0.3em] text-white">
+              Cintel Student Association
+            </p>
+
+            <PosterHeading as="h1" fillClassName="text-primary-yellow" className="mt-6 max-w-3xl text-4xl sm:text-6xl lg:text-7xl">
+              Events &amp;
+              <br />
+              Registration
+            </PosterHeading>
+
+            <p className="mt-6 max-w-lg font-tech text-xs leading-relaxed text-[#F5F0E3]/80 sm:text-sm">
+              The official event portal for CINTEL Student Association at SRM. Browse upcoming workshops, hackathons, and talks, register for events, and manage your team and certificates.
+            </p>
+
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link href="#event-grid" className="app-button-primary">
+                Explore Events
+              </Link>
+              <Link href="/resend" className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#F5F0E3] bg-transparent px-6 py-3 font-tech text-xs font-bold uppercase tracking-wider text-[#F5F0E3] shadow-sm transition duration-200 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
+                Resend Pass
+              </Link>
+              <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#F5F0E3] bg-primary-yellow px-6 py-3 font-tech text-xs font-bold uppercase tracking-wider text-[#14120F] shadow-sm transition duration-200 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
+                Login
+              </Link>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="grid gap-6">
-              <div className="grid gap-px border border-slate-200 bg-slate-200 dark:border-white/10 dark:bg-white/10 md:grid-cols-[0.72fr_0.28fr]">
-                <div className="bg-white p-6 dark:bg-[#0a1629] sm:p-8">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">The Intellectual Core</p>
-                  <p className="mt-4 max-w-2xl text-2xl font-semibold leading-tight text-slate-950 dark:text-white sm:text-3xl">
-                    Cultivating a strong technical culture where students don't just learn, they build, explore, and push boundaries.
-                  </p>
-                </div>
-                <div className="public-force-white flex items-end bg-slate-900 p-6 pr-6 text-white dark:bg-blue-900/40 dark:text-blue-200">
-                  <p className="text-sm font-semibold uppercase tracking-[0.14em]">Browse. Register. Return.</p>
-                </div>
-              </div>
+      {/* STATS — mission-log readout strip */}
+      <section className="px-3 pt-6 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-6xl grid-cols-3 divide-x-2 divide-border overflow-hidden rounded-poster border-2 border-border bg-panel shadow-md lg:border-4">
+          <div className="px-4 py-7 text-center sm:py-9">
+            <p className="font-tech text-[9px] font-bold uppercase tracking-[0.24em] text-brand sm:text-[10px]">Published</p>
+            <p className="mt-2 font-display text-3xl text-foreground sm:text-5xl">{events.length}</p>
+          </div>
+          <div className="px-4 py-7 text-center sm:py-9">
+            <p className="font-tech text-[9px] font-bold uppercase tracking-[0.24em] text-brand sm:text-[10px]">Hands-on</p>
+            <p className="mt-2 font-display text-3xl text-foreground sm:text-5xl">
+              {events.filter(event => event.event_type === 'hackathon' || event.event_type === 'workshop').length}
+            </p>
+          </div>
+          <div className="px-4 py-7 text-center sm:py-9">
+            <p className="font-tech text-[9px] font-bold uppercase tracking-[0.24em] text-brand sm:text-[10px]">Open</p>
+            <p className="mt-2 font-display text-3xl text-foreground sm:text-5xl">
+              {events.filter(event => event.capacity === null || event.confirmed_count < event.capacity).length}
+            </p>
+          </div>
+        </div>
+      </section>
 
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#0a1629]">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-700 dark:text-amber-200">Discover</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Find and register for our latest technical, creative, and research-driven initiatives.</p>
-                </div>
-                <div className="border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#0a1629]">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-200">Participate</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">Join individual sessions or form teams for our large-scale hackathons and symposiums.</p>
-                </div>
-                <div className="border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#0a1629]">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-700 dark:text-amber-200">Manage</p>
-                  <div className="mt-3 flex flex-wrap gap-2 text-sm text-slate-600 dark:text-slate-300">
-                    <Link
-                      href="/certificate"
-                      className="public-force-white border border-blue-600 bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700 dark:border-amber-300/35 dark:bg-amber-300 dark:text-slate-950 dark:hover:bg-amber-200"
-                    >
-                      Certificate
-                    </Link>
-                    <Link
-                      href="/resend"
-                      className="public-force-white border border-blue-600 bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700 dark:border-amber-300/35 dark:bg-amber-300 dark:text-slate-950 dark:hover:bg-amber-200"
-                    >
-                      Confirmation
-                    </Link>
-                  </div>
-                </div>
+      {/* MISSION — split panel */}
+      <section className="px-3 py-6 sm:px-6 lg:px-8 lg:py-10">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-3 md:grid-cols-[0.68fr_0.32fr]">
+            <div className="app-panel-muted !rounded-poster p-6 sm:p-10">
+              <p className="font-tech text-[10px] font-bold uppercase tracking-[0.3em] text-accent">The Intellectual Core</p>
+              <p className="mt-4 max-w-2xl font-display text-xl leading-tight tracking-tight text-foreground sm:text-3xl">
+                Cultivating a strong technical culture where students don&apos;t just learn &mdash; they build, explore, and push boundaries.
+              </p>
+            </div>
+            <div className="poster-panel flex items-end p-6 sm:p-8">
+              <p className="relative font-tech text-xs font-bold uppercase tracking-wider text-primary-yellow">Browse. Register. Return.</p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div className="relative app-panel-muted p-5">
+              <RockShape variant={1} fill="#D6294C" className="absolute right-3 top-3 h-8 w-8" />
+              <p className="font-tech text-[11px] font-bold uppercase tracking-[0.22em] text-brand">Discover</p>
+              <p className="mt-3 text-sm font-medium leading-6 text-foreground-soft">Find and register for our latest technical, creative, and research-driven initiatives.</p>
+            </div>
+            <div className="relative app-panel-muted p-5">
+              <Sparkle className="absolute right-3 top-3 h-6 w-6 text-primary-yellow" />
+              <p className="font-tech text-[11px] font-bold uppercase tracking-[0.22em] text-accent">Participate</p>
+              <p className="mt-3 text-sm font-medium leading-6 text-foreground-soft">Join individual sessions or form teams for our large-scale hackathons and symposiums.</p>
+            </div>
+            <div className="relative app-panel-muted p-5">
+              <RockShape variant={2} fill="#F2C230" className="absolute right-3 top-3 h-8 w-8" />
+              <p className="font-tech text-[11px] font-bold uppercase tracking-[0.22em] text-brand">Manage</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link href="/certificate" className="app-button-primary px-4 py-2 text-xs">
+                  Certificate
+                </Link>
+                <Link href="/resend" className="app-button-secondary px-4 py-2 text-xs">
+                  Confirmation
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="event-grid" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
+      <section id="event-grid" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
         {loading ? (
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-12 text-center shadow-sm backdrop-blur">
-            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
-            <p className="mt-4 text-sm text-slate-400">Loading published events...</p>
+          <div className="app-empty-state">
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+            <p className="mt-4 text-sm font-bold uppercase tracking-wider text-foreground-soft">Loading published events...</p>
           </div>
         ) : error ? (
-          <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center text-sm text-red-700">
+          <div className="border-2 border-border bg-danger px-8 py-6 text-center text-sm font-bold text-white lg:border-4">
             {error}
           </div>
         ) : events.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-12 text-center shadow-sm backdrop-blur">
-            <h2 className="text-xl font-semibold text-white">No events published yet</h2>
-            <p className="mt-2 text-sm text-slate-400">Check back soon for the next batch of registrations.</p>
+          <div className="app-empty-state">
+            <h2 className="text-xl font-black uppercase text-foreground">No events published yet</h2>
+            <p className="mt-2 text-sm font-medium text-foreground-soft">Check back soon for the next batch of registrations.</p>
           </div>
         ) : (
           <>
             <EventGrid events={openEvents} />
             <div className="mt-8 flex justify-center">
-              <Link
-                href="/events"
-                className="public-force-white inline-flex items-center justify-center border border-amber-300/35 bg-amber-300 px-8 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-slate-950 transition hover:bg-amber-200"
-              >
+              <Link href="/events" className="app-button-primary">
                 Show More
               </Link>
             </div>
@@ -194,16 +217,16 @@ export default function HomePage() {
         )}
 
         {!loading && !error && completedEvents.length > 0 && (
-          <div className="mt-14 border-t border-white/10 pt-10">
+          <div className="mt-14 border-t-2 border-border pt-10 lg:border-t-4">
             <div className="mb-6">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-slate-400">Archive</p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">Completed Events</h2>
-              <p className="mt-1 text-sm text-slate-500">Registration has closed for these events.</p>
+              <p className="font-tech text-[11px] font-bold uppercase tracking-[0.3em] text-foreground-soft">Archive</p>
+              <h2 className="mt-2 font-display text-xl uppercase tracking-tight text-foreground sm:text-2xl">Completed Events</h2>
+              <p className="mt-1 text-sm font-medium text-foreground-soft">Registration has closed for these events.</p>
             </div>
             <div className="grid gap-5 opacity-70 sm:grid-cols-2 xl:grid-cols-3">
-              {completedEvents.slice(0, 6).map((event) => (
+              {completedEvents.slice(0, 6).map((event, index) => (
                 <div key={event.id} className="h-full">
-                  <EventCard event={event} />
+                  <EventCard event={event} accentIndex={index} />
                 </div>
               ))}
             </div>

@@ -122,7 +122,7 @@ export default function RegistrationsPage() {
 
   if (loading) {
     return (
-      <div className="text-sm text-slate-400">
+      <div className="text-sm font-medium text-foreground-soft">
         Loading registrations...
       </div>
     )
@@ -132,23 +132,23 @@ export default function RegistrationsPage() {
     <div className="space-y-6">
 
       {/* Hero */}
-      <section className="app-panel  px-6 py-7 sm:px-8">
+      <section className="app-panel px-6 py-7 sm:px-8">
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
           <div>
 
-            <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
+            <span className="app-kicker">
               <ClipboardList size={14} />
               Registration Management
             </span>
 
-            <h1 className="mt-5 text-3xl font-bold text-white">
+            <h1 className="app-heading mt-5">
               Manage attendees
               with clarity.
             </h1>
 
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
+            <p className="app-subheading mt-3 max-w-2xl">
               Review registrations,
               verify participants,
               monitor waitlists,
@@ -163,7 +163,7 @@ export default function RegistrationsPage() {
                 !showScanner
               )
             }
-            className="inline-flex items-center justify-center gap-2  bg-[#F5E62D] px-5 py-3 text-sm font-semibold text-[#0B1736] transition hover:bg-[#FFF27A]"
+            className="app-button-primary inline-flex items-center justify-center gap-2 px-5 py-3 text-sm"
           >
             <ScanLine size={16} />
             {showScanner
@@ -177,7 +177,7 @@ export default function RegistrationsPage() {
 
       {/* Scanner */}
       {showScanner && (
-        <section className="app-panel  p-5">
+        <section className="app-panel p-5">
 
           <QRScanner
             onScan={handleScan}
@@ -189,33 +189,33 @@ export default function RegistrationsPage() {
           />
 
           {scanMessage && (
-            <div className="mt-4  border border-[#243B72] bg-[#0B1736] px-4 py-3 text-sm text-slate-300">
+            <div className="mt-4 rounded-xl border-2 border-border bg-panel-muted px-4 py-3 text-sm font-medium text-foreground">
               {scanMessage}
             </div>
           )}
 
           {/* Verified participant */}
           {scanResult && (
-            <div className="mt-4 border border-green-500/30 bg-green-500/5 p-5">
-              <div className="mb-2 flex items-center gap-2 text-sm font-bold text-green-400">
+            <div className="mt-4 rounded-xl border-2 border-border border-l-8 border-l-success bg-panel p-5">
+              <div className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-success">
                 <CheckCircle2 size={16} /> Checked in
               </div>
-              <p className="text-lg font-semibold text-white">{scanResult.leader_name}</p>
-              <div className="mt-1 flex flex-wrap gap-3 text-sm text-slate-300">
+              <p className="text-lg font-bold text-foreground">{scanResult.leader_name}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-3 text-sm font-medium text-foreground-soft">
                 <span className="app-badge app-badge-neutral">
                   {scanResult.registration_type === 'team' ? 'Team' : 'Solo'}
                 </span>
-                {scanResult.team_name && <span>Team: <strong className="text-white">{scanResult.team_name}</strong></span>}
+                {scanResult.team_name && <span>Team: <strong className="text-foreground">{scanResult.team_name}</strong></span>}
                 {scanResult.checked_in_at && (
-                  <span className="text-slate-400">at {new Date(scanResult.checked_in_at).toLocaleString('en-IN')}</span>
+                  <span>at {new Date(scanResult.checked_in_at).toLocaleString('en-IN')}</span>
                 )}
               </div>
               {scanResult.members?.length > 0 && (
                 <div className="mt-3">
-                  <p className="mb-1 text-xs uppercase tracking-widest text-slate-500">Members</p>
-                  <ul className="space-y-0.5 text-sm text-slate-300">
+                  <p className="mb-1 text-xs font-bold uppercase tracking-widest text-foreground-soft">Members</p>
+                  <ul className="space-y-0.5 text-sm font-medium text-foreground-soft">
                     {scanResult.members.map((m: any, i: number) => (
-                      <li key={i}>{m.full_name} <span className="text-slate-500">{m.email}</span></li>
+                      <li key={i}>{m.full_name} <span>{m.email}</span></li>
                     ))}
                   </ul>
                 </div>
@@ -235,17 +235,17 @@ export default function RegistrationsPage() {
 
             <div>
 
-              <p className="text-sm text-slate-400">
+              <p className="text-xs font-bold uppercase tracking-widest text-foreground-soft">
                 Total Registrations
               </p>
 
-              <p className="mt-3 text-4xl font-bold text-[#F5E62D]">
+              <p className="mt-3 font-display text-4xl text-brand">
                 {stats.total}
               </p>
 
             </div>
 
-            <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
+            <span className="rounded-xl border-2 border-border bg-panel-muted p-3 text-brand">
               <Users size={18} />
             </span>
 
@@ -259,17 +259,17 @@ export default function RegistrationsPage() {
 
             <div>
 
-              <p className="text-sm text-slate-400">
+              <p className="text-xs font-bold uppercase tracking-widest text-foreground-soft">
                 Confirmed
               </p>
 
-              <p className="mt-3 text-4xl font-bold text-green-400">
+              <p className="mt-3 font-display text-4xl text-success">
                 {stats.confirmed}
               </p>
 
             </div>
 
-            <span className=" bg-green-500/10 p-3 text-green-400">
+            <span className="rounded-xl border-2 border-border bg-panel-muted p-3 text-success">
               <CheckCircle2 size={18} />
             </span>
 
@@ -283,17 +283,17 @@ export default function RegistrationsPage() {
 
             <div>
 
-              <p className="text-sm text-slate-400">
+              <p className="text-xs font-bold uppercase tracking-widest text-foreground-soft">
                 Waitlisted
               </p>
 
-              <p className="mt-3 text-4xl font-bold text-[#93C5FD]">
+              <p className="mt-3 font-display text-4xl text-accent">
                 {stats.waitlisted}
               </p>
 
             </div>
 
-            <span className=" bg-[#0B1736] p-3 text-[#93C5FD]">
+            <span className="rounded-xl border-2 border-border bg-panel-muted p-3 text-accent">
               <Clock3 size={18} />
             </span>
 
@@ -304,10 +304,10 @@ export default function RegistrationsPage() {
         <div className="app-stat-card p-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-slate-400">Checked in</p>
-              <p className="mt-3 text-4xl font-bold text-green-400">{stats.attended}</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-foreground-soft">Checked in</p>
+              <p className="mt-3 font-display text-4xl text-success">{stats.attended}</p>
             </div>
-            <span className="bg-green-500/10 p-3 text-green-400">
+            <span className="rounded-xl border-2 border-border bg-panel-muted p-3 text-success">
               <ScanLine size={18} />
             </span>
           </div>
@@ -316,7 +316,7 @@ export default function RegistrationsPage() {
       </section>
 
       {/* Table */}
-      <section className="app-panel  p-5 sm:p-6">
+      <section className="app-panel p-5 sm:p-6">
 
         <RegistrationTable
           eventId={id}

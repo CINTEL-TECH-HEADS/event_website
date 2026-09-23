@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { RefreshCw, Info } from 'lucide-react'
 import type { Event } from '@/types'
+import { Sparkle } from '@/components/brand/Starburst'
+import { RockShape } from '@/components/brand/RockShape'
 
 type PublicEvent = Event & {
   confirmed_count: number
@@ -82,46 +85,55 @@ export default function ResendPage() {
 
   return (
     <div className="mx-auto min-h-[calc(100vh-9rem)] max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-      <div className="overflow-hidden border border-white/10 bg-[#0a1629]">
-        <div className="grid min-h-[70vh] gap-px bg-white/10 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="bg-[#112240] p-8 lg:p-10">
-            <span className="inline-flex rounded-full border border-amber-300/20 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-amber-200">
+      <div className="app-panel relative overflow-hidden !rounded-poster">
+        <div className="grid min-h-[70vh] gap-px bg-border lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="poster-panel relative overflow-hidden !rounded-none p-8 lg:p-10">
+            <div className="halftone pointer-events-none absolute inset-0 opacity-[0.15]" />
+            <RockShape variant={1} fill="#D6294C" className="pointer-events-none absolute -bottom-6 -left-6 h-28 w-28 rotate-[-12deg] opacity-90" />
+            <Sparkle className="pointer-events-none absolute right-10 top-6 h-3 w-3 text-primary-yellow" />
+            <span className="relative inline-flex items-center gap-2 rounded-full border-2 border-[#F5F0E3] bg-primary-red px-4 py-1.5 font-tech text-[10px] font-bold uppercase tracking-[0.3em] text-white">
+              <RefreshCw size={14} />
               Resend Confirmation
             </span>
-            <h1 className="mt-5 text-3xl font-bold tracking-tight text-white">Recover your event pass quickly.</h1>
-            <p className="mt-4 text-sm leading-6 text-slate-300 sm:text-base">
+            <h1 className="relative mt-5 font-display text-3xl uppercase leading-[0.95] tracking-tight text-poster-outline text-primary-yellow sm:text-5xl">
+              Recover your event pass quickly.
+            </h1>
+            <p className="relative mt-4 font-tech text-xs leading-relaxed text-[#F5F0E3]/80 sm:text-sm">
               Use this page if your confirmation email is missing or hard to find. We&apos;ll check the registration and send the right response.
             </p>
-            <div className="mt-8 space-y-3">
-              <div className="rounded-xl border border-white/10 bg-[#0a1629] px-4 py-3 text-sm text-slate-300">
+            <div className="relative mt-8 space-y-3">
+              <div className="rounded-2xl border-2 border-white/40 bg-white/10 px-4 py-3 text-sm font-medium text-white">
                 Confirmed registrations get a resend message.
               </div>
-              <div className="rounded-xl border border-white/10 bg-[#0a1629] px-4 py-3 text-sm text-slate-300">
+              <div className="rounded-2xl border-2 border-white/40 bg-white/10 px-4 py-3 text-sm font-medium text-white">
                 Waitlisted or missing records are shown clearly before you retry.
               </div>
-              <div className="rounded-[1.6rem] border border-amber-300/15 bg-[#0a1629] px-4 py-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-200">Quick Tip</p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">
+              <div className="rounded-2xl border-2 border-[#F5F0E3] bg-primary-yellow px-4 py-4 text-[#14120F]">
+                <p className="flex items-center gap-2 font-tech text-[10px] font-bold uppercase tracking-[0.2em]">
+                  <Info size={14} />
+                  Quick Tip
+                </p>
+                <p className="mt-2 text-sm font-medium leading-6">
                   Use the same email and event pairing from your original registration for the best result.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#0a1629] p-8 lg:p-10">
-            <div className="mb-5 flex items-center justify-between border border-white/10 bg-[#0f1d36] px-5 py-4">
+          <div className="bg-panel p-8 lg:p-10">
+            <div className="app-panel-muted mb-5 flex items-center justify-between !rounded-2xl px-5 py-4">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-200">Recovery Form</p>
-                <p className="mt-1 text-sm text-slate-300">Request another confirmation safely.</p>
+                <p className="font-tech text-[10px] font-bold uppercase tracking-[0.2em] text-foreground-soft">Recovery Form</p>
+                <p className="mt-1 text-sm font-medium text-foreground">Request another confirmation safely.</p>
               </div>
-              <div className="rounded-full border border-white/10 bg-slate-950/70 px-3 py-1 text-xs font-medium text-slate-300">
+              <div className="rounded-full border-2 border-border bg-panel px-3 py-1 font-tech text-[10px] font-bold uppercase tracking-[0.2em] text-foreground-soft">
                 Public
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-6">
+            <form onSubmit={handleSubmit} className="app-panel-muted grid gap-4 !rounded-2xl p-6">
               <div>
-                <label htmlFor="resend-email" className="block text-sm font-medium text-slate-300">
+                <label htmlFor="resend-email" className="block font-tech text-[10px] font-bold uppercase tracking-[0.2em] text-foreground-soft">
                   Email address
                 </label>
                 <input
@@ -130,13 +142,13 @@ export default function ResendPage() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
-                  className="mt-2 w-full rounded-2xl border border-blue-500/30 bg-[#08111f] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-amber-300 focus:ring-4 focus:ring-amber-300/10"
+                  className="app-input mt-2"
                   placeholder="you@example.com"
                 />
               </div>
 
               <div>
-                <label htmlFor="resend-event" className="block text-sm font-medium text-slate-300">
+                <label htmlFor="resend-event" className="block font-tech text-[10px] font-bold uppercase tracking-[0.2em] text-foreground-soft">
                   Event
                 </label>
                 <select
@@ -145,7 +157,7 @@ export default function ResendPage() {
                   onChange={e => setEventId(e.target.value)}
                   required
                   disabled={loadingEvents}
-                  className="mt-2 w-full rounded-2xl border border-blue-500/30 bg-[#08111f] px-4 py-3 text-sm text-white outline-none transition focus:border-amber-300 focus:ring-4 focus:ring-amber-300/10 disabled:cursor-not-allowed disabled:bg-[#0b1526]"
+                  className="app-select mt-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="">{loadingEvents ? 'Loading events...' : 'Select an event'}</option>
                   {events.map(event => (
@@ -159,20 +171,20 @@ export default function ResendPage() {
               <button
                 type="submit"
                 disabled={submitting || loadingEvents}
-                className="inline-flex items-center justify-center border border-amber-300/20 bg-amber-300 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-slate-950 transition hover:bg-amber-200 hover:shadow-lg hover:shadow-amber-300/20 disabled:cursor-not-allowed disabled:bg-amber-300/50 disabled:text-slate-500 disabled:hover:bg-amber-300/50 disabled:hover:shadow-none"
+                className="app-button-primary disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting ? 'Sending...' : 'Resend Confirmation'}
               </button>
             </form>
 
             {message ? (
-              <div className="mt-6 rounded-2xl border border-amber-300/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-100 shadow-[0_18px_38px_-28px_rgba(245,158,11,0.35)]">
-                {message}
+              <div className="app-alert-warning mt-6">
+                <p className="text-sm font-medium">{message}</p>
               </div>
             ) : null}
 
             {error ? (
-              <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-[0_18px_38px_-28px_rgba(239,68,68,0.35)]">
+              <div className="mt-6 rounded-2xl border-2 border-danger bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
                 {error}
               </div>
             ) : null}

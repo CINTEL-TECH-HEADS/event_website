@@ -18,7 +18,7 @@ export function PortalTabs({
   onChange: (tab: PortalTab) => void
 }) {
   return (
-    <div className="sticky top-16 z-20 -mx-4 mb-6 flex gap-1 border-b border-white/10 bg-[#07101d]/94 px-4 backdrop-blur">
+    <div className="sticky top-16 z-20 -mx-4 mb-6 flex gap-2 bg-background px-4 py-2 sm:gap-3">
       {TABS.map(({ key, label, Icon }) => {
         const on = active === key
         return (
@@ -26,14 +26,14 @@ export function PortalTabs({
             key={key}
             type="button"
             onClick={() => onChange(key)}
-            className={`-mb-px flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition ${
+            className={`flex items-center gap-2 rounded-full border-2 border-border px-3 py-2 font-tech text-[10px] font-bold uppercase tracking-widest transition duration-200 active:translate-x-[2px] active:translate-y-[2px] sm:px-4 sm:py-2.5 sm:text-xs ${
               on
-                ? 'border-amber-300 text-white'
-                : 'border-transparent text-slate-400 hover:text-white'
+                ? 'bg-brand text-white shadow-sm active:shadow-none'
+                : 'bg-transparent text-foreground-soft hover:text-foreground'
             }`}
           >
             <Icon size={15} />
-            {label}
+            <span className="hidden sm:inline">{label}</span>
           </button>
         )
       })}

@@ -67,41 +67,41 @@ export function LiveStatsCounter({
 
   if (loading) {
     return (
-      <div className=" border border-[#243B72] bg-[#10224A] p-6 ">
-        <div className="h-16 animate-pulse  bg-[#0B1736]" />
+      <div className="app-stat-card p-6">
+        <div className="h-16 animate-pulse bg-panel-muted" />
       </div>
     )
   }
 
   return (
-    <div className=" border border-[#243B72] bg-[#10224A] p-6 ">
+    <div className="app-stat-card relative overflow-hidden p-6">
 
       {/* Top */}
       <div className="flex items-start justify-between">
 
         <div>
 
-          <p className="text-sm font-medium text-slate-400">
+          <p className="font-tech text-xs font-bold uppercase tracking-[0.2em] text-foreground-soft">
             Live Check-Ins
           </p>
 
-          <p className="mt-3 text-5xl font-bold tracking-tight text-[#F5E62D]">
+          <p className="mt-3 font-display text-4xl tracking-tight text-foreground sm:text-5xl">
             {checkedIn}
           </p>
 
         </div>
 
-        <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
-          <Users size={18} />
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-border bg-primary-yellow text-[#121212]">
+          <Users size={18} strokeWidth={2.5} />
         </span>
 
       </div>
 
       {/* Progress */}
-      <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#0B1736]">
+      <div className="mt-5 h-2 overflow-hidden rounded-full border-2 border-border bg-panel-muted">
 
         <div
-          className="h-full rounded-full bg-[#F5E62D] transition-all duration-500"
+          className="h-full bg-accent transition-all duration-500 ease-out"
           style={{
             width: `${Math.min(
               checkedIn * 8,
@@ -113,11 +113,11 @@ export function LiveStatsCounter({
       </div>
 
       {/* Bottom */}
-      <div className="mt-5 flex items-center gap-2 text-sm text-slate-400">
+      <div className="mt-5 flex items-center gap-2 text-sm font-medium text-foreground-soft">
 
         <Activity
           size={15}
-          className="text-green-400"
+          className="text-success"
         />
 
         Updates instantly as
@@ -126,7 +126,7 @@ export function LiveStatsCounter({
       </div>
 
       {checkedIn > 0 && (
-        <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-green-500/10 px-3 py-2 text-xs font-semibold text-green-400">
+        <div className="app-badge app-badge-success mt-4">
 
           <CheckCircle2
             size={14}

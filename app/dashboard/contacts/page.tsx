@@ -16,8 +16,7 @@ type Draft = { name: string; designation: string; email: string; phone: string }
 
 const emptyDraft: Draft = { name: '', designation: '', email: '', phone: '' }
 
-const inputClass =
-  'w-full border border-[#243B72] bg-[#0B1736] px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#F5E62D]'
+const inputClass = 'app-input'
 
 export default function ContactsAdminPage() {
   const [contacts, setContacts] = useState<Contact[]>([])
@@ -109,14 +108,14 @@ export default function ContactsAdminPage() {
   return (
     <div className="space-y-6">
       <section className="app-panel px-6 py-7 sm:px-8">
-        <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
+        <span className="app-kicker inline-flex items-center gap-2">
           <ContactIcon size={14} />
           Contacts
         </span>
-        <h1 className="mt-5 text-3xl font-bold text-white">Contact Us directory.</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
+        <h1 className="app-heading mt-5">Contact Us directory.</h1>
+        <p className="app-subheading mt-3 max-w-2xl">
           These contacts appear on the public{' '}
-          <a href="/contact" target="_blank" className="text-[#F5E62D] hover:underline">
+          <a href="/contact" target="_blank" className="text-brand hover:underline">
             Contact Us
           </a>{' '}
           page. Add your team with their designation and how attendees can reach them.
@@ -124,12 +123,14 @@ export default function ContactsAdminPage() {
       </section>
 
       {error && (
-        <div className="border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>
+        <div className="rounded-xl border-2 border-l-8 border-border border-l-brand bg-brand-soft px-5 py-4 text-sm font-medium text-foreground">
+          {error}
+        </div>
       )}
 
       {/* Add form */}
       <section className="app-panel p-6 sm:p-8">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-slate-300">Add a contact</h2>
+        <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-foreground-soft">Add a contact</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <input
             className={inputClass}
@@ -160,7 +161,7 @@ export default function ContactsAdminPage() {
         <button
           onClick={addContact}
           disabled={busy}
-          className="mt-4 inline-flex items-center gap-2 border border-[#FFF27A] bg-[#F5E62D] px-5 py-2.5 text-sm font-bold text-[#0B1736] transition hover:bg-[#FFF27A] disabled:opacity-50"
+          className="app-button-primary mt-4 disabled:opacity-50"
         >
           <Plus size={16} />
           Add Contact
@@ -169,21 +170,21 @@ export default function ContactsAdminPage() {
 
       {/* List */}
       <section className="app-panel p-6 sm:p-8">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-slate-300">
+        <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-foreground-soft">
           Current contacts ({contacts.length})
         </h2>
 
         {loading ? (
-          <p className="text-sm text-slate-400">Loading…</p>
+          <p className="text-sm font-medium text-foreground-soft">Loading…</p>
         ) : contacts.length === 0 ? (
-          <div className="border border-dashed border-[#243B72] bg-[#0B1736] p-8 text-center text-sm text-slate-400">
+          <div className="app-empty-state">
             No contacts yet. Add one above.
           </div>
         ) : (
           <div className="space-y-3">
             {contacts.map((c) =>
               editingId === c.id ? (
-                <div key={c.id} className="border border-[#F5E62D]/40 bg-[#0B1736] p-4">
+                <div key={c.id} className="rounded-xl border-2 border-brand bg-panel-muted p-4">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <input
                       className={inputClass}
@@ -214,14 +215,14 @@ export default function ContactsAdminPage() {
                     <button
                       onClick={() => saveEdit(c.id)}
                       disabled={busy}
-                      className="inline-flex items-center gap-1.5 border border-[#FFF27A] bg-[#F5E62D] px-4 py-2 text-sm font-bold text-[#0B1736] disabled:opacity-50"
+                      className="app-button-primary disabled:opacity-50"
                     >
                       <Save size={14} />
                       Save
                     </button>
                     <button
                       onClick={() => setEditingId(null)}
-                      className="inline-flex items-center gap-1.5 border border-[#243B72] bg-[#10224A] px-4 py-2 text-sm font-semibold text-slate-300"
+                      className="app-button-secondary"
                     >
                       <X size={14} />
                       Cancel
@@ -231,13 +232,13 @@ export default function ContactsAdminPage() {
               ) : (
                 <div
                   key={c.id}
-                  className="flex items-center justify-between gap-4 border border-[#243B72] bg-[#10224A] p-4"
+                  className="flex items-center justify-between gap-4 rounded-xl border-2 border-border bg-panel p-4"
                 >
                   <div className="min-w-0">
-                    <p className="truncate font-semibold text-white">
-                      {c.name} <span className="text-sm font-normal text-amber-200">· {c.designation}</span>
+                    <p className="truncate font-bold text-foreground">
+                      {c.name} <span className="text-sm font-medium text-foreground-soft">· {c.designation}</span>
                     </p>
-                    <p className="mt-1 truncate text-xs text-slate-400">
+                    <p className="mt-1 truncate text-xs font-medium text-foreground-soft">
                       {[c.email, c.phone].filter(Boolean).join('  ·  ') || 'No contact details'}
                     </p>
                   </div>
@@ -245,14 +246,14 @@ export default function ContactsAdminPage() {
                     <button
                       onClick={() => startEdit(c)}
                       aria-label="Edit"
-                      className="inline-flex h-9 w-9 items-center justify-center border border-[#243B72] bg-[#0B1736] text-slate-300 transition hover:border-[#F5E62D] hover:text-white"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-border bg-panel text-foreground-soft shadow-sm transition duration-200 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:border-brand hover:text-foreground"
                     >
                       <Pencil size={15} />
                     </button>
                     <button
                       onClick={() => remove(c.id)}
                       aria-label="Delete"
-                      className="inline-flex h-9 w-9 items-center justify-center border border-[#243B72] bg-[#0B1736] text-slate-300 transition hover:border-red-500 hover:text-red-400"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-border bg-panel text-foreground-soft shadow-sm transition duration-200 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:border-brand hover:text-brand"
                     >
                       <Trash2 size={15} />
                     </button>

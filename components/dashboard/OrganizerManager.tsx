@@ -165,7 +165,7 @@ export function OrganizerManager({
 
   if (loading) {
     return (
-      <div className="text-sm text-slate-400">
+      <div className="text-sm font-bold uppercase tracking-wide text-foreground-soft">
         Loading access
         control...
       </div>
@@ -176,24 +176,25 @@ export function OrganizerManager({
     <div className="space-y-4">
 
       {/* Add Access */}
-      <section className="app-panel  p-5 sm:p-6">
+      <section className="app-panel p-5 sm:p-6">
 
         <div className="mb-5 flex items-center gap-3">
 
-          <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-border bg-primary-yellow text-[#121212]">
             <UserPlus
               size={18}
+              strokeWidth={2.5}
             />
           </span>
 
           <div>
 
-            <h2 className="text-xl font-semibold text-white">
+            <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
               Add Organizer
               Access
             </h2>
 
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm font-medium text-foreground-soft">
               Invite sub-admins
               or judges to this
               event.
@@ -262,10 +263,10 @@ export function OrganizerManager({
 
         </div>
 
-        <div className="mt-4  border border-[#243B72] bg-[#0B1736] p-4 text-sm text-slate-300">
+        <div className="mt-4 rounded-xl border-2 border-border bg-panel-muted p-4 text-sm font-medium text-foreground">
 
           <p>
-            <strong className="text-[#F5E62D]">
+            <strong className="font-bold text-accent">
               Sub-Admin:
             </strong>{' '}
             Can manage
@@ -275,7 +276,7 @@ export function OrganizerManager({
           </p>
 
           <p className="mt-2">
-            <strong className="text-[#93C5FD]">
+            <strong className="font-bold text-brand">
               Judge:
             </strong>{' '}
             Read-only access
@@ -287,23 +288,24 @@ export function OrganizerManager({
       </section>
 
       {/* Team */}
-      <section className="app-panel  p-5 sm:p-6">
+      <section className="app-panel p-5 sm:p-6">
 
         <div className="mb-5 flex items-center gap-3">
 
-          <span className=" bg-[#0B1736] p-3 text-[#93C5FD]">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-border bg-accent text-white">
             <Shield
               size={18}
+              strokeWidth={2.5}
             />
           </span>
 
           <div>
 
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-black uppercase tracking-tight text-foreground">
               Assigned Team
             </h3>
 
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm font-medium text-foreground-soft">
               Current access
               for this event.
             </p>
@@ -330,19 +332,19 @@ export function OrganizerManager({
                   key={
                     organizer.id || `organizer-${index}`
                   }
-                  className="flex flex-col gap-4  border border-[#243B72] bg-[#10224A] p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4 rounded-xl border-2 border-border bg-panel-muted p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
 
                   <div>
 
-                    <p className="font-semibold text-white">
+                    <p className="font-bold text-foreground">
                       {organizer
                         .profile
                         ?.full_name ||
                         'Unknown'}
                     </p>
 
-                    <p className="mt-1 text-sm text-slate-400">
+                    <p className="mt-1 text-sm font-medium text-foreground-soft">
                       {
                         organizer
                           .profile
@@ -354,7 +356,7 @@ export function OrganizerManager({
 
                   <div className="flex items-center gap-3">
 
-                    <span className="rounded-full bg-[#0B1736] px-3 py-1 text-xs font-semibold text-[#F5E62D]">
+                    <span className="app-badge bg-primary-yellow text-[#121212]">
                       {
                         ROLE_LABELS[
                           organizer
@@ -371,7 +373,7 @@ export function OrganizerManager({
                             organizer.id
                           )
                         }
-                        className="app-button-secondary px-3 py-3 text-red-400"
+                        className="app-button-danger px-3 py-3"
                         title="Remove"
                       >
                         <Trash2

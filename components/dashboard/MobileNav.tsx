@@ -6,8 +6,9 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { Menu, X, ShieldCheck } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { Sidebar } from '@/components/dashboard/Sidebar'
+import { PlanetMark } from '@/components/brand/PlanetMark'
 
 export function MobileNav() {
   const [open, setOpen] = useState(false)
@@ -29,16 +30,16 @@ export function MobileNav() {
   return (
     <div className="lg:hidden">
       {/* Top bar */}
-      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-[#243B72] bg-[#0B1736] px-4 py-3">
-        <span className="flex items-center gap-2 text-sm font-bold text-white">
-          <ShieldCheck size={18} className="text-[#F5E62D]" />
+      <div className="sticky top-0 z-40 flex items-center justify-between border-b-2 border-border bg-panel px-4 py-3">
+        <span className="flex items-center gap-2 font-display text-sm uppercase tracking-tight text-poster-outline text-primary-red">
+          <PlanetMark className="h-6 w-6 shrink-0" />
           Cintel Admin
         </span>
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open menu"
-          className="inline-flex h-10 w-10 items-center justify-center border border-[#243B72] bg-[#10224A] text-slate-200"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-border bg-panel-muted text-foreground shadow-sm transition-all duration-200 ease-out active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
         >
           <Menu size={20} />
         </button>
@@ -47,13 +48,13 @@ export function MobileNav() {
       {/* Drawer */}
       {open && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
-          <div className="absolute inset-y-0 left-0 w-[85%] max-w-xs overflow-y-auto">
+          <div className="absolute inset-0 bg-[#14120F]/70" onClick={() => setOpen(false)} />
+          <div className="absolute inset-y-0 left-0 w-[85%] max-w-xs overflow-y-auto border-r-2 border-border sm:border-r-4">
             <button
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Close menu"
-              className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center border border-[#243B72] bg-[#10224A] text-slate-200"
+              className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-border bg-panel-muted text-foreground shadow-sm transition-all duration-200 ease-out active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
             >
               <X size={18} />
             </button>

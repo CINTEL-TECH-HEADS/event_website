@@ -124,42 +124,42 @@ export default function CertificatesPage() {
   return (
     <div className="space-y-6">
       <section className="app-panel px-6 py-7 sm:px-8">
-        <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
+        <span className="app-kicker">
           <Award size={14} /> Certificates
         </span>
-        <h1 className="mt-5 text-3xl font-bold text-white">Templates, assign, generate, release.</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
+        <h1 className="mt-5 app-heading text-3xl sm:text-4xl">Templates, assign, generate, release.</h1>
+        <p className="app-subheading mt-3 max-w-2xl">
           Upload named templates (e.g. Winner, Participant), assign attendees, then generate and email.
           Unassigned attendees use the default template.
         </p>
       </section>
 
       {/* Templates */}
-      <section className="border border-[#243B72] bg-[#10224A] p-6">
-        <h2 className="text-lg font-semibold text-white">Templates</h2>
+      <section className="app-panel-muted p-6">
+        <h2 className="app-subheading text-lg font-black uppercase tracking-tight text-foreground">Templates</h2>
         <div className="mt-4 flex flex-wrap items-end gap-3">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-400">Template name</label>
+            <label className="mb-1 block text-xs font-bold uppercase tracking-widest text-foreground-soft">Template name</label>
             <input value={templateName} onChange={(e) => setTemplateName(e.target.value)} placeholder="e.g. Winner"
               className="app-input py-2 text-sm" />
           </div>
           <input ref={fileRef} type="file" accept=".pdf" onChange={uploadTemplate} className="hidden" />
           <button onClick={() => fileRef.current?.click()} disabled={uploading}
-            className="inline-flex items-center gap-2 bg-[#F5E62D] px-5 py-2.5 text-sm font-semibold text-[#0B1736] hover:bg-[#FFF27A] disabled:opacity-50">
+            className="app-button-primary text-sm disabled:opacity-50">
             {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
             {uploading ? 'Uploading…' : 'Upload PDF'}
           </button>
         </div>
         <div className="mt-4 space-y-2">
           {templates.length === 0 ? (
-            <p className="text-sm text-slate-400">No templates yet. Upload at least one to generate certificates.</p>
+            <p className="text-sm font-medium text-foreground-soft">No templates yet. Upload at least one to generate certificates.</p>
           ) : (
             templates.map((t) => (
-              <div key={t.id} className="flex items-center justify-between border border-[#243B72] bg-[#0B1736] px-4 py-2.5">
-                <span className="text-sm font-semibold text-white">
-                  {t.name} {t.is_default && <span className="ml-2 text-xs text-[#F5E62D]">Default</span>}
+              <div key={t.id} className="flex items-center justify-between rounded-xl border-2 border-border bg-panel px-4 py-2.5">
+                <span className="text-sm font-bold text-foreground">
+                  {t.name} {t.is_default && <span className="app-badge app-badge-warning ml-2">Default</span>}
                 </span>
-                <button onClick={() => deleteTemplate(t.id)} className="p-1.5 text-slate-500 hover:text-red-400">
+                <button onClick={() => deleteTemplate(t.id)} className="p-1.5 text-foreground-soft transition hover:text-brand">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -169,18 +169,18 @@ export default function CertificatesPage() {
       </section>
 
       {/* Attendees + assignment */}
-      <section className="border border-[#243B72] bg-[#10224A] p-6">
-        <h2 className="text-lg font-semibold text-white">Attendees ({attendees.length})</h2>
-        <p className="mt-1 text-sm text-slate-400">Assign each attendee a template (defaults to {defaultTemplate?.name ?? '—'}).</p>
+      <section className="app-panel-muted p-6">
+        <h2 className="text-lg font-black uppercase tracking-tight text-foreground">Attendees ({attendees.length})</h2>
+        <p className="mt-1 text-sm font-medium text-foreground-soft">Assign each attendee a template (defaults to {defaultTemplate?.name ?? '—'}).</p>
         <div className="mt-4 space-y-2">
           {attendees.length === 0 ? (
-            <p className="text-sm text-slate-400">No attended participants yet. Check people in first.</p>
+            <p className="text-sm font-medium text-foreground-soft">No attended participants yet. Check people in first.</p>
           ) : (
             attendees.map((a) => (
-              <div key={`${a.registration_id}:${a.team_member_id ?? 'solo'}`} className="flex items-center justify-between gap-3 border border-[#243B72] bg-[#0B1736] px-4 py-2.5">
+              <div key={`${a.registration_id}:${a.team_member_id ?? 'solo'}`} className="flex items-center justify-between gap-3 rounded-xl border-2 border-border bg-panel px-4 py-2.5">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-white">{a.name}</p>
-                  <p className="truncate text-xs text-slate-400">{a.email}</p>
+                  <p className="text-sm font-bold text-foreground">{a.name}</p>
+                  <p className="truncate text-xs font-medium text-foreground-soft">{a.email}</p>
                 </div>
                 <select
                   value={a.template_id ?? ''}
@@ -198,18 +198,18 @@ export default function CertificatesPage() {
       </section>
 
       {/* Generate + release */}
-      <section className="flex flex-wrap items-center gap-3 border border-[#243B72] bg-[#10224A] p-6">
+      <section className="app-panel-muted flex flex-wrap items-center gap-3 p-6">
         <button onClick={() => run('generate')} disabled={generating || templates.length === 0}
-          className="inline-flex items-center gap-2 bg-green-500 px-5 py-3 text-sm font-semibold text-white hover:bg-green-400 disabled:opacity-50">
+          className="app-button-success text-sm disabled:opacity-50">
           {generating ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
           {generating ? 'Generating…' : 'Generate Certificates'}
         </button>
         <button onClick={() => run('release')} disabled={releasing}
-          className="inline-flex items-center gap-2 bg-[#1E3A8A] px-5 py-3 text-sm font-semibold text-white hover:bg-[#2563EB] disabled:opacity-50">
+          className="app-button-secondary text-sm disabled:opacity-50">
           {releasing ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
           {releasing ? 'Sending…' : 'Release by Email'}
         </button>
-        {result && <span className="rounded-full bg-[#0B1736] px-4 py-2 text-sm font-semibold text-[#F5E62D]">{result}</span>}
+        {result && <span className="app-badge app-badge-warning">{result}</span>}
       </section>
     </div>
   )

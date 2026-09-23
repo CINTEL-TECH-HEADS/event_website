@@ -35,26 +35,26 @@ export default function JudgeParticipantsPage() {
   }, [loadRegistrations])
 
   if (loading) {
-    return <div className="text-sm text-slate-400">Loading participants...</div>
+    return <div className="text-sm font-bold uppercase tracking-widest text-foreground-soft">Loading participants...</div>
   }
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-      <section className="app-panel rounded-[2rem] px-6 py-7 sm:px-8">
+      <section className="app-panel px-6 py-7 sm:px-8">
         <span className="app-kicker">
           <Shield size={14} />
           Judge View
         </span>
-        <h1 className="app-heading mt-4">Participant information in read-only mode.</h1>
+        <h1 className="app-heading mt-4 uppercase tracking-tighter">Participant information in read-only mode.</h1>
         <p className="app-subheading mt-3 max-w-2xl">
           Search participants and expand entries for team and answer details. No edits are
           available from this view.
         </p>
       </section>
 
-      <section className="app-panel rounded-[1.75rem] p-4">
+      <section className="app-panel p-4">
         <label className="relative block">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground-soft" />
           <input
             type="text"
             placeholder="Search by name or email..."
@@ -65,42 +65,42 @@ export default function JudgeParticipantsPage() {
         </label>
       </section>
 
-      <section className="app-table-wrap">
+      <section className="overflow-hidden rounded-2xl border-2 border-border bg-panel sm:border-4">
         <div className="overflow-x-auto">
-          <table>
-            <thead>
+          <table className="w-full">
+            <thead className="bg-panel-muted font-tech text-xs font-bold uppercase tracking-wider text-foreground">
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Registered</th>
+                <th className="px-4 py-4 text-left">Name</th>
+                <th className="px-4 py-4 text-left">Email</th>
+                <th className="px-4 py-4 text-left">Type</th>
+                <th className="px-4 py-4 text-left">Status</th>
+                <th className="px-4 py-4 text-left">Registered</th>
               </tr>
             </thead>
             <tbody>
               {registrations.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>
-                    <div className="app-empty-state m-3">No participants found.</div>
+                  <td colSpan={5} className="p-6">
+                    <div className="app-empty-state">No participants found.</div>
                   </td>
                 </tr>
               ) : (
                 registrations.map((registration) => (
                   <Fragment key={registration.id}>
                     <tr
-                      className="app-table-row-interactive cursor-pointer"
+                      className="cursor-pointer border-b-2 border-border transition duration-200 ease-out hover:bg-panel-muted"
                       onClick={() =>
                         setExpandedId(expandedId === registration.id ? null : registration.id)
                       }
                     >
-                      <td className="font-semibold text-slate-900">{registration.leader_name}</td>
-                      <td className="text-sm text-slate-500">{registration.leader_email}</td>
-                      <td>
+                      <td className="px-4 py-4 font-bold text-foreground">{registration.leader_name}</td>
+                      <td className="px-4 py-4 text-sm text-foreground-soft">{registration.leader_email}</td>
+                      <td className="px-4 py-4">
                         <span className="app-badge app-badge-neutral">
                           {registration.registration_type === 'solo' ? 'Solo' : 'Team'}
                         </span>
                       </td>
-                      <td>
+                      <td className="px-4 py-4">
                         <span
                           className={`app-badge ${
                             registration.status === 'confirmed'
@@ -113,27 +113,27 @@ export default function JudgeParticipantsPage() {
                           {registration.status}
                         </span>
                       </td>
-                      <td className="text-sm text-slate-500">
+                      <td className="px-4 py-4 text-sm text-foreground-soft">
                         {new Date(registration.registered_at).toLocaleDateString('en-IN')}
                       </td>
                     </tr>
 
                     {expandedId === registration.id && (
-                      <tr className="bg-slate-50/70">
-                        <td colSpan={5}>
-                          <div className="grid gap-4 rounded-[1.2rem] bg-white/90 p-4 lg:grid-cols-2">
+                      <tr className="bg-panel-muted">
+                        <td colSpan={5} className="p-4">
+                          <div className="grid gap-4 rounded-xl border-2 border-border bg-panel p-4 lg:grid-cols-2">
                             <div>
-                              <h3 className="mb-2 text-sm font-semibold text-slate-900">
+                              <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">
                                 Team members
                               </h3>
                               {registration.registration_type === 'team' &&
                               registration.members.length > 0 ? (
-                                <div className="space-y-2 text-sm text-slate-600">
+                                <div className="space-y-2 text-sm text-foreground-soft">
                                   {registration.members.map((member) => (
-                                    <div key={member.id} className="rounded-2xl bg-slate-50 px-3 py-2">
+                                    <div key={member.id} className="rounded-lg border-2 border-border bg-panel-muted px-3 py-2">
                                       {member.full_name}
                                       {member.is_leader && (
-                                        <span className="ml-2 text-xs font-semibold text-brand-600">
+                                        <span className="ml-2 text-xs font-bold uppercase tracking-widest text-brand">
                                           Leader
                                         </span>
                                       )}
@@ -141,17 +141,17 @@ export default function JudgeParticipantsPage() {
                                   ))}
                                 </div>
                               ) : (
-                                <p className="text-sm text-slate-500">Solo participant.</p>
+                                <p className="text-sm text-foreground-soft">Solo participant.</p>
                               )}
                             </div>
 
                             <div>
-                              <h3 className="mb-2 text-sm font-semibold text-slate-900">Answers</h3>
+                              <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">Answers</h3>
                               {(registration.answers?.length ?? 0) > 0 ? (
-                                <div className="space-y-2 text-sm text-slate-600">
+                                <div className="space-y-2 text-sm text-foreground-soft">
                                   {registration.answers?.map((answer) => (
-                                    <div key={answer.id} className="rounded-2xl bg-slate-50 px-3 py-2">
-                                      <span className="font-medium text-slate-800">
+                                    <div key={answer.id} className="rounded-lg border-2 border-border bg-panel-muted px-3 py-2">
+                                      <span className="font-bold text-foreground">
                                         {answer.field_id}
                                       </span>
                                       : {answer.answer}
@@ -159,7 +159,7 @@ export default function JudgeParticipantsPage() {
                                   ))}
                                 </div>
                               ) : (
-                                <p className="text-sm text-slate-500">No extra details available.</p>
+                                <p className="text-sm text-foreground-soft">No extra details available.</p>
                               )}
                             </div>
                           </div>

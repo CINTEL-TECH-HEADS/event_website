@@ -345,23 +345,23 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
   return (
     <div className="space-y-6">
       {/* Top action bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#243B72] pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b-2 border-border pb-4">
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}
-            className="inline-flex items-center gap-2 border border-[#243B72] bg-[#10224A] px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white"
+            className="inline-flex items-center gap-2 rounded-full border-2 border-border bg-panel-muted px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-foreground-soft transition active:translate-x-[2px] active:translate-y-[2px] hover:text-foreground"
           >
             <ArrowLeft size={14} />
             Back to Templates
           </button>
           <div>
-            <h2 className="text-lg font-bold text-white">
+            <h2 className="text-lg font-black uppercase tracking-tight text-foreground">
               Template Layout Editor: {template.certificate_type ?? template.name}
-              <span className="ml-2 text-xs font-bold uppercase tracking-widest text-[#F5E62D]">
+              <span className="app-badge app-badge-warning ml-2">
                 {isTeamTemplate ? 'Team' : 'Solo'}
               </span>
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs font-medium text-foreground-soft">
               Directly drag elements on preview or use precision controls below. Output resolution: {imgDim.w} × {imgDim.h} px
             </p>
           </div>
@@ -370,7 +370,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="inline-flex items-center gap-2 bg-[#F5E62D] px-6 py-2.5 text-sm font-bold uppercase tracking-wider text-[#0B1736] hover:bg-[#FFF27A] disabled:opacity-50"
+          className="app-button-primary text-sm disabled:opacity-50"
         >
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           Save Layout Configuration
@@ -381,11 +381,11 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
         {/* INTERACTIVE DRAGGABLE PREVIEW */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-foreground-soft">
               Interactive Preview (Click &amp; Drag Elements Directly)
             </span>
             {renderingPreview && (
-              <span className="text-[10px] text-[#F5E62D] flex items-center gap-1">
+              <span className="text-[10px] text-warning flex items-center gap-1">
                 <Loader2 size={10} className="animate-spin" /> Updating preview...
               </span>
             )}
@@ -395,7 +395,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
             ref={containerRef}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
-            className="relative w-full overflow-hidden border border-[#243B72] bg-[#070E1E] select-none touch-none"
+            className="relative w-full overflow-hidden rounded-2xl border-4 border-border bg-panel-muted shadow-lg select-none touch-none"
           >
             {/* Background Canvas Preview (Rendered by Canvas Renderer) */}
             {previewCanvasUrl ? (
@@ -406,8 +406,8 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                 className="w-full h-auto block pointer-events-none"
               />
             ) : (
-              <div className="p-16 text-center text-sm text-slate-400 flex flex-col items-center justify-center gap-2">
-                <Loader2 size={24} className="animate-spin text-[#F5E62D]" />
+              <div className="p-16 text-center text-sm font-medium text-foreground-soft flex flex-col items-center justify-center gap-2">
+                <Loader2 size={24} className="animate-spin text-warning" />
                 Rendering template preview...
               </div>
             )}
@@ -420,8 +420,8 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                 onPointerDown={(e) => handlePointerDown(e, 'name')}
                 className={`absolute transform -translate-y-1/2 cursor-grab active:cursor-grabbing border-2 px-3 py-1 transition-shadow ${
                   activeTab === 'name'
-                    ? 'border-[#F5E62D] bg-[#F5E62D]/20 shadow-[0_0_12px_rgba(245,230,45,0.4)] ring-2 ring-[#F5E62D]/50 z-20'
-                    : 'border-dashed border-white/60 bg-black/10 hover:border-[#F5E62D]'
+                    ? 'border-warning bg-warning/20 ring-2 ring-warning/50 z-20'
+                    : 'border-dashed border-foreground/60 bg-black/10 hover:border-warning'
                 }`}
                 style={{
                   left: `${layout.name.x * 100}%`,
@@ -434,7 +434,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                       : 'translate(0, -50%)',
                 }}
               >
-                <div className="text-[10px] font-mono font-bold text-[#F5E62D] bg-black/80 px-1 py-0.5 whitespace-nowrap pointer-events-none mb-0.5">
+                <div className="text-[10px] font-mono font-bold text-warning bg-black/80 px-1 py-0.5 whitespace-nowrap pointer-events-none mb-0.5">
                   Participant Name [{Math.round(layout.name.x * 100)}%, {Math.round(layout.name.y * 100)}%]
                 </div>
               </div>
@@ -446,8 +446,8 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                 onPointerDown={(e) => handlePointerDown(e, 'teamName')}
                 className={`absolute transform -translate-y-1/2 cursor-grab active:cursor-grabbing border-2 px-3 py-1 transition-shadow ${
                   activeTab === 'teamName'
-                    ? 'border-[#93C5FD] bg-[#93C5FD]/20 shadow-[0_0_12px_rgba(147,197,253,0.4)] ring-2 ring-[#93C5FD]/50 z-20'
-                    : 'border-dashed border-white/60 bg-black/10 hover:border-[#93C5FD]'
+                    ? 'border-accent bg-accent/20 ring-2 ring-accent/50 z-20'
+                    : 'border-dashed border-foreground/60 bg-black/10 hover:border-accent'
                 }`}
                 style={{
                   left: `${layout.teamName.x * 100}%`,
@@ -460,7 +460,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                       : 'translate(0, -50%)',
                 }}
               >
-                <div className="text-[10px] font-mono font-bold text-[#93C5FD] bg-black/80 px-1 py-0.5 whitespace-nowrap pointer-events-none mb-0.5">
+                <div className="text-[10px] font-mono font-bold text-accent bg-black/80 px-1 py-0.5 whitespace-nowrap pointer-events-none mb-0.5">
                   Team Name [{Math.round(layout.teamName.x * 100)}%, {Math.round(layout.teamName.y * 100)}%]
                 </div>
               </div>
@@ -472,8 +472,8 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                 onPointerDown={(e) => handlePointerDown(e, 'qr')}
                 className={`absolute cursor-grab active:cursor-grabbing border-2 flex items-center justify-center transition-shadow ${
                   activeTab === 'qr'
-                    ? 'border-[#86EFAC] bg-[#86EFAC]/20 shadow-[0_0_12px_rgba(134,239,172,0.4)] ring-2 ring-[#86EFAC]/50 z-20'
-                    : 'border-dashed border-white/60 bg-black/10 hover:border-[#86EFAC]'
+                    ? 'border-success bg-success/20 ring-2 ring-success/50 z-20'
+                    : 'border-dashed border-foreground/60 bg-black/10 hover:border-success'
                 }`}
                 style={{
                   left: `${layout.qr.x * 100}%`,
@@ -482,7 +482,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                   height: `clamp(36px, ${layout.qr.size * 0.3}px, 120px)`,
                 }}
               >
-                <div className="text-[9px] font-mono font-bold text-[#86EFAC] bg-black/80 px-1 py-0.5 pointer-events-none">
+                <div className="text-[9px] font-mono font-bold text-success bg-black/80 px-1 py-0.5 pointer-events-none">
                   QR [{Math.round(layout.qr.x * 100)}%, {Math.round(layout.qr.y * 100)}%]
                 </div>
               </div>
@@ -491,15 +491,15 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
         </div>
 
         {/* CONTROLS PANEL */}
-        <div className="border border-[#243B72] bg-[#0B1736] p-5 space-y-5">
+        <div className="app-panel-muted p-5 space-y-5">
           {/* Layer tabs */}
-          <div className="flex border-b border-[#243B72]">
+          <div className="flex border-b-2 border-border">
             <button
               onClick={() => setActiveTab('name')}
               className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${
                 activeTab === 'name'
-                  ? 'border-[#F5E62D] text-[#F5E62D]'
-                  : 'border-transparent text-slate-400 hover:text-white'
+                  ? 'border-warning text-warning'
+                  : 'border-transparent text-foreground-soft hover:text-foreground'
               }`}
             >
               <Type size={12} className="inline mr-1" />
@@ -510,8 +510,8 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                 onClick={() => setActiveTab('teamName')}
                 className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${
                   activeTab === 'teamName'
-                    ? 'border-[#93C5FD] text-[#93C5FD]'
-                    : 'border-transparent text-slate-400 hover:text-white'
+                    ? 'border-accent text-accent'
+                    : 'border-transparent text-foreground-soft hover:text-foreground'
                 }`}
               >
                 <Users size={12} className="inline mr-1" />
@@ -522,8 +522,8 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
               onClick={() => setActiveTab('qr')}
               className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${
                 activeTab === 'qr'
-                  ? 'border-[#86EFAC] text-[#86EFAC]'
-                  : 'border-transparent text-slate-400 hover:text-white'
+                  ? 'border-success text-success'
+                  : 'border-transparent text-foreground-soft hover:text-foreground'
               }`}
             >
               <QrCode size={12} className="inline mr-1" />
@@ -537,7 +537,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
               {/* X Position Slider + Numeric Input */}
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-semibold text-slate-300">
+                  <label className="text-xs font-bold uppercase tracking-widest text-foreground-soft">
                     X Position (%)
                   </label>
                   <div className="flex items-center gap-1">
@@ -552,7 +552,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                       }
                       className="w-16 app-input text-xs py-0.5 text-right font-mono"
                     />
-                    <span className="text-xs text-slate-400">%</span>
+                    <span className="text-xs font-medium text-foreground-soft">%</span>
                   </div>
                 </div>
                 <input
@@ -562,14 +562,14 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                   step="0.005"
                   value={layout[activeTab]?.x ?? 0.5}
                   onChange={(e) => updateText(activeTab, 'x', parseFloat(e.target.value))}
-                  className="w-full accent-[#F5E62D]"
+                  className="w-full accent-warning"
                 />
               </div>
 
               {/* Y Position Slider + Numeric Input */}
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-semibold text-slate-300">
+                  <label className="text-xs font-bold uppercase tracking-widest text-foreground-soft">
                     Y Position (%)
                   </label>
                   <div className="flex items-center gap-1">
@@ -584,7 +584,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                       }
                       className="w-16 app-input text-xs py-0.5 text-right font-mono"
                     />
-                    <span className="text-xs text-slate-400">%</span>
+                    <span className="text-xs font-medium text-foreground-soft">%</span>
                   </div>
                 </div>
                 <input
@@ -594,13 +594,13 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                   step="0.005"
                   value={layout[activeTab]?.y ?? 0.5}
                   onChange={(e) => updateText(activeTab, 'y', parseFloat(e.target.value))}
-                  className="w-full accent-[#F5E62D]"
+                  className="w-full accent-warning"
                 />
               </div>
 
               {/* FONT FAMILY DROPDOWN & ACTIONS */}
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-300 block">Font Family</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-foreground-soft block">Font Family</label>
                 <select
                   value={layout[activeTab]?.fontFamily ?? 'Playfair Display'}
                   onChange={(e) => updateText(activeTab, 'fontFamily', e.target.value)}
@@ -644,7 +644,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                   <button
                     onClick={handleLoadSystemFonts}
                     disabled={loadingSystemFonts}
-                    className="flex-1 inline-flex items-center justify-center gap-1 border border-[#243B72] bg-[#10224A] py-1 text-[11px] font-semibold text-slate-300 hover:text-white disabled:opacity-50"
+                    className="flex-1 inline-flex items-center justify-center gap-1 rounded-full border-2 border-border bg-panel py-1 text-[11px] font-bold uppercase tracking-wider text-foreground-soft hover:text-foreground disabled:opacity-50"
                   >
                     {loadingSystemFonts ? <Loader2 size={10} className="animate-spin" /> : <Cpu size={10} />}
                     System Fonts
@@ -660,7 +660,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                   <button
                     onClick={() => fontFileInputRef.current?.click()}
                     disabled={uploadingFont}
-                    className="flex-1 inline-flex items-center justify-center gap-1 border border-[#243B72] bg-[#10224A] py-1 text-[11px] font-semibold text-slate-300 hover:text-white disabled:opacity-50"
+                    className="flex-1 inline-flex items-center justify-center gap-1 rounded-full border-2 border-border bg-panel py-1 text-[11px] font-bold uppercase tracking-wider text-foreground-soft hover:text-foreground disabled:opacity-50"
                   >
                     {uploadingFont ? <Loader2 size={10} className="animate-spin" /> : <Upload size={10} />}
                     Upload Font
@@ -671,7 +671,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
               {/* FONT SIZE & TEXT ALIGN */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Font Size (px)</label>
+                  <label className="text-xs font-bold uppercase tracking-widest text-foreground-soft block mb-1">Font Size (px)</label>
                   <input
                     type="number"
                     value={layout[activeTab]?.fontSize ?? 48}
@@ -680,28 +680,28 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Text Alignment</label>
-                  <div className="flex border border-[#243B72]">
+                  <label className="text-xs font-bold uppercase tracking-widest text-foreground-soft block mb-1">Text Alignment</label>
+                  <div className="flex overflow-hidden rounded-full border-2 border-border">
                     <button
                       onClick={() => updateText(activeTab, 'textAlign', 'left')}
-                      className={`flex-1 py-1.5 flex justify-center ${
-                        layout[activeTab]?.textAlign === 'left' ? 'bg-[#F5E62D] text-[#0B1736]' : 'bg-[#0B1736] text-slate-400'
+                      className={`flex-1 py-1.5 flex justify-center transition-colors ${
+                        layout[activeTab]?.textAlign === 'left' ? 'bg-warning text-foreground' : 'bg-panel text-foreground-soft'
                       }`}
                     >
                       <AlignLeft size={14} />
                     </button>
                     <button
                       onClick={() => updateText(activeTab, 'textAlign', 'center')}
-                      className={`flex-1 py-1.5 flex justify-center ${
-                        layout[activeTab]?.textAlign === 'center' ? 'bg-[#F5E62D] text-[#0B1736]' : 'bg-[#0B1736] text-slate-400'
+                      className={`flex-1 py-1.5 flex justify-center transition-colors ${
+                        layout[activeTab]?.textAlign === 'center' ? 'bg-warning text-foreground' : 'bg-panel text-foreground-soft'
                       }`}
                     >
                       <AlignCenter size={14} />
                     </button>
                     <button
                       onClick={() => updateText(activeTab, 'textAlign', 'right')}
-                      className={`flex-1 py-1.5 flex justify-center ${
-                        layout[activeTab]?.textAlign === 'right' ? 'bg-[#F5E62D] text-[#0B1736]' : 'bg-[#0B1736] text-slate-400'
+                      className={`flex-1 py-1.5 flex justify-center transition-colors ${
+                        layout[activeTab]?.textAlign === 'right' ? 'bg-warning text-foreground' : 'bg-panel text-foreground-soft'
                       }`}
                     >
                       <AlignRight size={14} />
@@ -713,7 +713,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
               {/* FONT WEIGHT & ITALIC TOGGLE */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Font Weight</label>
+                  <label className="text-xs font-bold uppercase tracking-widest text-foreground-soft block mb-1">Font Weight</label>
                   <select
                     value={layout[activeTab]?.fontWeight ?? 'bold'}
                     onChange={(e) => updateText(activeTab, 'fontWeight', e.target.value)}
@@ -726,7 +726,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Italic Style</label>
+                  <label className="text-xs font-bold uppercase tracking-widest text-foreground-soft block mb-1">Italic Style</label>
                   <button
                     onClick={() =>
                       updateText(
@@ -735,10 +735,10 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                         layout[activeTab]?.fontStyle === 'italic' ? 'normal' : 'italic'
                       )
                     }
-                    className={`w-full py-1.5 px-3 flex items-center justify-center gap-2 border border-[#243B72] text-xs font-bold transition-all ${
+                    className={`w-full py-1.5 px-3 flex items-center justify-center gap-2 rounded-full border-2 text-xs font-bold uppercase tracking-wider transition-all ${
                       layout[activeTab]?.fontStyle === 'italic'
-                        ? 'bg-[#F5E62D] text-[#0B1736] border-[#FFF27A]'
-                        : 'bg-[#10224A] text-slate-300 hover:text-white'
+                        ? 'bg-warning text-foreground border-warning'
+                        : 'bg-panel text-foreground-soft border-border hover:text-foreground'
                     }`}
                   >
                     <Italic size={14} />
@@ -750,15 +750,15 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
               {/* COLOR & MAX WIDTH */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Color</label>
-                  <div className="flex items-center gap-2 border border-[#243B72] bg-[#10224A] p-1">
+                  <label className="text-xs font-bold uppercase tracking-widest text-foreground-soft block mb-1">Color</label>
+                  <div className="flex items-center gap-2 rounded-lg border-2 border-border bg-panel p-1">
                     <input
                       type="color"
                       value={layout[activeTab]?.color ?? '#1a1a1a'}
                       onChange={(e) => updateText(activeTab, 'color', e.target.value)}
                       className="h-6 w-8 cursor-pointer bg-transparent border-0 p-0"
                     />
-                    <span className="text-[11px] font-mono text-slate-300 uppercase">
+                    <span className="text-[11px] font-mono font-medium text-foreground-soft uppercase">
                       {layout[activeTab]?.color ?? '#1a1a1a'}
                     </span>
                   </div>
@@ -766,8 +766,8 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
 
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <label className="text-xs font-semibold text-slate-300">Max Width (%)</label>
-                    <span className="text-xs font-mono text-slate-400">
+                    <label className="text-xs font-bold uppercase tracking-widest text-foreground-soft">Max Width (%)</label>
+                    <span className="text-xs font-mono font-medium text-foreground-soft">
                       {Math.round((layout[activeTab]?.maxWidth ?? 0.75) * 100)}%
                     </span>
                   </div>
@@ -778,7 +778,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                     step="0.05"
                     value={layout[activeTab]?.maxWidth ?? 0.75}
                     onChange={(e) => updateText(activeTab, 'maxWidth', parseFloat(e.target.value))}
-                    className="w-full accent-[#F5E62D]"
+                    className="w-full accent-warning"
                   />
                 </div>
               </div>
@@ -791,7 +791,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
               {/* X Position Slider + Numeric Input */}
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-semibold text-slate-300">X Position (%)</label>
+                  <label className="text-xs font-bold uppercase tracking-widest text-foreground-soft">X Position (%)</label>
                   <div className="flex items-center gap-1">
                     <input
                       type="number"
@@ -802,7 +802,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                       onChange={(e) => updateQr('x', (parseFloat(e.target.value) || 0) / 100)}
                       className="w-16 app-input text-xs py-0.5 text-right font-mono"
                     />
-                    <span className="text-xs text-slate-400">%</span>
+                    <span className="text-xs font-medium text-foreground-soft">%</span>
                   </div>
                 </div>
                 <input
@@ -812,14 +812,14 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                   step="0.005"
                   value={layout.qr?.x ?? 0.82}
                   onChange={(e) => updateQr('x', parseFloat(e.target.value))}
-                  className="w-full accent-[#86EFAC]"
+                  className="w-full accent-success"
                 />
               </div>
 
               {/* Y Position Slider + Numeric Input */}
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-semibold text-slate-300">Y Position (%)</label>
+                  <label className="text-xs font-bold uppercase tracking-widest text-foreground-soft">Y Position (%)</label>
                   <div className="flex items-center gap-1">
                     <input
                       type="number"
@@ -830,7 +830,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                       onChange={(e) => updateQr('y', (parseFloat(e.target.value) || 0) / 100)}
                       className="w-16 app-input text-xs py-0.5 text-right font-mono"
                     />
-                    <span className="text-xs text-slate-400">%</span>
+                    <span className="text-xs font-medium text-foreground-soft">%</span>
                   </div>
                 </div>
                 <input
@@ -840,15 +840,15 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                   step="0.005"
                   value={layout.qr?.y ?? 0.78}
                   onChange={(e) => updateQr('y', parseFloat(e.target.value))}
-                  className="w-full accent-[#86EFAC]"
+                  className="w-full accent-success"
                 />
               </div>
 
               {/* Size Slider + Numeric Input */}
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-semibold text-slate-300">QR Size (px)</label>
-                  <span className="text-xs font-mono text-[#86EFAC]">{layout.qr?.size ?? 120} px</span>
+                  <label className="text-xs font-bold uppercase tracking-widest text-foreground-soft">QR Size (px)</label>
+                  <span className="text-xs font-mono text-success">{layout.qr?.size ?? 120} px</span>
                 </div>
                 <input
                   type="range"
@@ -857,7 +857,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                   step="5"
                   value={layout.qr?.size ?? 120}
                   onChange={(e) => updateQr('size', parseInt(e.target.value) || 120)}
-                  className="w-full accent-[#86EFAC]"
+                  className="w-full accent-success"
                 />
               </div>
             </div>

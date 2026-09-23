@@ -3,12 +3,14 @@
 'use client'
 
 import { useState } from 'react'
+import { Search } from 'lucide-react'
 import type {
   Event,
   EventType,
 } from '@/types'
 
 import { EventCard } from './EventCard'
+import { Sparkle } from '@/components/brand/Starburst'
 
 type PublicEvent =
   Event & {
@@ -76,32 +78,31 @@ export function EventGrid({
       {/* Controls */}
       <div className="grid gap-5 lg:grid-cols-3">
 
-        <div className="rounded-3xl border border-white/10 bg-[#112240] p-6">
+        <div className="poster-panel relative overflow-hidden p-6">
+          <div className="halftone pointer-events-none absolute inset-0 opacity-[0.12]" />
+          <Sparkle className="absolute right-4 top-4 h-5 w-5 text-primary-yellow" />
 
-          <p className="text-[12px] font-semibold uppercase tracking-[0.35em] text-amber-200">
+          <p className="relative font-tech text-[11px] font-bold uppercase tracking-[0.3em] text-primary-yellow">
             Browse Controls
           </p>
 
-          <p className="mt-4 text-[16px] leading-8 text-slate-100">
-            Search events,
-            filter formats,
-            and instantly
-            explore what’s live.
+          <p className="relative mt-4 text-base font-medium leading-7 text-[#F5F0E3]">
+            Search events, filter formats, and instantly explore what&rsquo;s live.
           </p>
 
-          <div className="mt-6 border-t border-white/10 pt-5">
+          <div className="relative mt-6 border-t-2 border-[#F5F0E3]/20 pt-5">
 
-            <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">
+            <p className="font-tech text-[10px] font-bold uppercase tracking-widest text-[#F5F0E3]/70">
               Showing
             </p>
 
-            <p className="mt-2 text-5xl font-bold text-white">
+            <p className="mt-2 font-display text-4xl text-[#F5F0E3]">
               {
                 filteredEvents.length
               }
             </p>
 
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 font-tech text-xs font-bold uppercase tracking-widest text-[#F5F0E3]/70">
               Matching Events
             </p>
 
@@ -109,31 +110,34 @@ export function EventGrid({
 
         </div>
 
-        <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-[#0d1b31] p-6 space-y-6">
+        <div className="app-panel space-y-6 p-6 lg:col-span-2">
 
           <div>
 
-            <p className="text-[12px] font-semibold uppercase tracking-[0.35em] text-slate-400">
+            <p className="font-tech text-[11px] font-bold uppercase tracking-[0.3em] text-foreground-soft">
               Search
             </p>
 
-            <input
-              type="text"
-              value={search}
-              onChange={(e) =>
-                setSearch(
-                  e.target.value
-                )
-              }
-              placeholder="Search workshops, hackathons..."
-              className="mt-3 w-full rounded-2xl border border-white/10 bg-[#07101f] px-5 py-4 text-white outline-none transition placeholder:text-slate-500 focus:border-amber-400"
-            />
+            <div className="relative mt-3">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-soft" strokeWidth={2.5} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) =>
+                  setSearch(
+                    e.target.value
+                  )
+                }
+                placeholder="Search workshops, hackathons..."
+                className="app-input pl-11"
+              />
+            </div>
 
           </div>
 
           <div>
 
-            <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.35em] text-slate-400">
+            <p className="mb-3 font-tech text-[11px] font-bold uppercase tracking-[0.3em] text-foreground-soft">
               Filter by Type
             </p>
 
@@ -153,11 +157,11 @@ export function EventGrid({
                         filter
                       )
                     }
-                    className={`rounded-xl px-4 py-2 text-sm font-semibold capitalize transition ${
+                    className={`rounded-full border-2 border-border px-4 py-2 font-tech text-xs font-bold uppercase tracking-wider shadow-sm transition duration-200 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none ${
                       type ===
                       filter
-                        ? 'bg-[#F5E62D] text-black'
-                        : 'border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                        ? 'bg-warning text-foreground'
+                        : 'bg-panel text-foreground-soft hover:bg-panel-muted'
                     }`}
                   >
                     {
@@ -178,13 +182,13 @@ export function EventGrid({
       {/* Events */}
       {filteredEvents.length ===
       0 ? (
-        <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-12 text-center">
+        <div className="app-empty-state">
 
-          <h2 className="text-xl font-semibold text-white">
+          <h2 className="text-xl font-black uppercase text-foreground">
             No Matching Events
           </h2>
 
-          <p className="mt-2 text-slate-400">
+          <p className="mt-2 font-medium text-foreground-soft">
             Try another
             keyword or
             filter.
@@ -195,7 +199,7 @@ export function EventGrid({
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
 
           {filteredEvents.map(
-            (event) => (
+            (event, index) => (
               <div
                 key={
                   event.id
@@ -206,6 +210,7 @@ export function EventGrid({
                   event={
                     event
                   }
+                  accentIndex={index}
                 />
               </div>
             )

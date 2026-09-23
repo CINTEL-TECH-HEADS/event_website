@@ -177,10 +177,10 @@ export default function NotificationsPage() {
   const optionClass = (
     active: boolean
   ) =>
-    `cursor-pointer  border px-4 py-4 transition ${
+    `cursor-pointer rounded-xl border-2 px-4 py-4 transition duration-200 ${
       active
-        ? 'border-[#F5E62D] bg-[#0B1736] text-[#F5E62D]'
-        : 'border-[#243B72] bg-[#10224A] text-slate-300 hover:border-[#F5E62D] hover:text-white'
+        ? 'border-brand bg-brand-soft text-brand'
+        : 'border-border bg-panel text-foreground-soft hover:border-brand hover:text-foreground'
     }`
 
   return (
@@ -189,17 +189,17 @@ export default function NotificationsPage() {
       {/* Hero */}
       <section className="app-panel  px-6 py-7 sm:px-8">
 
-        <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
+        <span className="app-kicker inline-flex items-center gap-2">
           <Bell size={14} />
           Notifications
         </span>
 
-        <h1 className="mt-5 text-3xl font-bold text-white">
+        <h1 className="app-heading mt-5">
           Reach participants
           quickly and clearly.
         </h1>
 
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
+        <p className="app-subheading mt-3 max-w-2xl">
           Send reminders,
           confirmations,
           updates, and urgent
@@ -216,7 +216,7 @@ export default function NotificationsPage() {
           {/* Type */}
           <div>
 
-            <label className="mb-3 block text-sm font-semibold text-slate-300">
+            <label className="mb-3 block text-xs font-bold uppercase tracking-widest text-foreground-soft">
               Notification Type
             </label>
 
@@ -264,7 +264,7 @@ export default function NotificationsPage() {
           {/* Channel */}
           <div>
 
-            <label className="mb-3 block text-sm font-semibold text-slate-300">
+            <label className="mb-3 block text-xs font-bold uppercase tracking-widest text-foreground-soft">
               Channel
             </label>
 
@@ -327,7 +327,7 @@ export default function NotificationsPage() {
           {/* Recipients */}
           <div>
 
-            <label className="mb-3 block text-sm font-semibold text-slate-300">
+            <label className="mb-3 block text-xs font-bold uppercase tracking-widest text-foreground-soft">
               Recipients
             </label>
 
@@ -387,10 +387,10 @@ export default function NotificationsPage() {
 
             {/* Participant picker (custom selection) */}
             {selectedRegistrations === 'custom' && (
-              <div className="mt-3 border border-[#243B72] bg-[#0B1736] p-3">
+              <div className="mt-3 rounded-xl border-2 border-border bg-panel-muted p-3">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <label className="relative block flex-1">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-soft" />
                     <input
                       type="text"
                       value={regSearch}
@@ -399,24 +399,24 @@ export default function NotificationsPage() {
                       className="app-input pl-9 py-2 text-sm"
                     />
                   </label>
-                  <span className="shrink-0 rounded-full bg-[#10224A] px-3 py-1.5 text-xs font-semibold text-[#F5E62D]">
+                  <span className="app-badge app-badge-neutral shrink-0">
                     {selectedIds.size} selected
                   </span>
                 </div>
                 <div className="max-h-64 space-y-1 overflow-y-auto">
                   {filteredRegs.length === 0 ? (
-                    <p className="px-2 py-4 text-center text-xs text-slate-400">No confirmed registrations.</p>
+                    <p className="px-2 py-4 text-center text-xs font-medium text-foreground-soft">No confirmed registrations.</p>
                   ) : (
                     filteredRegs.map((r) => (
-                      <label key={r.id} className="flex cursor-pointer items-center gap-3 border border-transparent px-2 py-2 text-sm hover:bg-[#10224A]">
+                      <label key={r.id} className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-transparent px-2 py-2 text-sm hover:bg-panel">
                         <input
                           type="checkbox"
                           checked={selectedIds.has(r.id)}
                           onChange={() => toggleId(r.id)}
-                          className="accent-[#F5E62D]"
+                          className="accent-brand"
                         />
-                        <span className="font-semibold text-white">{r.leader_name}</span>
-                        <span className="truncate text-xs text-[#93C5FD]">{r.leader_email}</span>
+                        <span className="font-bold text-foreground">{r.leader_name}</span>
+                        <span className="truncate text-xs font-medium text-accent">{r.leader_email}</span>
                       </label>
                     ))
                   )}
@@ -429,7 +429,7 @@ export default function NotificationsPage() {
           {/* Message */}
           <div>
 
-            <label className="mb-2 block text-sm font-semibold text-slate-300">
+            <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-foreground-soft">
               Custom Message
             </label>
 
@@ -451,7 +451,7 @@ export default function NotificationsPage() {
               className="app-textarea"
             />
 
-            <p className="mt-2 text-xs text-slate-400">
+            <p className="mt-2 text-xs font-medium text-foreground-soft">
               {
                 customMessage.length
               }
@@ -461,7 +461,7 @@ export default function NotificationsPage() {
           </div>
 
           {/* Action */}
-          <div className="flex flex-col gap-3 border-t border-[#243B72] pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-t-2 border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
 
             <button
               onClick={
@@ -470,7 +470,7 @@ export default function NotificationsPage() {
               disabled={
                 sending
               }
-              className="inline-flex items-center justify-center gap-2  bg-[#F5E62D] px-6 py-3 text-sm font-semibold text-[#0B1736] transition hover:bg-[#FFF27A]"
+              className="app-button-primary"
             >
 
               {sending ? (
@@ -492,7 +492,7 @@ export default function NotificationsPage() {
 
             {sentCount !==
               null && (
-              <span className="rounded-full bg-green-500/10 px-4 py-2 text-sm font-semibold text-green-400">
+              <span className="app-badge app-badge-success">
                 Sent to{' '}
                 {
                   sentCount
@@ -512,7 +512,7 @@ export default function NotificationsPage() {
       </section>
 
       {/* Note */}
-      <div className=" border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
+      <div className="app-alert-info">
         Notifications are sent
         immediately. Please
         review content before

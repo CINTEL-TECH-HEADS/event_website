@@ -20,10 +20,10 @@ export default function LuxuryTextarea({
         name={name}
         rows={5}
         placeholder=" "
-        className="peer w-full  border border-[#243B72] bg-[#081028] px-4 pt-6 pb-3 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
+        className="peer w-full rounded-xl border-2 border-border bg-panel px-4 pt-6 pb-3 font-medium text-foreground outline-none transition-shadow duration-200 ease-out focus:shadow-[3px_3px_0px_0px] focus:shadow-brand"
       />
 
-      <label className="pointer-events-none absolute left-4 top-4 text-sm text-slate-400 transition-all peer-placeholder-shown:top-4 peer-focus:top-2 peer-focus:text-xs peer-focus:text-[#F5E62D] peer-[&:not(:placeholder-shown)]:top-2 peer-[&:not(:placeholder-shown)]:text-xs">
+      <label className="pointer-events-none absolute left-4 top-4 font-tech text-sm font-semibold uppercase tracking-wide text-foreground-soft transition-all peer-placeholder-shown:top-4 peer-focus:top-2 peer-focus:text-[10px] peer-focus:text-brand peer-focus:tracking-widest peer-[&:not(:placeholder-shown)]:top-2 peer-[&:not(:placeholder-shown)]:text-[10px] peer-[&:not(:placeholder-shown)]:tracking-widest">
         {label}
       </label>
     </motion.div>

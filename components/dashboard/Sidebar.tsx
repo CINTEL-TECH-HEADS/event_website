@@ -8,11 +8,12 @@ import {
   LayoutDashboard,
   PlusCircle,
   LogOut,
-  ShieldCheck,
   Home,
   Contact,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/public/ThemeToggle'
+import { PlanetMark } from '@/components/brand/PlanetMark'
+import { Sparkle } from '@/components/brand/Starburst'
 
 type Profile = {
   full_name?: string
@@ -41,40 +42,38 @@ export function Sidebar({
   const navClass = (
     active: boolean
   ) =>
-    `flex items-center gap-3 border px-4 py-3 text-sm font-semibold transition  ${
+    `flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-sm font-bold uppercase tracking-wide transition-all duration-200 ease-out ${
       active
-        ? 'border-[#FFF27A] bg-[#F5E62D] text-[#0B1736] '
-        : 'border-transparent text-slate-300 hover:border-[#243B72] hover:bg-[#132B59] hover:text-white'
+        ? 'border-border bg-accent text-white shadow-sm'
+        : 'border-transparent text-foreground-soft hover:border-border hover:bg-panel-muted hover:text-foreground'
     }`
 
   return (
-    <aside className="flex min-h-screen w-64 flex-col justify-between border-r border-[#243B72] bg-[#0B1736] p-5 text-white ">
+    <aside className="flex min-h-screen w-64 flex-col justify-between border-r-2 border-border bg-panel p-5 text-foreground lg:border-r-4">
 
       <div>
 
         {/* Brand */}
-        <div className="mb-8 border border-[#2A4580] bg-[#10224A] p-5 ">
+        <div className="relative mb-8 overflow-hidden rounded-2xl border-2 border-border bg-panel-muted p-5 lg:border-4">
 
-          <h1 className="flex items-center gap-2 text-xl font-bold">
-            <ShieldCheck
-              size={18}
-              className="text-[#F5E62D]"
-            />
+          <h1 className="flex items-center gap-2.5 font-display text-lg uppercase tracking-tight text-poster-outline text-primary-red">
+            <PlanetMark className="h-8 w-8 shrink-0" />
             Cintel Admin
+            <Sparkle className="h-3 w-3 text-primary-yellow" />
           </h1>
 
-          <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-slate-400">
+          <p className="mt-2 font-tech text-[10px] font-bold uppercase tracking-[0.24em] text-foreground-soft">
             Organizer Workspace
           </p>
 
-          <div className="mt-5 border border-[#243B72] bg-[#0B1736] p-3 ">
+          <div className="mt-5 rounded-xl border-2 border-border bg-panel p-3">
 
-            <p className="text-sm font-semibold text-white">
+            <p className="truncate text-sm font-bold text-foreground">
               {profile?.full_name ??
                 'Organizer'}
             </p>
 
-            <p className="mt-1 truncate text-xs text-slate-400">
+            <p className="mt-1 truncate text-xs font-medium text-foreground-soft">
               {profile?.email ??
                 'admin@cintel.in'}
             </p>
@@ -140,13 +139,13 @@ export function Sidebar({
         {/* Events */}
         <div className="mt-10">
 
-          <div className="mb-4 flex items-center justify-between px-1 text-[11px] uppercase tracking-[0.18em] text-[#F5E62D]">
+          <div className="mb-4 flex items-center justify-between px-1 font-tech text-[10px] font-bold uppercase tracking-[0.22em] text-foreground-soft">
 
             <span>
               Managed Events
             </span>
 
-            <span className="flex h-6 w-6 items-center justify-center border border-[#FFF27A] bg-[#F5E62D] text-xs font-bold text-[#0B1736] ">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-border bg-primary-yellow text-xs font-black text-[#121212]">
               {events.length}
             </span>
 
@@ -161,16 +160,16 @@ export function Sidebar({
                     event.id
                   }
                   href={`/dashboard/events/${event.id}`}
-                  className="block border border-[#243B72] bg-[#10224A] p-4 transition  hover:border-[#F5E62D] hover:bg-[#132B59]"
+                  className="block rounded-xl border-2 border-border bg-panel-muted p-4 transition-all duration-200 ease-out hover:border-accent hover:bg-panel"
                 >
 
-                  <p className="truncate text-sm font-semibold text-white">
+                  <p className="truncate text-sm font-bold text-foreground">
                     {
                       event.title
                     }
                   </p>
 
-                  <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+                  <div className="mt-2 flex items-center justify-between text-xs font-medium text-foreground-soft">
 
                     <span className="max-w-[120px] truncate">
                       {
@@ -178,7 +177,7 @@ export function Sidebar({
                       }
                     </span>
 
-                    <span className="border border-[#FFF27A] bg-[#F5E62D] px-2 py-0.5 font-semibold text-[#0B1736] ">
+                    <span className="rounded-full border-2 border-border bg-primary-yellow px-2 py-0.5 font-bold text-[#121212]">
                       {
                         event.confirmed_count
                       }
@@ -199,17 +198,17 @@ export function Sidebar({
       {/* Theme + Logout */}
       <div className="space-y-3 pt-6">
 
-        <div className="flex items-center justify-between border border-[#243B72] bg-[#10224A] px-4 py-3 text-sm font-semibold text-slate-300 ">
+        <div className="flex items-center justify-between rounded-xl border-2 border-border bg-panel-muted px-4 py-3 text-sm font-bold uppercase text-foreground-soft">
           <span>Theme</span>
           <ThemeToggle className="h-9 w-9" />
         </div>
 
-        <button 
+        <button
           onClick={async () => {
             await fetch('/api/auth/logout', { method: 'POST' })
             window.location.href = '/login'
           }}
-          className="flex w-full items-center justify-center gap-2 border border-[#243B72] bg-[#10224A] px-4 py-3 text-sm font-semibold text-slate-300 transition  hover:border-red-500 hover:bg-red-500 hover:text-white"
+          className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-border bg-panel-muted px-4 py-3 text-sm font-bold uppercase tracking-wide text-foreground-soft transition-all duration-200 ease-out hover:border-brand hover:bg-brand hover:text-white"
         >
 
           <LogOut

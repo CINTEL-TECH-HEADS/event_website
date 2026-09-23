@@ -12,12 +12,12 @@ export function CapacityBadge({ event }: { event: PublicEvent }) {
   if (spots === null) return null
 
   if (spots === 0) {
-    return <span className="text-sm font-semibold text-rose-300">Full - join waitlist</span>
+    return <span className="app-badge app-badge-danger">Full &mdash; join waitlist</span>
   }
 
   if (spots <= 10) {
-    return <span className="text-sm font-semibold text-amber-200">Only {spots} spots left</span>
+    return <span className="app-badge app-badge-warning">Only {spots} spots left</span>
   }
 
-  return <span className="text-sm font-semibold text-blue-200">{spots} spots remaining</span>
+  return <span className="app-badge app-badge-neutral">{spots} spots remaining</span>
 }

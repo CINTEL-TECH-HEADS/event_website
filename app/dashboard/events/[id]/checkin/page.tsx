@@ -43,7 +43,7 @@ export default function CheckInPage() {
 
   if (!organizerId) {
     return (
-      <div className="text-sm text-slate-400">
+      <div className="text-sm font-medium text-foreground-soft">
         Loading check-in console...
       </div>
     )
@@ -53,20 +53,20 @@ export default function CheckInPage() {
     <div className="space-y-6">
 
       {/* Hero */}
-      <section className="app-panel  px-6 py-7 sm:px-8">
+      <section className="app-panel px-6 py-7 sm:px-8">
 
-        <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
+        <span className="app-kicker">
           <QrCode size={14} />
           Event Day Check-In
         </span>
 
-        <h1 className="mt-5 text-3xl font-bold text-white">
+        <h1 className="app-heading mt-5">
           Fast, accurate,
           and smooth entry
           management.
         </h1>
 
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
+        <p className="app-subheading mt-3 max-w-2xl">
           Scan participant QR codes,
           confirm attendance instantly,
           and monitor live event flow
@@ -79,7 +79,7 @@ export default function CheckInPage() {
       <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
 
         {/* Main Scanner */}
-        <section className="app-panel  p-5 sm:p-6">
+        <section className="app-panel p-5 sm:p-6">
 
           <CheckInPanel
             eventId={id}
@@ -98,21 +98,21 @@ export default function CheckInPage() {
           />
 
           {/* Tips */}
-          <div className="app-panel  p-6">
+          <div className="app-panel p-6">
 
             <div className="mb-4 flex items-center gap-3">
 
-              <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
+              <span className="rounded-xl border-2 border-border bg-panel-muted p-3 text-brand">
                 <Zap size={18} />
               </span>
 
               <div>
 
-                <h2 className="text-lg font-semibold text-white">
+                <h2 className="text-lg font-black uppercase tracking-tight text-foreground">
                   Operator Tips
                 </h2>
 
-                <p className="text-xs text-slate-400">
+                <p className="text-xs font-bold uppercase tracking-widest text-foreground-soft">
                   Keep lines moving efficiently
                 </p>
 
@@ -120,19 +120,19 @@ export default function CheckInPage() {
 
             </div>
 
-            <div className="space-y-3 text-sm text-slate-300">
+            <div className="space-y-3 text-sm font-medium text-foreground-soft">
 
-              <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3">
+              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3">
                 Scan only one QR code at a time.
               </div>
 
-              <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3">
+              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3">
                 Green means success.
                 Red indicates duplicate
                 or invalid entry.
               </div>
 
-              <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3">
+              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3">
                 Hold device steady
                 for faster detection.
               </div>
@@ -142,21 +142,21 @@ export default function CheckInPage() {
           </div>
 
           {/* Security */}
-          <div className="app-panel  p-6">
+          <div className="app-panel p-6">
 
             <div className="flex items-center gap-3">
 
-              <span className=" bg-[#0B1736] p-3 text-[#93C5FD]">
+              <span className="rounded-xl border-2 border-border bg-panel-muted p-3 text-accent">
                 <ShieldCheck size={18} />
               </span>
 
               <div>
 
-                <h3 className="font-semibold text-white">
+                <h3 className="text-sm font-black uppercase tracking-tight text-foreground">
                   Secure Validation
                 </h3>
 
-                <p className="text-sm text-slate-400">
+                <p className="text-sm font-medium text-foreground-soft">
                   Every scan is verified instantly.
                 </p>
 

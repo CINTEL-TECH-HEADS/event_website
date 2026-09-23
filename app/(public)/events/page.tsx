@@ -5,6 +5,9 @@ import type { Event } from '@/types'
 import { EventGrid } from '@/components/public/EventGrid'
 import { EventCard } from '@/components/public/EventCard'
 import { isRegistrationOpen } from '@/lib/utils'
+import { PosterHeading } from '@/components/brand/PosterHeading'
+import { Starburst, Sparkle } from '@/components/brand/Starburst'
+import { RockShape } from '@/components/brand/RockShape'
 
 type PublicEvent = Event & {
   confirmed_count: number
@@ -56,49 +59,72 @@ export default function EventsPage() {
   const completedEvents = events.filter((e) => !isRegistrationOpen(e))
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-      <div className="mb-8 border-b border-white/10 pb-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-amber-200">Cintel Archive</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">All Events</h1>
-        <p className="mt-2 text-sm text-slate-400">Browse all published events from CINTEL Student Association.</p>
+    <div>
+      {/* Poster header band */}
+      <section className="px-3 pt-6 sm:px-6 sm:pt-10 lg:px-8">
+        <div className="poster-panel relative mx-auto max-w-6xl overflow-hidden">
+          <div className="halftone pointer-events-none absolute inset-0 opacity-[0.15]" />
+
+          <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-90">
+            <svg className="absolute -right-10 top-0 h-full w-1/2 opacity-40" viewBox="0 0 400 400" fill="none">
+              <ellipse cx="200" cy="200" rx="190" ry="70" stroke="#F2C230" strokeWidth="1" transform="rotate(-10 200 200)" />
+            </svg>
+            <RockShape variant={2} fill="#D6294C" className="absolute -left-6 bottom-4 h-16 w-16 rotate-[-8deg] opacity-95 sm:h-20 sm:w-20" />
+            <RockShape variant={3} fill="#D6294C" className="absolute right-10 bottom-0 hidden h-14 w-14 rotate-[18deg] opacity-90 sm:block" />
+            <Starburst rings color="#F2C230" className="absolute right-[10%] top-6 h-20 w-20 opacity-90 sm:h-28 sm:w-28" />
+            <Sparkle className="absolute left-1/3 top-8 h-3 w-3 text-primary-yellow" />
+          </div>
+
+          <div className="relative px-5 py-10 sm:px-10 sm:py-14">
+            <p className="font-tech text-[10px] font-bold uppercase tracking-[0.3em] text-primary-yellow">Cintel Archive</p>
+            <PosterHeading as="h1" fillClassName="text-primary-yellow" className="mt-3 text-4xl sm:text-6xl">
+              All Events
+            </PosterHeading>
+            <p className="mt-4 max-w-xl font-tech text-xs leading-relaxed text-[#F5F0E3]/80 sm:text-sm">
+              Browse all published events from CINTEL Student Association.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
+        {loading ? (
+          <div className="app-empty-state">
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+            <p className="mt-4 text-sm font-bold uppercase tracking-wider text-foreground-soft">Loading published events...</p>
+          </div>
+        ) : error ? (
+          <div className="rounded-2xl border-2 border-border bg-danger px-8 py-6 text-center text-sm font-bold text-white lg:border-4">
+            {error}
+          </div>
+        ) : events.length === 0 ? (
+          <div className="app-empty-state">
+            <h2 className="text-xl font-black uppercase text-foreground">No events published yet</h2>
+            <p className="mt-2 text-sm font-medium text-foreground-soft">Check back soon for the next batch of registrations.</p>
+          </div>
+        ) : (
+          <>
+            <EventGrid events={openEvents} />
+
+            {completedEvents.length > 0 && (
+              <section className="mt-12 border-t-2 border-border pt-10 lg:border-t-4">
+                <div className="mb-6">
+                  <p className="font-tech text-[11px] font-bold uppercase tracking-[0.3em] text-foreground-soft">Archive</p>
+                  <h2 className="mt-2 font-display text-xl uppercase tracking-tight text-foreground sm:text-2xl">Completed Events</h2>
+                  <p className="mt-1 text-sm font-medium text-foreground-soft">Registration has closed for these events.</p>
+                </div>
+                <div className="grid gap-5 opacity-70 sm:grid-cols-2 xl:grid-cols-3">
+                  {completedEvents.map((event, index) => (
+                    <div key={event.id} className="h-full">
+                      <EventCard event={event} accentIndex={index} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </div>
-
-      {loading ? (
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-12 text-center shadow-sm backdrop-blur">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
-          <p className="mt-4 text-sm text-slate-400">Loading published events...</p>
-        </div>
-      ) : error ? (
-        <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center text-sm text-red-700">
-          {error}
-        </div>
-      ) : events.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-12 text-center shadow-sm backdrop-blur">
-          <h2 className="text-xl font-semibold text-white">No events published yet</h2>
-          <p className="mt-2 text-sm text-slate-400">Check back soon for the next batch of registrations.</p>
-        </div>
-      ) : (
-        <>
-          <EventGrid events={openEvents} />
-
-          {completedEvents.length > 0 && (
-            <section className="mt-12 border-t border-white/10 pt-10">
-              <div className="mb-6">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-slate-400">Archive</p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">Completed Events</h2>
-                <p className="mt-1 text-sm text-slate-500">Registration has closed for these events.</p>
-              </div>
-              <div className="grid gap-5 opacity-70 sm:grid-cols-2 xl:grid-cols-3">
-                {completedEvents.map((event) => (
-                  <div key={event.id} className="h-full">
-                    <EventCard event={event} />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-        </>
-      )}
     </div>
   )
 }

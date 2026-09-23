@@ -1,7 +1,7 @@
 'use client'
 
 // Session-aware nav for the public header.
-//  - Logged out → the amber "Login" button (unchanged look).
+//  - Logged out → the "Login" button (unchanged look).
 //  - Logged in  → a profile icon that opens a dropdown with a link to the
 //    user's own portal (Dashboard / My Events), Home, and Sign out.
 // State comes from GET /api/auth/me (no-store), so the public layout can stay
@@ -72,10 +72,7 @@ export function AuthNav() {
 
   if (!me.authenticated) {
     return (
-      <Link
-        href="/login"
-        className="public-force-white border border-amber-300/35 bg-amber-300 px-4 py-2 font-semibold text-slate-950 transition hover:bg-amber-200"
-      >
+      <Link href="/login" className="app-button-primary text-xs sm:text-sm">
         Login
       </Link>
     )
@@ -93,20 +90,20 @@ export function AuthNav() {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Account menu"
-        className="public-theme-toggle inline-flex h-10 w-10 items-center justify-center border border-white/15 bg-white/5 text-slate-200 transition hover:border-amber-300/25 hover:bg-white/10 hover:text-white"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-border bg-panel text-foreground transition duration-200 hover:bg-panel-muted"
       >
-        <CircleUser className="h-5 w-5" />
+        <CircleUser className="h-5 w-5" strokeWidth={2} />
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-12 z-50 w-60 border border-white/10 bg-[#0a1629] shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
+          className="absolute right-0 top-12 z-50 w-60 overflow-hidden rounded-2xl border-2 border-border bg-panel shadow-lg lg:border-4"
         >
           {me.email && (
-            <div className="border-b border-white/10 px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Signed in as</p>
-              <p className="mt-0.5 truncate text-sm font-semibold text-white">{me.email}</p>
+            <div className="border-b-2 border-border px-4 py-3">
+              <p className="font-tech text-[10px] font-bold uppercase tracking-widest text-foreground-soft">Signed in as</p>
+              <p className="mt-0.5 truncate text-sm font-bold text-foreground">{me.email}</p>
             </div>
           )}
 
@@ -114,9 +111,9 @@ export function AuthNav() {
             href={portalHref}
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/5 hover:text-white"
+            className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-foreground transition duration-200 hover:bg-panel-muted"
           >
-            <LayoutDashboard size={16} className="text-amber-300" />
+            <LayoutDashboard size={16} className="text-brand" strokeWidth={2.5} />
             {portalLabel}
           </Link>
 
@@ -124,9 +121,9 @@ export function AuthNav() {
             href="/"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/5 hover:text-white"
+            className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-foreground transition duration-200 hover:bg-panel-muted"
           >
-            <Home size={16} className="text-amber-300" />
+            <Home size={16} className="text-brand" strokeWidth={2.5} />
             Home
           </Link>
 
@@ -135,9 +132,9 @@ export function AuthNav() {
             role="menuitem"
             onClick={handleSignOut}
             disabled={signingOut}
-            className="flex w-full items-center gap-3 border-t border-white/10 px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-red-500/10 hover:text-red-300 disabled:opacity-50"
+            className="flex w-full items-center gap-3 border-t-2 border-border px-4 py-3 text-sm font-bold text-foreground transition duration-200 hover:bg-danger hover:text-white disabled:opacity-50"
           >
-            <LogOut size={16} />
+            <LogOut size={16} strokeWidth={2.5} />
             {signingOut ? 'Signing out…' : 'Sign out'}
           </button>
         </div>

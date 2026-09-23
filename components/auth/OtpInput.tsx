@@ -28,7 +28,7 @@ export function OtpInput({ value, onChange, disabled, autoFocus }: OtpInputProps
       autoFocus={autoFocus}
       placeholder="••••••"
       aria-label="Verification code"
-      className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-center text-2xl font-mono tracking-[0.4em] text-white placeholder-slate-600 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all disabled:opacity-60"
+      className="app-input w-full text-center text-2xl font-mono tracking-[0.5em] focus:shadow-[3px_3px_0px_0px] focus:shadow-accent disabled:opacity-60"
     />
   )
 }

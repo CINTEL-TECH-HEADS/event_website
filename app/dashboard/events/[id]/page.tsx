@@ -7,6 +7,7 @@ import { CheckCircle2, CircleDashed, Settings2, Users } from 'lucide-react'
 import { FormFieldBuilder } from '@/components/dashboard/FormFieldBuilder'
 import { OrganizerManager } from '@/components/dashboard/OrganizerManager'
 import { EventWithStats } from '@/types'
+import { PosterHeading } from '@/components/brand/PosterHeading'
 
 const SUBNAV = [
   { label: 'Registrations', path: 'registrations' },
@@ -144,16 +145,16 @@ export default function EventDetailPage() {
   }
 
   if (loading) {
-    return <div className="text-sm text-slate-400">Loading event...</div>
+    return <div className="text-sm font-bold uppercase tracking-wide text-foreground-soft">Loading event...</div>
   }
 
   if (!event) {
-    return <div className="text-sm text-red-500">Event not found</div>
+    return <div className="text-sm font-bold uppercase tracking-wide text-brand">Event not found</div>
   }
 
   return (
     <div className="space-y-6">
-      <section className="app-panel  px-6 py-7 sm:px-8">
+      <section className="app-panel px-6 py-7 sm:px-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-4">
             <span className="app-kicker">
@@ -161,7 +162,9 @@ export default function EventDetailPage() {
               Event Control Center
             </span>
             <div>
-              <h1 className="app-heading">{event.title}</h1>
+              <PosterHeading as="h1" fillClassName="text-primary-yellow" className="text-2xl sm:text-4xl">
+                {event.title}
+              </PosterHeading>
               <p className="app-subheading mt-3">
                 {event.event_type} • {event.venue}
               </p>
@@ -170,7 +173,7 @@ export default function EventDetailPage() {
               <span className={`app-badge ${event.is_published ? 'app-badge-success' : 'app-badge-neutral'}`}>
                 {event.is_published ? 'Published' : 'Draft'}
               </span>
-              <span className="app-badge app-badge-brand">{event.confirmed_count} confirmed</span>
+              <span className="app-badge bg-brand text-white">{event.confirmed_count} confirmed</span>
               <span className="app-badge app-badge-warning">{event.waitlist_count || 0} waitlisted</span>
             </div>
           </div>
@@ -185,7 +188,7 @@ export default function EventDetailPage() {
               {event.is_published ? 'Published' : 'Publish Event'}
             </button>
             {!event.is_published && fieldsCount === 0 && (
-              <p className="text-xs text-amber-300/80">Add at least one field (Form tab) to publish.</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-warning">Add at least one field (Form tab) to publish.</p>
             )}
           </div>
         </div>
@@ -200,10 +203,10 @@ export default function EventDetailPage() {
           <button
             key={item.key}
             onClick={() => setTab(item.key)}
-            className={` px-4 py-3 text-sm font-bold tracking-widest uppercase transition-all border ${
+            className={`rounded-full border-2 px-4 py-3 font-tech text-sm font-bold tracking-widest uppercase transition-all duration-200 ease-out ${
               tab === item.key
-               ? 'bg-[#F5E62D] text-[#0B1736] border-[#FFF27A] '
-               : 'bg-[#10224A] text-slate-300 border-[#243B72] hover:text-white hover:border-[#F5E62D]'
+               ? 'border-border bg-accent text-white shadow-sm'
+               : 'border-border bg-panel-muted text-foreground-soft hover:text-foreground'
             }`}
           >
             {item.label}
@@ -216,10 +219,10 @@ export default function EventDetailPage() {
           <Link
             key={item.path}
             href={`/dashboard/events/${id}/${item.path}`}
-            className={` border px-3 mt-2 py-2 text-xs font-bold tracking-widest uppercase transition-all ${
+            className={`mt-2 rounded-full border-2 px-3 py-2 font-tech text-xs font-bold tracking-widest uppercase transition-all duration-200 ease-out ${
               pathname.includes(item.path)
-             ? 'border-[#FFF27A] bg-[#F5E62D] text-[#0B1736]'
-             : 'border-[#243B72] bg-[#10224A] text-slate-300 hover:border-[#F5E62D] hover:text-white'
+             ? 'border-border bg-primary-yellow text-[#121212]'
+             : 'border-border bg-panel-muted text-foreground-soft hover:text-foreground'
             }`}
           >
             {item.label}
@@ -229,17 +232,17 @@ export default function EventDetailPage() {
 
       {tab === 'details' && (
         <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-          <section className="app-panel  p-6">
+          <section className="app-panel p-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-white">Event details</h2>
-              <p className="mt-1 text-sm text-slate-400">
+              <h2 className="text-xl font-black uppercase tracking-tight text-foreground">Event details</h2>
+              <p className="mt-1 text-sm font-medium text-foreground-soft">
                 Update the core information organizers and attendees rely on.
               </p>
             </div>
 
             <div className="grid gap-5">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-300">Event Name</label>
+                <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Event Name</label>
                 <input
                   type="text"
                   value={formData.title}
@@ -249,7 +252,7 @@ export default function EventDetailPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-300">Description</label>
+                <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Description</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -260,7 +263,7 @@ export default function EventDetailPage() {
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-300">Capacity</label>
+                  <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Capacity</label>
                   <input
                     type="number"
                     value={formData.capacity}
@@ -271,7 +274,7 @@ export default function EventDetailPage() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-300">
+                  <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">
                     Registration Mode
                   </label>
                   <select
@@ -294,7 +297,7 @@ export default function EventDetailPage() {
               {formData.registration_mode !== 'solo' && (
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-slate-300">Min team size</label>
+                    <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Min team size</label>
                     <input
                       type="number"
                       min={2}
@@ -305,7 +308,7 @@ export default function EventDetailPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-slate-300">Max team size</label>
+                    <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Max team size</label>
                     <input
                       type="number"
                       min={2}
@@ -320,7 +323,7 @@ export default function EventDetailPage() {
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-300">Fee (₹) — 0 for free</label>
+                  <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Fee (₹) — 0 for free</label>
                   <input
                     type="number"
                     min={0}
@@ -331,7 +334,7 @@ export default function EventDetailPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-300">Waitlist spots — blank for none</label>
+                  <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Waitlist spots — blank for none</label>
                   <input
                     type="number"
                     min={0}
@@ -343,7 +346,7 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end border-t border-[#243B72] pt-5">
+              <div className="flex justify-end border-t-2 border-border pt-5">
                 <button onClick={handleSaveEvent} disabled={saving} className="app-button-primary">
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -351,25 +354,25 @@ export default function EventDetailPage() {
             </div>
           </section>
 
-          <aside className="app-panel  p-6 h-fit">
-            <div className="mb-6 flex items-center gap-3 border-b border-[#243B72] pb-4">
-              <span className=" border border-[#243B72] bg-[#0B1736] p-2 text-[#F5E62D] shrink-0">
-                <Users size={16} />
+          <aside className="app-panel p-6 h-fit">
+            <div className="mb-6 flex items-center gap-3 border-b-2 border-border pb-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-border bg-primary-yellow text-[#121212]">
+                <Users size={16} strokeWidth={2.5} />
               </span>
               <div>
-                <h3 className="text-sm font-bold text-white tracking-widest uppercase">Quick Context</h3>
-                <p className="text-[0.65rem] font-mono text-slate-500">Live operational readout.</p>
+                <h3 className="text-sm font-black text-foreground tracking-widest uppercase">Quick Context</h3>
+                <p className="text-[0.65rem] font-mono font-medium text-foreground-soft">Live operational readout.</p>
               </div>
             </div>
-            <div className="space-y-2 text-xs font-mono text-slate-400">
-              <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3">
-                Protocol: <span className="font-bold text-[#F5E62D] tracking-wider">{(event.registration_mode ?? 'both').toUpperCase()}</span>
+            <div className="space-y-2 font-tech text-xs font-medium text-foreground-soft">
+              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3">
+                Protocol: <span className="font-bold text-accent tracking-wider">{(event.registration_mode ?? 'both').toUpperCase()}</span>
               </div>
-              <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3">
-                Capacity: <span className="font-bold text-[#93C5FD] tracking-wider">{event.capacity ?? 'UNRESTRICTED'}</span>
+              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3">
+                Capacity: <span className="font-bold text-accent tracking-wider">{event.capacity ?? 'UNRESTRICTED'}</span>
               </div>
-              <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3">
-                State: <span className="font-bold text-[#F5E62D] tracking-wider">{event.is_published ? 'LIVE_STREAM' : 'DORMANT'}</span>
+              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3">
+                State: <span className="font-bold text-success tracking-wider">{event.is_published ? 'LIVE_STREAM' : 'DORMANT'}</span>
               </div>
             </div>
           </aside>

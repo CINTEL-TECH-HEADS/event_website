@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 
 import type { CreateEventPayload } from '@/lib/validators/event'
+import { PosterHeading } from '@/components/brand/PosterHeading'
 
 export default function NewEventPage() {
   const router = useRouter()
@@ -139,24 +140,24 @@ export default function NewEventPage() {
         transition={{
           duration: 0.45,
         }}
-        className="app-panel  p-6 sm:p-10"
+        className="app-panel p-6 sm:p-10"
       >
 
         <div className="mb-10 space-y-4">
 
-          <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
+          <span className="app-kicker">
             <CalendarPlus size={14} />
             Create New Event
           </span>
 
           <div>
 
-            <h1 className="text-3xl font-bold text-white">
+            <PosterHeading as="h1" fillClassName="text-primary-yellow" className="text-2xl sm:text-4xl">
               Build your next
               successful event.
-            </h1>
+            </PosterHeading>
 
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
+            <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-foreground-soft">
               Add event details,
               schedule, registrations,
               and capacity in one place.
@@ -205,7 +206,7 @@ export default function NewEventPage() {
 
   <div>
 
-  <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+  <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">
     Capacity
   </label>
 
@@ -213,7 +214,7 @@ export default function NewEventPage() {
     name="capacity"
     type="number"
     placeholder="Enter capacity"
-    className="w-full  border border-[#243B72] bg-[#07142E] px-5 py-4 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
+    className="app-input"
   />
 
 </div>
@@ -285,7 +286,7 @@ export default function NewEventPage() {
           {isTeamMode && (
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">
                   Min team size
                 </label>
                 <input
@@ -294,11 +295,11 @@ export default function NewEventPage() {
                   min={2}
                   defaultValue={2}
                   required
-                  className="w-full border border-[#243B72] bg-[#07142E] px-5 py-4 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
+                  className="app-input"
                 />
               </div>
               <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">
                   Max team size
                 </label>
                 <input
@@ -307,7 +308,7 @@ export default function NewEventPage() {
                   min={2}
                   defaultValue={4}
                   required
-                  className="w-full border border-[#243B72] bg-[#07142E] px-5 py-4 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
+                  className="app-input"
                 />
               </div>
             </div>
@@ -315,33 +316,33 @@ export default function NewEventPage() {
 
           {/* Paid event + Waitlist toggles */}
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="border border-[#243B72] bg-[#0B1736] p-4">
-              <label className="flex items-center gap-3 text-sm font-semibold text-slate-200">
-                <input type="checkbox" checked={isPaid} onChange={(e) => setIsPaid(e.target.checked)} className="accent-[#F5E62D]" />
+            <div className="rounded-xl border-2 border-border bg-panel-muted p-4">
+              <label className="flex items-center gap-3 text-sm font-bold uppercase tracking-wide text-foreground">
+                <input type="checkbox" checked={isPaid} onChange={(e) => setIsPaid(e.target.checked)} className="h-4 w-4 accent-accent" />
                 Paid event
               </label>
               {isPaid && (
                 <div className="mt-3">
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">Fee (₹)</label>
+                  <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Fee (₹)</label>
                   <input name="fee" type="number" min={1} defaultValue={100} required
-                    className="w-full border border-[#243B72] bg-[#07142E] px-5 py-3 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20" />
+                    className="app-input" />
                 </div>
               )}
             </div>
 
-            <div className="border border-[#243B72] bg-[#0B1736] p-4">
-              <label className="flex items-center gap-3 text-sm font-semibold text-slate-200">
-                <input type="checkbox" checked={hasWaitlist} onChange={(e) => setHasWaitlist(e.target.checked)} className="accent-[#F5E62D]" />
+            <div className="rounded-xl border-2 border-border bg-panel-muted p-4">
+              <label className="flex items-center gap-3 text-sm font-bold uppercase tracking-wide text-foreground">
+                <input type="checkbox" checked={hasWaitlist} onChange={(e) => setHasWaitlist(e.target.checked)} className="h-4 w-4 accent-accent" />
                 Enable waitlist
               </label>
               {hasWaitlist && (
                 <div className="mt-3">
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">Waitlist spots</label>
+                  <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Waitlist spots</label>
                   <input name="waitlist_capacity" type="number" min={1} defaultValue={10} required
-                    className="w-full border border-[#243B72] bg-[#07142E] px-5 py-3 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20" />
+                    className="app-input" />
                 </div>
               )}
-              <p className="mt-2 text-xs text-slate-500">Requires a capacity. When full, extra registrants join the waitlist.</p>
+              <p className="mt-2 text-xs font-medium text-foreground-soft">Requires a capacity. When full, extra registrants join the waitlist.</p>
             </div>
           </div>
 
@@ -352,15 +353,15 @@ export default function NewEventPage() {
           />
 
           {error && (
-            <div className=" border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            <div className="rounded-xl border-2 border-l-8 border-border border-l-brand bg-panel px-5 py-4 text-sm font-medium text-foreground">
               {error}
             </div>
           )}
 
           {/* Submit */}
-          <div className="flex flex-col gap-4 border-t border-[#243B72] pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 border-t-2 border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
 
-            <p className="text-sm text-slate-400">
+            <p className="text-sm font-medium text-foreground-soft">
               You can edit all
               details later.
             </p>
@@ -368,7 +369,7 @@ export default function NewEventPage() {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center justify-center gap-2  bg-[#F5E62D] px-8 py-3 text-sm font-semibold text-[#0B1736] transition hover:bg-[#FFF27A]"
+              className="app-button-primary"
             >
 
               {loading
@@ -392,21 +393,21 @@ export default function NewEventPage() {
       {/* Side */}
       <aside className="space-y-4">
 
-        <div className="app-panel  p-8">
+        <div className="app-panel p-8">
 
           <div className="mb-6 flex flex-col gap-4">
 
-            <span className="w-fit  bg-[#0B1736] p-3 text-[#93C5FD]">
-              <Sparkles size={20} />
+            <span className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-border bg-[#14120F] text-white">
+              <Sparkles size={18} strokeWidth={2.5} />
             </span>
 
             <div>
 
-              <h2 className="text-xl font-bold text-white">
+              <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
                 After Creation
               </h2>
 
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm font-medium text-foreground-soft">
                 Complete these next
                 steps.
               </p>
@@ -417,17 +418,17 @@ export default function NewEventPage() {
 
           <div className="space-y-3 text-sm">
 
-            <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3 text-slate-300">
+            <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3 font-medium text-foreground">
               Configure custom
               registration fields
             </div>
 
-            <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3 text-slate-300">
+            <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3 font-medium text-foreground">
               Assign organizers
               and team members
             </div>
 
-            <div className=" border border-[#243B72] bg-[#0B1736] px-4 py-3 text-slate-300">
+            <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3 font-medium text-foreground">
               Publish and start
               registrations
             </div>

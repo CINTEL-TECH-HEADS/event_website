@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Award } from 'lucide-react'
 import type { Event } from '@/types'
+import { Sparkle } from '@/components/brand/Starburst'
+import { RockShape } from '@/components/brand/RockShape'
 
 type CertificateState = 'idle' | 'loading' | 'ready' | 'not_found' | 'not_attended' | 'not_ready'
 type PublicEvent = Event & {
@@ -89,23 +92,29 @@ export default function CertificatePage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="overflow-hidden border border-white/10 bg-[#0a1629]">
-        <div className="border-b border-white/10 bg-[#112240] p-8">
-          <div className="max-w-2xl space-y-3">
-            <span className="inline-flex rounded-full border border-amber-300/20 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-amber-200">
+      <div className="app-panel relative overflow-hidden !rounded-poster">
+        <div className="poster-panel relative overflow-hidden p-8">
+          <div className="halftone pointer-events-none absolute inset-0 opacity-[0.15]" />
+          <RockShape variant={2} fill="#F2C230" className="pointer-events-none absolute -right-4 -top-4 h-24 w-24 rotate-12 opacity-90" />
+          <Sparkle className="pointer-events-none absolute left-1/3 top-4 h-3 w-3 text-primary-yellow" />
+          <div className="relative max-w-2xl space-y-3">
+            <span className="inline-flex items-center gap-2 rounded-full border-2 border-[#F5F0E3] bg-primary-red px-4 py-1.5 font-tech text-[10px] font-bold uppercase tracking-[0.3em] text-white">
+              <Award size={14} />
               Certificate Download
             </span>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Download your event certificate</h1>
-            <p className="text-sm leading-6 text-slate-300 sm:text-base">
+            <h1 className="font-display text-3xl uppercase leading-[0.95] tracking-tight text-poster-outline text-primary-yellow sm:text-5xl">
+              Download your event certificate
+            </h1>
+            <p className="font-tech text-xs leading-relaxed text-[#F5F0E3]/80 sm:text-sm">
               Certificates are available for attendees with recorded attendance. Select the event, enter your registered email, and we&apos;ll show the current status.
             </p>
           </div>
         </div>
 
         <div className="p-8">
-          <form onSubmit={handleSubmit} className="grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-6">
+          <form onSubmit={handleSubmit} className="app-panel-muted grid gap-4 !rounded-2xl p-6">
             <div>
-              <label htmlFor="certificate-email" className="block text-sm font-medium text-slate-300">
+              <label htmlFor="certificate-email" className="block font-tech text-[10px] font-bold uppercase tracking-[0.2em] text-foreground-soft">
                 Registered email
               </label>
               <input
@@ -114,13 +123,13 @@ export default function CertificatePage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/15"
+                className="app-input mt-2"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="certificate-event" className="block text-sm font-medium text-slate-300">
+              <label htmlFor="certificate-event" className="block font-tech text-[10px] font-bold uppercase tracking-[0.2em] text-foreground-soft">
                 Event
               </label>
               <select
@@ -128,7 +137,7 @@ export default function CertificatePage() {
                 value={eventId}
                 onChange={e => setEventId(e.target.value)}
                 required
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-600/15"
+                className="app-select mt-2"
               >
                 <option value="">Select an event</option>
                 {events.map(event => (
@@ -142,20 +151,20 @@ export default function CertificatePage() {
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="inline-flex items-center justify-center border border-amber-300/20 bg-amber-300 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-slate-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-white"
+              className="app-button-primary disabled:cursor-not-allowed disabled:opacity-50"
             >
               {status === 'loading' ? 'Checking...' : 'Check Certificate'}
             </button>
           </form>
 
           {status === 'ready' && downloadUrl ? (
-            <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-4">
-              <p className="text-sm text-emerald-200">{message}</p>
+            <div className="app-alert-success mt-6">
+              <p className="text-sm font-medium">{message}</p>
               <a
                 href={downloadUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#059669,#10b981)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
+                className="app-button-success mt-4 inline-flex"
               >
                 Download Certificate
               </a>
@@ -163,19 +172,19 @@ export default function CertificatePage() {
           ) : null}
 
           {status === 'not_attended' ? (
-            <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              {message}
+            <div className="app-alert-warning mt-6">
+              <p className="text-sm font-medium">{message}</p>
             </div>
           ) : null}
 
           {status === 'not_ready' ? (
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-              {message}
+            <div className="app-alert-info mt-6">
+              <p className="text-sm font-medium">{message}</p>
             </div>
           ) : null}
 
           {status === 'not_found' ? (
-            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="mt-6 rounded-2xl border-2 border-danger bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
               {message}
             </div>
           ) : null}

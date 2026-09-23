@@ -24,16 +24,16 @@ function FileAnswer({ path }: { path: string }) {
     return () => { on = false }
   }, [path])
 
-  if (!state) return <p className="text-xs text-slate-400">Loading file…</p>
+  if (!state) return <p className="text-xs font-medium text-foreground-soft">Loading file…</p>
   if (state.kind === 'image') {
     return (
       <a href={state.url} target="_blank" rel="noopener noreferrer">
-        <img src={state.url} alt="upload" className="mt-1 max-h-28 rounded border border-white/10" />
+        <img src={state.url} alt="upload" className="mt-1 max-h-28 rounded-lg border-2 border-border" />
       </a>
     )
   }
   return (
-    <a href={state.url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-[#F5E62D] hover:underline">
+    <a href={state.url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-brand hover:underline">
       Download file
     </a>
   )
@@ -192,7 +192,7 @@ export function RegistrationTable({
       cancelled:
         'app-badge-danger',
       attended:
-        'app-badge-brand',
+        'app-badge-neutral border-brand text-brand',
     }
 
     return (
@@ -203,8 +203,8 @@ export function RegistrationTable({
 
   if (loading) {
     return (
-      <div className=" border border-[#243B72] bg-[#10224A] p-5 ">
-        <div className="h-12 animate-pulse  bg-[#0B1736]" />
+      <div className="rounded-2xl border-2 border-border bg-panel p-5">
+        <div className="h-12 animate-pulse rounded-xl bg-panel-muted" />
       </div>
     )
   }
@@ -213,7 +213,7 @@ export function RegistrationTable({
     <div className="space-y-4">
 
       {/* Filters */}
-      <section className=" border border-[#243B72] bg-[#10224A] p-4  transition-all duration-300 hover:-translate-y-1">
+      <section className="rounded-2xl border-2 border-border bg-panel p-4">
 
         <div className="grid gap-3 lg:grid-cols-[1.6fr_0.8fr_0.8fr]">
 
@@ -221,7 +221,7 @@ export function RegistrationTable({
 
             <Search
               size={16}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground-soft"
             />
 
             <input
@@ -301,13 +301,13 @@ export function RegistrationTable({
       </section>
 
       {/* Table */}
-      <section className="overflow-hidden  border border-[#243B72] bg-[#10224A]  transition-all duration-300 hover:-translate-y-1">
+      <section className="overflow-hidden rounded-2xl border-2 border-border bg-panel sm:border-4">
 
         <div className="overflow-x-auto">
 
           <table className="w-full">
 
-            <thead className="bg-[#0B1736] text-xs uppercase tracking-widest text-slate-300">
+            <thead className="bg-panel-muted font-tech text-xs font-bold uppercase tracking-wider text-foreground">
 
               <tr>
                 <th className="px-4 py-4 text-left">
@@ -350,7 +350,7 @@ export function RegistrationTable({
                     colSpan={7}
                     className="p-6"
                   >
-                    <div className=" border border-dashed border-[#243B72] bg-[#0B1736] p-8 text-center text-slate-400">
+                    <div className="app-empty-state p-8 text-center">
                       No registrations
                       match the
                       current
@@ -370,7 +370,7 @@ export function RegistrationTable({
                     >
 
                       <tr
-                        className="cursor-pointer border-t border-[#243B72] transition hover:bg-[#162D5D]"
+                        className="cursor-pointer border-b-2 border-border transition duration-200 ease-out hover:bg-panel-muted"
                         onClick={() =>
                           setExpandedId(
                             expandedId ===
@@ -381,19 +381,19 @@ export function RegistrationTable({
                         }
                       >
 
-                        <td className="px-4 py-4 font-mono text-xs text-slate-400">
+                        <td className="px-4 py-4 font-mono text-xs font-medium text-foreground-soft">
                           {
                             registration.display_id
                           }
                         </td>
 
-                        <td className="px-4 py-4 font-bold text-white">
+                        <td className="px-4 py-4 font-bold text-foreground">
                           {
                             registration.leader_name
                           }
                         </td>
 
-                        <td className="px-4 py-4 text-sm text-[#93C5FD]">
+                        <td className="px-4 py-4 text-sm font-medium text-accent">
                           {
                             registration.leader_email
                           }
@@ -425,14 +425,14 @@ export function RegistrationTable({
                             )}
                             {registration.status === 'waitlisted' && (
                               (registration as any).offer_status === 'offered' ? (
-                                <span className="app-badge app-badge-brand">Offered</span>
+                                <span className="app-badge app-badge-neutral border-brand text-brand">Offered</span>
                               ) : (registration as any).offer_status === 'declined' ? (
                                 <span className="app-badge app-badge-neutral">Declined</span>
                               ) : (
                                 <button
                                   onClick={(e) => { e.stopPropagation(); offerSpot(registration.id) }}
                                   disabled={offering === registration.id}
-                                  className="rounded-full border border-[#F5E62D] px-3 py-1 text-xs font-bold text-[#F5E62D] hover:bg-[#F5E62D]/10 disabled:opacity-50"
+                                  className="rounded-full border-2 border-brand px-3 py-1 text-xs font-bold uppercase tracking-wide text-brand transition duration-200 ease-out hover:bg-brand hover:text-white disabled:opacity-50"
                                 >
                                   {offering === registration.id ? 'Offering…' : 'Offer spot'}
                                 </button>
@@ -445,11 +445,11 @@ export function RegistrationTable({
                           {attendanceRow(registration) ? (
                             <span className="app-badge app-badge-success">✓ Checked in</span>
                           ) : (
-                            <span className="text-xs text-slate-500">—</span>
+                            <span className="text-xs font-medium text-foreground-soft">—</span>
                           )}
                         </td>
 
-                        <td className="px-4 py-4 text-sm text-slate-400">
+                        <td className="px-4 py-4 text-sm font-medium text-foreground-soft">
                           {new Date(
                             registration.registered_at
                           ).toLocaleDateString(
@@ -461,7 +461,7 @@ export function RegistrationTable({
 
                       {expandedId ===
                         registration.id && (
-                        <tr className="bg-[#0B1736]">
+                        <tr className="bg-panel-muted">
                           <td colSpan={7} className="p-4">
                             {(() => {
                               const r = registration as any
@@ -470,61 +470,61 @@ export function RegistrationTable({
                               const hasCert = (r.certificates?.length ?? 0) > 0
                               const checkedInAt = att?.checked_in_at
                               return (
-                                <div className="grid gap-4 border border-[#243B72] bg-[#10224A] p-4 lg:grid-cols-2">
+                                <div className="grid gap-4 rounded-xl border-2 border-border bg-panel p-4 lg:grid-cols-2">
                                   {/* Contact + status */}
                                   <div className="space-y-2 text-sm">
-                                    <div className="mb-2 flex items-center gap-2 font-semibold text-white">
-                                      <ChevronDown size={15} className="text-[#F5E62D]" /> Participant
+                                    <div className="mb-2 flex items-center gap-2 font-bold uppercase tracking-wide text-foreground">
+                                      <ChevronDown size={15} className="text-brand" /> Participant
                                     </div>
-                                    <p className="text-slate-300"><span className="text-slate-500">Name:</span> {r.leader_name}</p>
-                                    <p className="text-slate-300"><span className="text-slate-500">Email:</span> {r.leader_email}</p>
-                                    {r.leader_phone && <p className="text-slate-300"><span className="text-slate-500">Phone:</span> {r.leader_phone}</p>}
-                                    <p className="text-slate-300"><span className="text-slate-500">ID:</span> <span className="font-mono">{r.display_id}</span></p>
-                                    {r.team_name && <p className="text-slate-300"><span className="text-slate-500">Team:</span> {r.team_name}</p>}
-                                    {r.group_code && <p className="text-slate-300"><span className="text-slate-500">Group code:</span> <span className="font-mono">{r.group_code}</span></p>}
-                                    <p className="text-slate-300">
-                                      <span className="text-slate-500">Attendance:</span>{' '}
+                                    <p className="font-medium text-foreground-soft"><span className="font-bold text-foreground">Name:</span> {r.leader_name}</p>
+                                    <p className="font-medium text-foreground-soft"><span className="font-bold text-foreground">Email:</span> {r.leader_email}</p>
+                                    {r.leader_phone && <p className="font-medium text-foreground-soft"><span className="font-bold text-foreground">Phone:</span> {r.leader_phone}</p>}
+                                    <p className="font-medium text-foreground-soft"><span className="font-bold text-foreground">ID:</span> <span className="font-mono">{r.display_id}</span></p>
+                                    {r.team_name && <p className="font-medium text-foreground-soft"><span className="font-bold text-foreground">Team:</span> {r.team_name}</p>}
+                                    {r.group_code && <p className="font-medium text-foreground-soft"><span className="font-bold text-foreground">Group code:</span> <span className="font-mono">{r.group_code}</span></p>}
+                                    <p className="font-medium text-foreground-soft">
+                                      <span className="font-bold text-foreground">Attendance:</span>{' '}
                                       {attended
-                                        ? <span className="text-green-400">Checked in{checkedInAt ? ` · ${new Date(checkedInAt).toLocaleString('en-IN')}` : ''}</span>
-                                        : <span className="text-slate-400">Not checked in</span>}
+                                        ? <span className="text-success">Checked in{checkedInAt ? ` · ${new Date(checkedInAt).toLocaleString('en-IN')}` : ''}</span>
+                                        : <span>Not checked in</span>}
                                     </p>
-                                    <p className="text-slate-300">
-                                      <span className="text-slate-500">Certificate:</span>{' '}
-                                      {hasCert ? <span className="text-amber-300">Generated</span> : <span className="text-slate-400">—</span>}
+                                    <p className="font-medium text-foreground-soft">
+                                      <span className="font-bold text-foreground">Certificate:</span>{' '}
+                                      {hasCert ? <span className="text-warning">Generated</span> : <span>—</span>}
                                     </p>
                                   </div>
 
                                   {/* Team members */}
                                   <div className="text-sm">
-                                    <div className="mb-2 flex items-center gap-2 font-semibold text-white">
-                                      <Users size={15} className="text-[#F5E62D]" /> Members ({r.members?.length ?? 0})
+                                    <div className="mb-2 flex items-center gap-2 font-bold uppercase tracking-wide text-foreground">
+                                      <Users size={15} className="text-brand" /> Members ({r.members?.length ?? 0})
                                     </div>
                                     {r.members?.length ? (
                                       <ul className="space-y-1">
                                         {r.members.map((m: any) => (
-                                          <li key={m.id} className="text-slate-300">
-                                            {m.full_name} <span className="text-slate-500">{m.email}</span>
-                                            {m.is_leader && <span className="ml-1 text-xs text-amber-400">Creator</span>}
+                                          <li key={m.id} className="font-medium text-foreground-soft">
+                                            {m.full_name} <span>{m.email}</span>
+                                            {m.is_leader && <span className="ml-1 text-xs font-bold uppercase tracking-wide text-warning">Creator</span>}
                                           </li>
                                         ))}
                                       </ul>
                                     ) : (
-                                      <p className="text-slate-400">Solo registration</p>
+                                      <p className="font-medium text-foreground-soft">Solo registration</p>
                                     )}
                                   </div>
 
                                   {/* Custom answers */}
                                   {r.answers?.length > 0 && (
                                     <div className="lg:col-span-2">
-                                      <div className="mb-2 text-sm font-semibold text-white">Responses</div>
+                                      <div className="mb-2 text-sm font-bold uppercase tracking-wide text-foreground">Responses</div>
                                       <div className="grid gap-2 sm:grid-cols-2">
                                         {r.answers.map((a: any) => (
-                                          <div key={a.id} className="border border-[#243B72] bg-[#0B1736] px-3 py-2">
-                                            <p className="text-xs text-slate-500">{a.form_fields?.label ?? 'Field'}</p>
+                                          <div key={a.id} className="rounded-lg border-2 border-border bg-panel-muted px-3 py-2">
+                                            <p className="text-xs font-bold uppercase tracking-widest text-foreground-soft">{a.form_fields?.label ?? 'Field'}</p>
                                             {typeof a.answer === 'string' && a.answer.startsWith('submissions/') ? (
                                               <FileAnswer path={a.answer} />
                                             ) : (
-                                              <p className="text-sm text-white">{a.answer}</p>
+                                              <p className="text-sm font-medium text-foreground">{a.answer}</p>
                                             )}
                                           </div>
                                         ))}

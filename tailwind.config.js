@@ -15,6 +15,7 @@ module.exports = {
         border: 'rgb(var(--border) / <alpha-value>)',
         panel: 'rgb(var(--panel) / <alpha-value>)',
         'panel-muted': 'rgb(var(--panel-muted) / <alpha-value>)',
+        muted: 'rgb(var(--panel-muted) / <alpha-value>)',
         brand: 'rgb(var(--brand) / <alpha-value>)',
         'brand-strong': 'rgb(var(--brand-strong) / <alpha-value>)',
         'brand-soft': 'rgb(var(--brand-soft) / <alpha-value>)',
@@ -22,7 +23,17 @@ module.exports = {
         'accent-soft': 'rgb(var(--accent-soft) / <alpha-value>)',
         success: 'rgb(var(--success) / <alpha-value>)',
         warning: 'rgb(var(--warning) / <alpha-value>)',
+        'warning-soft': 'rgb(var(--warning-soft) / <alpha-value>)',
         danger: 'rgb(var(--danger) / <alpha-value>)',
+        // Raw retro-poster primaries — fixed hex, identical in both themes.
+        // Reach for these for full-bleed poster-panel backgrounds and
+        // illustration fills (asteroids, starbursts, badges); prefer the
+        // semantic tokens above for interactive UI so it still adapts
+        // per theme.
+        'primary-red': '#D6294C',
+        'primary-blue': '#14120F',
+        'primary-yellow': '#F2C230',
+        cream: '#F5F0E3',
       },
       boxShadow: {
         'sm': 'var(--shadow-sm)',
@@ -30,10 +41,17 @@ module.exports = {
         'lg': 'var(--shadow-lg)',
       },
       borderRadius: {
-        'luxury': '1.4rem',
+        none: '0px',
+        poster: '1.75rem',
       },
       fontFamily: {
+        sans: ['var(--font-outfit)', 'sans-serif'],
         outfit: ['var(--font-outfit)', 'sans-serif'],
+        display: ['var(--font-bungee)', 'sans-serif'],
+        tech: ['var(--font-space-mono)', 'monospace'],
+      },
+      letterSpacing: {
+        tightest: '-0.05em',
       },
       keyframes: {
         'fade-in': {
@@ -51,10 +69,16 @@ module.exports = {
             'background-position': '-200% 0',
           },
         },
+        'spin-slow': {
+          'to': {
+            'transform': 'rotate(360deg)',
+          },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.45s ease both',
         'shimmer': 'shimmer 1.8s linear infinite',
+        'spin-slow': 'spin-slow 14s linear infinite',
       },
     },
   },

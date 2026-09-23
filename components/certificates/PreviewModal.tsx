@@ -97,19 +97,19 @@ export function PreviewModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="relative flex max-h-[90vh] w-full max-w-4xl flex-col border border-[#243B72] bg-[#0B1736] p-6 shadow-2xl">
+      <div className="relative flex max-h-[90vh] w-full max-w-4xl flex-col rounded-2xl border-4 border-border bg-panel p-6 shadow-lg">
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-[#243B72] pb-4">
+        <div className="flex items-center justify-between border-b-2 border-border pb-4">
           <div>
-            <h3 className="text-base font-bold text-white">Certificate Preview</h3>
-            <p className="text-xs text-slate-400">
-              {name} {teamName ? `(${teamName})` : ''} — <span className="text-[#F5E62D]">{certType}</span>
-              <span className="ml-2 text-[10px] uppercase text-slate-500">({registrationType})</span>
+            <h3 className="text-base font-black uppercase tracking-tight text-foreground">Certificate Preview</h3>
+            <p className="text-xs font-medium text-foreground-soft">
+              {name} {teamName ? `(${teamName})` : ''} — <span className="text-warning">{certType}</span>
+              <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-foreground-soft">({registrationType})</span>
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white"
+            className="text-foreground-soft transition hover:text-foreground"
           >
             <X size={20} />
           </button>
@@ -118,21 +118,21 @@ export function PreviewModal({
         {/* Modal Body */}
         <div className="my-4 flex-1 overflow-auto flex items-center justify-center min-h-[300px]">
           {loading && (
-            <div className="flex flex-col items-center gap-2 text-slate-300">
-              <Loader2 size={32} className="animate-spin text-[#F5E62D]" />
-              <span className="text-xs font-semibold">Rendering Certificate Canvas...</span>
+            <div className="flex flex-col items-center gap-2 text-foreground-soft">
+              <Loader2 size={32} className="animate-spin text-warning" />
+              <span className="text-xs font-bold uppercase tracking-wider">Rendering Certificate Canvas...</span>
             </div>
           )}
 
           {error && (
-            <div className="max-w-md border border-amber-500/40 bg-amber-500/10 p-4 text-center text-amber-200 space-y-2">
-              <AlertTriangle size={24} className="mx-auto text-amber-400" />
+            <div className="app-alert-warning max-w-md space-y-2 text-center">
+              <AlertTriangle size={24} className="mx-auto text-warning" />
               <p className="text-xs font-semibold">{error}</p>
             </div>
           )}
 
           {!loading && !error && previewUrl && (
-            <div className="border border-[#243B72] overflow-hidden">
+            <div className="rounded-2xl border-4 border-border shadow-lg overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={previewUrl}
@@ -144,8 +144,8 @@ export function PreviewModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-between border-t border-[#243B72] pt-4">
-          <span className="text-[11px] text-slate-500">
+        <div className="flex items-center justify-between border-t-2 border-border pt-4">
+          <span className="text-[11px] font-medium text-foreground-soft">
             Rendered at template full resolution using browser HTML Canvas.
           </span>
           <div className="flex gap-2">
@@ -153,7 +153,7 @@ export function PreviewModal({
               <a
                 href={previewUrl}
                 download={`${name.replace(/\s+/g, '_')}_${certType}.png`}
-                className="inline-flex items-center gap-1.5 bg-[#F5E62D] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#0B1736] hover:bg-[#FFF27A]"
+                className="app-button-primary text-xs"
               >
                 <Download size={14} />
                 Download Single PNG
@@ -161,7 +161,7 @@ export function PreviewModal({
             )}
             <button
               onClick={onClose}
-              className="border border-[#243B72] bg-[#10224A] px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white"
+              className="rounded-full border-2 border-border bg-panel-muted px-4 py-2 text-xs font-bold uppercase tracking-wider text-foreground-soft transition active:translate-x-[2px] active:translate-y-[2px] hover:text-foreground"
             >
               Close
             </button>

@@ -19,7 +19,7 @@ export default function LuxuryDatePicker({
   return (
     <div className="relative">
 
-      <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+      <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">
         {label}
       </label>
 
@@ -31,8 +31,8 @@ export default function LuxuryDatePicker({
         showTimeSelect
         dateFormat="dd/MM/yyyy h:mm aa"
         placeholderText="Select date & time"
-        className="w-full  border border-[#243B72] bg-[#07142E] px-5 py-4 text-white outline-none transition focus:border-[#F5E62D] focus:ring-2 focus:ring-[#F5E62D]/20"
-        calendarClassName=" border border-[#243B72] bg-[#07142E] text-white "
+        className="w-full rounded-xl border-2 border-border bg-panel px-5 py-4 font-medium text-foreground outline-none transition-shadow duration-200 ease-out focus:shadow-[3px_3px_0px_0px] focus:shadow-brand"
+        calendarClassName="rounded-xl border-2 border-border bg-panel text-foreground"
         popperClassName="z-50"
       />
 

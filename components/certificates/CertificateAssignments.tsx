@@ -2,7 +2,17 @@
 
 import { useState, useMemo } from 'react'
 import { Search, Save, CheckSquare, Square, Loader2, Users, User, ShieldAlert } from 'lucide-react'
-import { TeamGroup, SoloParticipant, AssignmentRow, CERT_TYPES, CertType, CERT_TYPE_COLORS } from './types'
+import { TeamGroup, SoloParticipant, AssignmentRow, CERT_TYPES, CertType } from './types'
+
+// Local Bauhaus-token mapping for certificate type accents (kept out of ./types.ts,
+// which still exports the legacy hex CERT_TYPE_COLORS used elsewhere).
+const CERT_TYPE_TEXT_CLASS: Record<string, string> = {
+  Winner: 'text-warning',
+  'Runner Up': 'text-accent',
+  '2nd Runner Up': 'text-success',
+  Participation: 'text-foreground-soft',
+  'Not Eligible': 'text-foreground-soft',
+}
 
 interface Props {
   eventId: string
@@ -157,10 +167,10 @@ export function CertificateAssignments({
   return (
     <div className="space-y-6">
       {/* Search & Actions Bar */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-[#243B72] pb-4">
+      <div className="flex flex-col gap-4 border-b-2 border-border pb-4 lg:flex-row lg:items-center lg:justify-between">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-soft" />
           <input
             type="text"
             value={search}
@@ -174,7 +184,7 @@ export function CertificateAssignments({
         <button
           onClick={handleSaveAssignments}
           disabled={saving}
-          className="inline-flex items-center gap-2 bg-[#F5E62D] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-[#0B1736] hover:bg-[#FFF27A] disabled:opacity-50"
+          className="app-button-primary text-xs disabled:opacity-50"
         >
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           Save Certificate Assignments
@@ -183,23 +193,23 @@ export function CertificateAssignments({
 
       {/* Bulk Action Bar (For Teams) */}
       {teams.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border border-[#243B72] bg-[#0B1736] p-3">
+        <div className="app-panel-muted flex flex-wrap items-center justify-between gap-3 p-3">
           <div className="flex items-center gap-3">
             <button
               onClick={toggleSelectAllTeams}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white"
+              className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground-soft transition hover:text-foreground"
             >
               {selectedTeams.size === filteredTeams.length && filteredTeams.length > 0 ? (
-                <CheckSquare size={16} className="text-[#F5E62D]" />
+                <CheckSquare size={16} className="text-warning" />
               ) : (
-                <Square size={16} className="text-slate-500" />
+                <Square size={16} className="text-foreground-soft" />
               )}
               Select All Teams ({selectedTeams.size}/{filteredTeams.length})
             </button>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">Bulk Certificate Type:</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-foreground-soft">Bulk Certificate Type:</span>
             <select
               value={bulkType}
               onChange={(e) => setBulkType(e.target.value as CertType)}
@@ -214,7 +224,7 @@ export function CertificateAssignments({
             <button
               onClick={applyBulkType}
               disabled={selectedTeams.size === 0}
-              className="border border-[#243B72] bg-[#10224A] px-3 py-1 text-xs font-semibold text-[#F5E62D] hover:bg-[#1E3A8A] disabled:opacity-50"
+              className="rounded-full border-2 border-border bg-panel px-3 py-1 text-xs font-bold uppercase tracking-wider text-foreground transition active:translate-x-[2px] active:translate-y-[2px] disabled:opacity-50"
             >
               Apply To Selected
             </button>
@@ -226,8 +236,8 @@ export function CertificateAssignments({
       {teams.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Users size={16} className="text-[#F5E62D]" />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+            <Users size={16} className="text-warning" />
+            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
               Team Registrations ({filteredTeams.length})
             </h3>
           </div>
@@ -240,28 +250,28 @@ export function CertificateAssignments({
               return (
                 <div
                   key={team.registrationId}
-                  className={`flex flex-col justify-between border transition-all ${
+                  className={`flex flex-col justify-between rounded-2xl border-2 transition-all ${
                     isSelected
-                      ? 'border-[#F5E62D] bg-[#0E1F4A]'
-                      : 'border-[#243B72] bg-[#0B1736] hover:border-[#243B72]/80'
+                      ? 'border-warning bg-panel-muted'
+                      : 'border-border bg-panel hover:border-brand'
                   } p-4`}
                 >
                   {/* Card Header */}
-                  <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[#243B72] pb-3">
+                  <div className="flex flex-wrap items-start justify-between gap-2 border-b-2 border-border pb-3">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => toggleSelectTeam(team.registrationId)}
-                        className="text-slate-400 hover:text-white"
+                        className="text-foreground-soft hover:text-foreground"
                       >
                         {isSelected ? (
-                          <CheckSquare size={16} className="text-[#F5E62D]" />
+                          <CheckSquare size={16} className="text-warning" />
                         ) : (
                           <Square size={16} />
                         )}
                       </button>
                       <div>
-                        <h4 className="text-base font-bold text-white">{team.teamName}</h4>
-                        <span className="text-[11px] text-slate-400">
+                        <h4 className="text-base font-bold text-foreground">{team.teamName}</h4>
+                        <span className="text-[11px] font-medium text-foreground-soft">
                           {team.members.length} Members
                         </span>
                       </div>
@@ -269,7 +279,7 @@ export function CertificateAssignments({
 
                     {/* TEAM-LEVEL CERTIFICATE TYPE SELECTOR */}
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-400">Type:</span>
+                      <span className="text-xs font-bold uppercase tracking-widest text-foreground-soft">Type:</span>
                       <select
                         value={currentType}
                         onChange={(e) =>
@@ -278,13 +288,10 @@ export function CertificateAssignments({
                             [`team:${team.registrationId}`]: e.target.value as CertType,
                           }))
                         }
-                        className="app-select text-xs py-1 px-2 font-bold"
-                        style={{
-                          color: CERT_TYPE_COLORS[currentType] ?? '#fff',
-                        }}
+                        className={`app-select text-xs py-1 px-2 font-bold ${CERT_TYPE_TEXT_CLASS[currentType] ?? 'text-foreground'}`}
                       >
                         {CERT_TYPES.map((t) => (
-                          <option key={t} value={t} className="bg-[#0B1736] text-white">
+                          <option key={t} value={t} className="bg-panel text-foreground">
                             {t}
                           </option>
                         ))}
@@ -297,18 +304,18 @@ export function CertificateAssignments({
                     {team.members.map((m) => (
                       <div
                         key={m.teamMemberId}
-                        className="flex items-center justify-between bg-[#10224A]/60 px-3 py-2 text-xs"
+                        className="flex items-center justify-between rounded-lg bg-panel-muted px-3 py-2 text-xs"
                       >
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-200">{m.name}</span>
+                          <span className="font-bold text-foreground">{m.name}</span>
                           {m.isLeader && (
-                            <span className="rounded-none bg-[#F5E62D]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#F5E62D] uppercase">
+                            <span className="app-badge app-badge-warning py-0 text-[9px]">
                               Leader
                             </span>
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-slate-400 text-[11px] truncate max-w-[150px]">
+                          <span className="max-w-[150px] truncate text-[11px] font-medium text-foreground-soft">
                             {m.email}
                           </span>
                           <button
@@ -322,7 +329,7 @@ export function CertificateAssignments({
                                 'team'
                               )
                             }
-                            className="text-[10px] text-[#93C5FD] hover:underline"
+                            className="text-[10px] font-bold uppercase tracking-wider text-accent hover:underline"
                           >
                             Preview
                           </button>
@@ -331,7 +338,7 @@ export function CertificateAssignments({
                     ))}
                   </div>
 
-                  <div className="text-[10px] text-slate-500 italic">
+                  <div className="text-[10px] font-medium italic text-foreground-soft">
                     All {team.members.length} members will receive individual certificates with type: &quot;{currentType}&quot;
                   </div>
                 </div>
@@ -343,10 +350,10 @@ export function CertificateAssignments({
 
       {/* SOLO REGISTRATIONS SECTION */}
       {solos.length > 0 && (
-        <div className="space-y-4 pt-4 border-t border-[#243B72]">
+        <div className="space-y-4 border-t-2 border-border pt-4">
           <div className="flex items-center gap-2">
-            <User size={16} className="text-[#93C5FD]" />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+            <User size={16} className="text-accent" />
+            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
               Solo Registrations ({filteredSolos.length})
             </h3>
           </div>
@@ -358,12 +365,12 @@ export function CertificateAssignments({
               return (
                 <div
                   key={solo.registrationId}
-                  className="flex flex-col justify-between border border-[#243B72] bg-[#0B1736] p-4 gap-3"
+                  className="flex flex-col justify-between gap-3 rounded-2xl border-2 border-border bg-panel p-4"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h4 className="text-sm font-bold text-white">{solo.name}</h4>
-                      <p className="text-xs text-slate-400 truncate max-w-[180px]">{solo.email}</p>
+                      <h4 className="text-sm font-bold text-foreground">{solo.name}</h4>
+                      <p className="max-w-[180px] truncate text-xs font-medium text-foreground-soft">{solo.email}</p>
                     </div>
                     <button
                       onClick={() =>
@@ -376,15 +383,15 @@ export function CertificateAssignments({
                           'solo'
                         )
                       }
-                      className="text-xs text-[#93C5FD] hover:underline"
+                      className="text-xs font-bold uppercase tracking-wider text-accent hover:underline"
                     >
                       Preview
                     </button>
                   </div>
 
                   {/* Individual type selector */}
-                  <div className="flex items-center justify-between pt-2 border-t border-[#243B72]/60">
-                    <span className="text-xs text-slate-400">Type:</span>
+                  <div className="flex items-center justify-between border-t-2 border-border pt-2">
+                    <span className="text-xs font-bold uppercase tracking-widest text-foreground-soft">Type:</span>
                     <select
                       value={currentType}
                       onChange={(e) =>
@@ -393,13 +400,10 @@ export function CertificateAssignments({
                           [`solo:${solo.registrationId}`]: e.target.value as CertType,
                         }))
                       }
-                      className="app-select text-xs py-1 px-2 font-bold w-auto"
-                      style={{
-                        color: CERT_TYPE_COLORS[currentType] ?? '#fff',
-                      }}
+                      className={`app-select w-auto py-1 px-2 text-xs font-bold ${CERT_TYPE_TEXT_CLASS[currentType] ?? 'text-foreground'}`}
                     >
                       {CERT_TYPES.map((t) => (
-                        <option key={t} value={t} className="bg-[#0B1736] text-white">
+                        <option key={t} value={t} className="bg-panel text-foreground">
                           {t}
                         </option>
                       ))}
@@ -413,8 +417,8 @@ export function CertificateAssignments({
       )}
 
       {teams.length === 0 && solos.length === 0 && (
-        <div className="border border-[#243B72] bg-[#0B1736] p-8 text-center text-slate-400">
-          <ShieldAlert size={24} className="mx-auto mb-2 text-slate-500" />
+        <div className="app-empty-state">
+          <ShieldAlert size={24} className="mx-auto mb-2 text-foreground-soft" />
           No checked-in participants found for this event. Ensure attendance has been recorded first.
         </div>
       )}

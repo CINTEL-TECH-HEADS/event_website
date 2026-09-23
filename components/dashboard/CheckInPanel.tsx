@@ -22,7 +22,7 @@ const QRScanner = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-[26rem] items-center justify-center  border border-[#243B72] bg-[#10224A] text-sm text-slate-400">
+      <div className="flex h-[26rem] items-center justify-center rounded-2xl border-2 border-border bg-panel text-sm font-medium text-foreground-soft sm:border-4">
         Loading camera...
       </div>
     ),
@@ -192,12 +192,12 @@ export function CheckInPanel({
   return (
     <div className="space-y-5">
 
-      <div className=" border border-[#243B72] bg-[#10224A] p-5 ">
+      <div className="rounded-2xl border-2 border-border bg-panel p-5 sm:border-4">
 
         {/* Header */}
         <div className="mb-5 flex items-center gap-3">
 
-          <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
+          <span className="rounded-xl border-2 border-border bg-panel-muted p-3 text-brand">
             <ScanLine
               size={18}
             />
@@ -205,11 +205,11 @@ export function CheckInPanel({
 
           <div>
 
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-black uppercase tracking-tight text-foreground">
               Live Scanner
             </h2>
 
-            <p className="text-sm text-slate-400">
+            <p className="text-sm font-medium text-foreground-soft">
               Scan one QR code
               at a time.
             </p>
@@ -234,14 +234,14 @@ export function CheckInPanel({
         {/* Loading */}
         {status ===
           'loading' && (
-          <div className="flex h-[26rem] flex-col items-center justify-center gap-3  border border-[#243B72] bg-[#0B1736]">
+          <div className="flex h-[26rem] flex-col items-center justify-center gap-3 rounded-2xl border-4 border-border bg-panel-muted">
 
             <Loader2
               size={30}
-              className="animate-spin text-[#F5E62D]"
+              className="animate-spin text-brand"
             />
 
-            <p className="text-sm font-medium text-[#F5E62D]">
+            <p className="text-sm font-bold uppercase tracking-widest text-brand">
               Verifying
               participant...
             </p>
@@ -249,13 +249,13 @@ export function CheckInPanel({
           </div>
         )}
 
-        {/* Success */}
+        {/* Success — full-frame flash overlay */}
         {status ===
           'success' &&
           result && (
-            <div className=" border border-green-500/20 bg-green-500/10 p-6 text-center">
+            <div className="flex h-[26rem] flex-col items-center justify-center overflow-y-auto rounded-2xl border-4 border-success bg-success p-6 text-center shadow-lg">
 
-              <div className="mx-auto mb-4 inline-flex rounded-full bg-[#0B1736] p-3 text-green-400 ">
+              <div className="mx-auto mb-4 inline-flex rounded-full border-2 border-border bg-panel p-3 text-success">
 
                 <CheckCircle2
                   size={28}
@@ -263,14 +263,14 @@ export function CheckInPanel({
 
               </div>
 
-              <p className="text-2xl font-semibold text-white">
+              <p className="text-2xl font-black text-white">
                 {
                   result.leader_name
                 }
               </p>
 
               {result.team_name && (
-                <p className="mt-2 text-sm text-slate-300">
+                <p className="mt-2 text-sm font-medium text-white/90">
                   Team:{' '}
                   {
                     result.team_name
@@ -283,15 +283,15 @@ export function CheckInPanel({
                 result.members
                   .length >
                   0 && (
-                  <div className="mx-auto mt-5 max-w-md  border border-[#243B72] bg-[#10224A] p-4 text-left">
+                  <div className="mx-auto mt-5 max-w-md rounded-xl border-2 border-border bg-panel p-4 text-left">
 
-                    <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-foreground">
 
                       <Users
                         size={
                           15
                         }
-                        className="text-[#F5E62D]"
+                        className="text-brand"
                       />
 
                       Team Members
@@ -308,7 +308,7 @@ export function CheckInPanel({
                             key={
                               member.email
                             }
-                            className=" bg-[#0B1736] px-3 py-2 text-sm text-slate-300"
+                            className="rounded-lg bg-panel-muted px-3 py-2 text-sm font-medium text-foreground-soft"
                           >
                             {
                               member.full_name
@@ -322,7 +322,7 @@ export function CheckInPanel({
                   </div>
                 )}
 
-              <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-green-400">
+              <p className="mt-5 text-xs font-bold uppercase tracking-[0.18em] text-white">
                 Checked in at{' '}
                 {new Date(
                   result.checked_in_at
@@ -334,12 +334,12 @@ export function CheckInPanel({
             </div>
           )}
 
-        {/* Error */}
+        {/* Error — full-frame flash overlay */}
         {status ===
           'error' && (
-          <div className=" border border-red-500/20 bg-red-500/10 p-6 text-center">
+          <div className="flex h-[26rem] flex-col items-center justify-center rounded-2xl border-4 border-danger bg-danger p-6 text-center shadow-lg">
 
-            <div className="mx-auto mb-4 inline-flex rounded-full bg-[#0B1736] p-3 text-red-400 ">
+            <div className="mx-auto mb-4 inline-flex rounded-full border-2 border-border bg-panel p-3 text-danger">
 
               <AlertCircle
                 size={28}
@@ -347,7 +347,7 @@ export function CheckInPanel({
 
             </div>
 
-            <p className="text-lg font-semibold text-red-300">
+            <p className="text-lg font-black text-white">
               {
                 errorMsg
               }

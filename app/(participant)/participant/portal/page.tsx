@@ -5,19 +5,21 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { isPast, isRegistrationOpen, formatShortDate } from '@/lib/utils'
 import {
-  Ticket, LogOut, Sun, Moon, Sunset, Calendar,
+  LogOut, Sun, Moon, Sunset, Calendar,
   Users, Copy, Check, ChevronRight, AlertTriangle,
   Zap,
 } from 'lucide-react'
 import { PortalTabs, type PortalTab } from '@/components/participant/PortalTabs'
 import { PastEventCard } from '@/components/participant/PastEventCard'
 import { ProfileTab } from '@/components/participant/ProfileTab'
+import { RockShape } from '@/components/brand/RockShape'
+import { Sparkle } from '@/components/brand/Starburst'
 
 function getGreeting(name: string) {
   const hour = new Date().getHours()
-  if (hour < 12) return { text: `Good morning, ${name}`, icon: <Sun size={18} className="text-amber-400" /> }
-  if (hour < 17) return { text: `Good afternoon, ${name}`, icon: <Sunset size={18} className="text-amber-400" /> }
-  return { text: `Good evening, ${name}`, icon: <Moon size={18} className="text-amber-300" /> }
+  if (hour < 12) return { text: `Good morning, ${name}`, icon: <Sun size={18} className="text-brand" /> }
+  if (hour < 17) return { text: `Good afternoon, ${name}`, icon: <Sunset size={18} className="text-brand" /> }
+  return { text: `Good evening, ${name}`, icon: <Moon size={18} className="text-accent" /> }
 }
 
 function isTeamComplete(reg: any): boolean {
@@ -114,14 +116,14 @@ export default function PortalPage() {
   if (loading) return (
     <div className="flex items-center justify-center py-32">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
-        <p className="text-xs font-bold text-amber-500/70 tracking-widest uppercase">Loading...</p>
+        <div className="w-10 h-10 border-4 border-border border-t-brand rounded-full animate-spin" />
+        <p className="text-xs font-bold text-brand/70 tracking-widest uppercase">Loading...</p>
       </div>
     </div>
   )
 
   if (error) return (
-    <div className="flex items-center justify-center py-32"><p className="text-red-400">{error}</p></div>
+    <div className="flex items-center justify-center py-32"><p className="font-bold text-danger">{error}</p></div>
   )
 
   const upcoming          = registrations.filter(r => !isPast(r.events?.starts_at))
@@ -139,17 +141,18 @@ export default function PortalPage() {
     <div className="max-w-2xl mx-auto px-4 py-8">
 
       {/* Greeting */}
-      <div className="flex items-start justify-between mb-8">
+      <div className="relative flex items-start justify-between mb-8">
         <div>
           <div className="flex items-center gap-2 mb-1">
             {greeting.icon}
-            <h1 className="text-2xl font-semibold text-white tracking-tight">{greeting.text}!</h1>
+            <h1 className="font-display text-2xl uppercase leading-tight tracking-tight text-foreground sm:text-3xl">{greeting.text}!</h1>
+            <Sparkle className="h-3 w-3 text-primary-yellow" />
           </div>
-          <p className="text-slate-400 text-sm">Here's everything for your events.</p>
+          <p className="font-tech text-xs font-medium text-foreground-soft">Here's everything for your events.</p>
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 border border-white/10 rounded-full px-3 py-1.5 transition-colors shrink-0"
+          className="flex shrink-0 items-center gap-2 rounded-full border-2 border-border px-3 py-1.5 font-tech text-[10px] font-bold uppercase tracking-wide text-foreground-soft transition duration-200 hover:text-foreground active:translate-x-[2px] active:translate-y-[2px]"
         >
           <LogOut size={12} />
           Sign out
@@ -164,23 +167,23 @@ export default function PortalPage() {
       {registrations.filter((r: any) => r.offer_status === 'offered').length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-3 mb-3">
-            <Zap size={13} className="text-amber-300" />
-            <h2 className="text-xs font-bold text-amber-300 uppercase tracking-widest">Spot Offered</h2>
+            <Zap size={13} className="text-brand" />
+            <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-brand">Spot Offered</h2>
           </div>
           <div className="space-y-2">
             {registrations.filter((r: any) => r.offer_status === 'offered').map((r: any) => {
               const paid = (r.events?.fee ?? 0) > 0
               return (
-                <div key={r.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between bg-amber-500/5 border border-amber-500/20 px-4 py-3">
-                  <p className="text-sm text-white">
+                <div key={r.id} className="flex flex-col gap-2 rounded-2xl border-2 border-border bg-panel px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm font-medium text-foreground">
                     A spot opened for <strong>{r.events?.title}</strong>
-                    {paid && <span className="text-amber-300"> · ₹{r.events.fee} on accept</span>}
+                    {paid && <span className="text-brand"> · ₹{r.events.fee} on accept</span>}
                   </p>
                   <div className="flex gap-2 shrink-0">
                     <button onClick={() => respondOffer(r.id, 'accept')} disabled={respBusy === 'offer' + r.id + 'accept'}
-                      className="inline-flex items-center gap-1 bg-amber-400 text-slate-950 px-3 py-1.5 text-xs font-bold hover:bg-amber-300 disabled:opacity-50"><Check size={12}/>Accept{paid ? ' & Pay' : ''}</button>
+                      className="app-button-primary !px-3 !py-1.5 !text-xs disabled:opacity-50"><Check size={12}/>Accept{paid ? ' & Pay' : ''}</button>
                     <button onClick={() => respondOffer(r.id, 'decline')} disabled={respBusy === 'offer' + r.id + 'decline'}
-                      className="inline-flex items-center gap-1 border border-white/10 text-slate-300 px-3 py-1.5 text-xs font-semibold hover:bg-white/5 disabled:opacity-50">Decline</button>
+                      className="app-button-secondary !bg-panel-muted !text-foreground !px-3 !py-1.5 !text-xs disabled:opacity-50">Decline</button>
                   </div>
                 </div>
               )
@@ -193,22 +196,22 @@ export default function PortalPage() {
       {invites.filter((i: any) => i.incoming).length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-3 mb-3">
-            <Users size={13} className="text-amber-300" />
-            <h2 className="text-xs font-bold text-amber-300 uppercase tracking-widest">Team Invites</h2>
+            <Users size={13} className="text-brand" />
+            <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-brand">Team Invites</h2>
           </div>
           <div className="space-y-2">
             {invites.filter((i: any) => i.incoming).map((i: any) => (
-              <div key={i.id} className="flex items-center justify-between bg-amber-500/5 border border-amber-500/20 px-4 py-3">
-                <p className="text-sm text-white">
+              <div key={i.id} className="flex items-center justify-between rounded-2xl border-2 border-border bg-panel px-4 py-3 shadow-sm">
+                <p className="text-sm font-medium text-foreground">
                   {i.direction === 'invite'
                     ? <>Invite to join <strong>{i.team_name}</strong> · {i.event_title}</>
                     : <><strong>{i.seeker_name}</strong> wants to join your team · {i.event_title}</>}
                 </p>
                 <div className="flex gap-2 shrink-0">
                   <button onClick={() => respondInvite(i.id, 'accept')} disabled={respBusy === i.id + 'accept'}
-                    className="inline-flex items-center gap-1 bg-amber-400 text-slate-950 px-3 py-1.5 text-xs font-bold hover:bg-amber-300 disabled:opacity-50"><Check size={12}/>Accept</button>
+                    className="app-button-primary !px-3 !py-1.5 !text-xs disabled:opacity-50"><Check size={12}/>Accept</button>
                   <button onClick={() => respondInvite(i.id, 'decline')} disabled={respBusy === i.id + 'decline'}
-                    className="inline-flex items-center gap-1 border border-white/10 text-slate-300 px-3 py-1.5 text-xs font-semibold hover:bg-white/5 disabled:opacity-50">Decline</button>
+                    className="app-button-secondary !bg-panel-muted !text-foreground !px-3 !py-1.5 !text-xs disabled:opacity-50">Decline</button>
                 </div>
               </div>
             ))}
@@ -220,9 +223,9 @@ export default function PortalPage() {
       {actionRequired.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <AlertTriangle size={14} className="text-amber-400" />
-            <h2 className="text-xs font-bold text-amber-400 uppercase tracking-widest">Action Required</h2>
-            <span className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full px-2 py-0.5 font-bold">
+            <AlertTriangle size={14} className="text-warning" />
+            <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-foreground">Action Required</h2>
+            <span className="app-badge-warning app-badge">
               {actionRequired.length}
             </span>
           </div>
@@ -236,30 +239,31 @@ export default function PortalPage() {
               const needed     = Math.max(0, minSize - members.length)
 
               return (
-                <div key={r.id} className="bg-amber-500/5 border border-amber-500/25  p-5">
+                <div key={r.id} className="relative rounded-poster border-4 border-border bg-panel p-5 shadow-lg">
+                  <RockShape variant={2} fill="#F2C230" className="absolute -right-2 -top-2 h-9 w-9 rotate-[12deg] opacity-90" />
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">{r.events?.event_type}</span>
-                        <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                        <span className="font-tech text-[10px] font-bold uppercase tracking-widest text-brand">{r.events?.event_type}</span>
+                        <span className="app-badge-neutral app-badge">
                           Team
                         </span>
                       </div>
-                      <h3 className="font-semibold text-white">{r.events?.title}</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Team: <span className="text-slate-300 font-semibold">{r.team_name}</span></p>
+                      <h3 className="font-bold text-foreground">{r.events?.title}</h3>
+                      <p className="text-xs text-foreground-soft mt-0.5">Team: <span className="text-foreground font-semibold">{r.team_name}</span></p>
                     </div>
                     {isLeader && (
-                      <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full shrink-0">
+                      <span className="app-badge-warning app-badge shrink-0">
                         Leader
                       </span>
                     )}
                   </div>
 
                   {/* Incomplete warning */}
-                  <div className="bg-amber-500/10 border border-amber-500/20  px-4 py-3 mb-4 flex items-center gap-2">
-                    <AlertTriangle size={14} className="text-amber-400 shrink-0" />
-                    <p className="text-xs text-amber-300">
+                  <div className="mb-4 flex items-center gap-2 rounded-xl border-2 border-border bg-warning/15 px-4 py-3">
+                    <AlertTriangle size={14} className="text-warning shrink-0" />
+                    <p className="text-xs font-medium text-foreground">
                       Team needs <strong>{needed} more member{needed > 1 ? 's' : ''}</strong> to meet the minimum of {minSize}.
                       Registration is incomplete until the team is full.
                     </p>
@@ -267,22 +271,22 @@ export default function PortalPage() {
 
                   {/* Members */}
                   <div className="mb-4">
-                    <p className="text-xs text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-foreground-soft uppercase tracking-widest mb-2 flex items-center gap-1.5">
                       <Users size={11} />
                       Members ({members.length}{maxSize ? `/${maxSize}` : ''} · min {minSize})
                     </p>
                     <div className="space-y-2">
                       {members.map((m: any) => (
-                        <div key={m.id} className="flex items-center gap-2 py-1.5 border-b border-white/5 last:border-0">
-                          <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white shrink-0">
+                        <div key={m.id} className="flex items-center gap-2 py-1.5 border-b-2 border-border last:border-0">
+                          <div className="w-7 h-7 rounded-full border-2 border-border bg-panel-muted flex items-center justify-center text-xs font-bold text-foreground shrink-0">
                             {m.full_name?.[0]?.toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-white truncate">
+                            <p className="text-sm font-semibold text-foreground truncate">
                               {m.full_name}
-                              {m.is_leader && <span className="ml-1.5 text-xs text-amber-400">Leader</span>}
+                              {m.is_leader && <span className="ml-1.5 text-xs text-brand">Leader</span>}
                             </p>
-                            <p className="text-xs text-slate-500 truncate">{m.email}</p>
+                            <p className="text-xs text-foreground-soft truncate">{m.email}</p>
                           </div>
                         </div>
                       ))}
@@ -291,30 +295,30 @@ export default function PortalPage() {
 
                   {/* Group code — creator can share it and manage the team */}
                   {isLeader && (
-                    <div className="border-t border-white/5 pt-4 space-y-2">
-                      <p className="text-xs text-slate-400">Share this group code so teammates can join:</p>
+                    <div className="border-t-2 border-border pt-4 space-y-2">
+                      <p className="text-xs font-medium text-foreground-soft">Share this group code so teammates can join:</p>
                       <div className="flex gap-2">
-                        <div className="flex-1 bg-[#0a1629] border border-white/5 px-3 py-2 font-mono text-sm font-bold tracking-widest text-white">
+                        <div className="flex-1 rounded-full border-2 border-border bg-panel-muted px-4 py-2 font-mono text-sm font-bold tracking-widest text-foreground">
                           {r.group_code ?? '—'}
                         </div>
                         <button
                           onClick={() => copyInvite(r.id, r.group_code)}
-                          className="flex items-center justify-center gap-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 px-3 text-xs font-bold transition-colors"
+                          className="flex items-center justify-center gap-1.5 rounded-full border-2 border-border bg-panel-muted px-3 text-xs font-bold text-foreground transition duration-200 hover:bg-brand hover:text-white"
                         >
-                          {copied === r.id ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                          {copied === r.id ? <Check size={12} /> : <Copy size={12} />}
                           {copied === r.id ? 'Copied' : 'Copy'}
                         </button>
                       </div>
                       <div className="flex gap-2">
                         <Link
                           href={`/participant/portal/events/${r.id}/team`}
-                          className="flex-1 flex items-center justify-center gap-2 bg-[#0a1629] hover:bg-slate-700 text-slate-300 border border-white/10 py-2 text-xs font-bold transition-colors"
+                          className="app-button-secondary flex-1 !bg-panel-muted !text-foreground"
                         >
                           <Users size={12} /> Manage Team
                         </Link>
                         <Link
                           href={`/participant/portal/events/${r.id}/find`}
-                          className="flex-1 flex items-center justify-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 py-2 text-xs font-bold transition-colors"
+                          className="app-button-primary flex-1"
                         >
                           <Users size={12} /> Find Teammates
                         </Link>
@@ -332,8 +336,8 @@ export default function PortalPage() {
       {upcomingComplete.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-xs font-bold text-amber-400 uppercase tracking-widest">Upcoming</h2>
-            <span className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full px-2 py-0.5 font-bold">
+            <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-foreground">Upcoming</h2>
+            <span className="app-badge-neutral app-badge">
               {upcomingComplete.length}
             </span>
           </div>
@@ -349,39 +353,39 @@ export default function PortalPage() {
       {availableEvents.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <Zap size={13} className="text-amber-300" />
-            <h2 className="text-xs font-bold text-amber-300 uppercase tracking-widest">Register Now</h2>
-            <span className="text-xs bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-full px-2 py-0.5 font-bold">
+            <Zap size={13} className="text-brand" />
+            <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-brand">Register Now</h2>
+            <span className="app-badge-warning app-badge">
               {availableEvents.length}
             </span>
           </div>
           <div className="space-y-3">
             {availableEvents.map((e: any) => (
               <Link key={e.id} href={`/events/${e.slug}`}>
-                <div className="bg-[#0a1629] border border-white/10  p-5 hover:border-amber-300/30 hover:bg-[#112240] transition-all group">
+                <div className="app-card-hover rounded-poster border-4 border-border bg-panel p-5 shadow-md transition-all group">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold text-amber-300 uppercase tracking-widest">{e.event_type}</span>
+                        <span className="font-tech text-[10px] font-bold uppercase tracking-widest text-brand">{e.event_type}</span>
                         {e.registration_mode === 'team' || e.registration_mode === 'both' ? (
-                          <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                          <span className="app-badge-neutral app-badge flex items-center gap-1">
                             <Users size={9} /> Team
                           </span>
                         ) : (
-                          <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full">
+                          <span className="app-badge-neutral app-badge">
                             Solo
                           </span>
                         )}
                       </div>
-                      <h3 className="font-semibold text-white group-hover:text-amber-200 transition-colors truncate">{e.title}</h3>
-                      <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-400">
+                      <h3 className="font-bold text-foreground group-hover:text-brand transition-colors truncate">{e.title}</h3>
+                      <div className="flex items-center gap-3 mt-1.5 text-xs font-medium text-foreground-soft">
                         <span className="flex items-center gap-1">
-                          <Calendar size={11} className="text-slate-500" />
+                          <Calendar size={11} />
                           {new Date(e.starts_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
                     </div>
-                    <ChevronRight size={16} className="text-slate-500 group-hover:text-amber-300 transition-colors shrink-0 ml-3" />
+                    <ChevronRight size={16} className="text-foreground-soft group-hover:text-brand transition-colors shrink-0 ml-3" />
                   </div>
                 </div>
               </Link>
@@ -392,12 +396,10 @@ export default function PortalPage() {
 
       {/* Empty (My Events) */}
       {registrations.length === 0 && availableEvents.length === 0 && (
-        <div className="text-center py-20">
-          <div className="w-16 h-16 bg-[#0a1629] border border-white/5  flex items-center justify-center mx-auto mb-4">
-            <Ticket className="w-8 h-8 text-slate-600" />
-          </div>
-          <p className="text-white font-semibold text-lg">No events yet</p>
-          <p className="text-slate-400 text-sm mt-2">Register for an upcoming event to see it here.</p>
+        <div className="app-empty-state">
+          <Sparkle className="mx-auto mb-4 h-8 w-8 text-primary-yellow" />
+          <p className="text-foreground font-black uppercase text-lg">No events yet</p>
+          <p className="text-foreground-soft text-sm mt-2 font-medium">Register for an upcoming event to see it here.</p>
         </div>
       )}
       </>
@@ -410,7 +412,10 @@ export default function PortalPage() {
             {past.map(r => <PastEventCard key={r.id} reg={r} />)}
           </div>
         ) : (
-          <div className="text-center py-20 text-sm text-slate-400">No past events yet.</div>
+          <div className="app-empty-state">
+            <RockShape variant={3} fill="#F2C230" className="mx-auto mb-4 h-14 w-14 rotate-[6deg]" />
+            <p className="text-foreground font-black uppercase text-lg">No past events yet</p>
+          </div>
         )
       )}
 
@@ -420,56 +425,56 @@ export default function PortalPage() {
   )
 }
 
-// ── Event Card with Solo/Team color coding ────────────────
+// ── Event Card with Solo/Team accent flourish ────────────────
 function EventCard({ reg }: { reg: any }) {
   const event      = reg.events
   const isTeam     = reg.registration_type === 'team'
   const attended   = Array.isArray(reg.attendance) ? reg.attendance.length > 0 : !!reg.attendance?.id
   const hasCert    = Array.isArray(reg.certificates) ? reg.certificates.length > 0 : !!reg.certificates?.id
 
-  // Color scheme: blue for team, purple for solo
-  const accent = isTeam
-    ? { border: 'border-amber-500/20',  bg: 'bg-amber-500/5',  text: 'text-amber-300',   badge: 'bg-amber-500/10 border-amber-500/20 text-amber-300'   }
-    : { border: 'border-amber-500/20', bg: 'bg-amber-500/5', text: 'text-amber-300', badge: 'bg-amber-500/10 border-amber-500/20 text-amber-300' }
-
   const statusBadge = () => {
-    if (reg.status === 'waitlisted')  return <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">Waitlisted</span>
-    if (reg.status === 'cancelled')   return <span className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full">Cancelled</span>
-    if (attended && hasCert)          return <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">🎓 Certificate</span>
-    if (attended)                     return <span className="text-xs font-bold text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">✓ Attended</span>
-    return <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${accent.badge}`}>Confirmed</span>
+    if (reg.status === 'waitlisted')  return <span className="app-badge-warning app-badge">Waitlisted</span>
+    if (reg.status === 'cancelled')   return <span className="app-badge-danger app-badge">Cancelled</span>
+    if (attended && hasCert)          return <span className="app-badge-success app-badge">Certificate</span>
+    if (attended)                     return <span className="app-badge-success app-badge">Attended</span>
+    return <span className="app-badge-neutral app-badge">Confirmed</span>
   }
 
   return (
     <Link href={`/participant/portal/events/${reg.id}`}>
-      <div className={`border  p-5 hover:opacity-90 transition-all cursor-pointer group ${accent.border} ${accent.bg}`}>
+      <div className="app-card-hover relative rounded-poster border-4 border-border bg-panel p-5 shadow-md transition-all cursor-pointer group">
+        {isTeam ? (
+          <span aria-hidden className="absolute right-3 top-3 h-3 w-3 rounded-full bg-accent" />
+        ) : (
+          <Sparkle className="absolute right-2 top-2 h-4 w-4 text-primary-yellow" />
+        )}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className={`text-xs font-bold uppercase tracking-widest ${accent.text}`}>{event?.event_type}</span>
-              <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full border flex items-center gap-1 ${accent.badge}`}>
+              <span className="font-tech text-[10px] font-bold uppercase tracking-widest text-brand">{event?.event_type}</span>
+              <span className="app-badge-neutral app-badge">
                 {isTeam ? <><Users size={9} /> Team</> : 'Solo'}
               </span>
             </div>
-            <h3 className="font-semibold text-white group-hover:opacity-80 transition-opacity truncate">{event?.title}</h3>
+            <h3 className="font-bold text-foreground group-hover:text-brand transition-colors truncate">{event?.title}</h3>
           </div>
           {statusBadge()}
         </div>
-        <div className="flex flex-wrap gap-3 text-xs text-slate-400">
+        <div className="flex flex-wrap gap-3 text-xs font-medium text-foreground-soft">
           {event?.starts_at && (
             <span className="flex items-center gap-1">
-              <Calendar size={11} className="text-slate-500" />
+              <Calendar size={11} />
               {formatShortDate(event.starts_at)}
             </span>
           )}
           {event?.venue && (
             <span className="flex items-center gap-1 truncate max-w-[200px]">
-              📍 {event.venue}
+              <span aria-hidden>📍</span> {event.venue}
             </span>
           )}
           {isTeam && reg.team_name && (
             <span className="flex items-center gap-1">
-              <Users size={11} className="text-slate-500" />
+              <Users size={11} />
               {reg.team_name}
             </span>
           )}

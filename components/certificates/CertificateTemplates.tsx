@@ -86,17 +86,17 @@ export function CertificateTemplates({ eventId, templates, onTemplatesChange, on
   function renderTemplateSection(sectionType: TemplateType) {
     const sectionLabel = sectionType === 'solo' ? 'Solo Templates' : 'Team Templates'
     const sectionIcon = sectionType === 'solo' ? <User size={14} /> : <Users size={14} />
-    const sectionColor = sectionType === 'solo' ? 'text-[#93C5FD]' : 'text-[#86EFAC]'
-    const sectionBorder = sectionType === 'solo' ? 'border-[#93C5FD]/30' : 'border-[#86EFAC]/30'
+    const sectionColor = sectionType === 'solo' ? 'text-accent' : 'text-success'
+    const sectionBorder = sectionType === 'solo' ? 'border-accent' : 'border-success'
 
     return (
       <div className="space-y-3">
-        <div className={`flex items-center gap-2 border-b ${sectionBorder} pb-3`}>
+        <div className={`flex items-center gap-2 border-b-2 ${sectionBorder} pb-3`}>
           <span className={sectionColor}>{sectionIcon}</span>
           <h3 className={`text-sm font-bold uppercase tracking-wider ${sectionColor}`}>
             {sectionLabel}
           </h3>
-          <span className="ml-auto text-[10px] text-slate-500">PNG · JPG · JPEG</span>
+          <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-foreground-soft">PNG · JPG · JPEG</span>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -109,18 +109,18 @@ export function CertificateTemplates({ eventId, templates, onTemplatesChange, on
             return (
               <div
                 key={uploadKey}
-                className="flex flex-col gap-3 border border-[#243B72] bg-[#0B1736] p-4 transition-colors hover:border-[#F5E62D]/30"
+                className="flex flex-col gap-3 rounded-2xl border-2 border-border bg-panel p-4 transition-colors hover:border-brand"
               >
                 {/* Status row */}
                 <div className="flex items-center gap-2">
                   {tmpl ? (
-                    <CheckCircle2 size={14} className="shrink-0 text-emerald-400" />
+                    <CheckCircle2 size={14} className="shrink-0 text-success" />
                   ) : (
-                    <AlertCircle size={14} className="shrink-0 text-slate-500" />
+                    <AlertCircle size={14} className="shrink-0 text-foreground-soft" />
                   )}
-                  <span className="flex-1 text-sm font-semibold text-white">{certType}</span>
+                  <span className="flex-1 text-sm font-bold text-foreground">{certType}</span>
                   {tmpl && (
-                    <span className="rounded-none bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                    <span className="app-badge app-badge-success py-0 text-[10px]">
                       Configured
                     </span>
                   )}
@@ -128,7 +128,7 @@ export function CertificateTemplates({ eventId, templates, onTemplatesChange, on
 
                 {/* Template preview thumbnail */}
                 {tmpl?.previewUrl && (
-                  <div className="overflow-hidden border border-[#243B72]">
+                  <div className="overflow-hidden rounded-xl border-2 border-border">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={tmpl.previewUrl}
@@ -140,7 +140,7 @@ export function CertificateTemplates({ eventId, templates, onTemplatesChange, on
 
                 {/* Layout config status */}
                 {tmpl && (
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] font-medium text-foreground-soft">
                     Layout: {tmpl.layout_config ? 'Configured ✓' : 'Not configured yet'}
                   </p>
                 )}
@@ -158,7 +158,7 @@ export function CertificateTemplates({ eventId, templates, onTemplatesChange, on
                   <button
                     onClick={() => fileRefs.current[uploadKey]?.click()}
                     disabled={isUploading}
-                    className="inline-flex items-center gap-1.5 border border-[#243B72] bg-[#10224A] px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:border-[#F5E62D]/50 hover:text-white disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-full border-2 border-border bg-panel-muted px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-foreground-soft transition-colors hover:border-brand hover:text-foreground disabled:opacity-50"
                   >
                     {isUploading ? (
                       <Loader2 size={12} className="animate-spin" />
@@ -172,7 +172,7 @@ export function CertificateTemplates({ eventId, templates, onTemplatesChange, on
                   {tmpl && (
                     <button
                       onClick={() => onEditTemplate(tmpl)}
-                      className="inline-flex items-center gap-1.5 border border-[#243B72] bg-[#10224A] px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:border-[#F5E62D]/50 hover:text-white"
+                      className="inline-flex items-center gap-1.5 rounded-full border-2 border-border bg-panel-muted px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-foreground-soft transition-colors hover:border-brand hover:text-foreground"
                     >
                       <Settings size={12} />
                       Layout
@@ -184,7 +184,7 @@ export function CertificateTemplates({ eventId, templates, onTemplatesChange, on
                     <button
                       onClick={() => handleDelete(tmpl)}
                       disabled={isDeleting}
-                      className="inline-flex items-center gap-1.5 border border-red-900/40 bg-red-900/10 px-3 py-1.5 text-xs font-semibold text-red-400 transition-colors hover:border-red-600/50 hover:text-red-300 disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-full border-2 border-brand bg-panel-muted px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-brand transition-colors hover:bg-brand hover:text-white disabled:opacity-50"
                     >
                       {isDeleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                     </button>
@@ -200,8 +200,8 @@ export function CertificateTemplates({ eventId, templates, onTemplatesChange, on
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center gap-3 border-b border-[#243B72] pb-4">
-        <h2 className="text-base font-bold uppercase tracking-widest text-white">
+      <div className="flex items-center gap-3 border-b-2 border-border pb-4">
+        <h2 className="text-base font-black uppercase tracking-tight text-foreground">
           Certificate Templates
         </h2>
       </div>

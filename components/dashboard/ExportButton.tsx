@@ -90,16 +90,14 @@ export function ExportButton({
       ? FileText
       : FileSpreadsheet
 
-  const colorClass =
-    format === 'csv'
-      ? 'bg-[#1E3A8A] hover:bg-[#1D4ED8] text-white'
-      : 'bg-[#8B5E3C] hover:opacity-90 text-white'
+  const baseClass =
+    format === 'csv' ? 'app-button-primary' : 'app-button-secondary'
 
   return (
     <button
       onClick={handleExport}
       disabled={exporting}
-      className={`inline-flex w-full items-center justify-center gap-2  px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${colorClass} ${className}`}
+      className={`inline-flex w-full items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60 ${baseClass} ${className}`}
     >
       {exporting ? (
         <>

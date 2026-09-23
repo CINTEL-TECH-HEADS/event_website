@@ -3,11 +3,10 @@ import { ThemeToggle } from '@/components/public/ThemeToggle'
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="auth-theme-shell relative min-h-screen w-full overflow-hidden bg-[#07101d] text-slate-100">
-      {/* Grid overlay — matches homescreen */}
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px,24px_24px]" />
-      {/* Amber top glow — matches homescreen */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(245,158,11,0.08),transparent)]" />
+    <div className="auth-theme-shell relative min-h-screen w-full overflow-hidden bg-background text-foreground">
+      {/* Poster corner accents */}
+      <div className="pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full border-4 border-border opacity-[0.08]" />
+      <div className="pointer-events-none absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-primary-red opacity-[0.08]" />
 
       <div className="fixed right-4 top-4 z-50">
         <ThemeToggle />

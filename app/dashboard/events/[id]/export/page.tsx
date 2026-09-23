@@ -20,17 +20,17 @@ export default function ExportPage() {
       {/* Hero */}
       <section className="app-panel  px-6 py-7  sm:px-8">
 
-        <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
+        <span className="app-kicker inline-flex items-center gap-2">
           <Download size={14} />
           Data Export
         </span>
 
-        <h1 className="mt-5 text-3xl font-bold text-white">
+        <h1 className="app-heading mt-5">
           Download clean
           registration reports.
         </h1>
 
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
+        <p className="app-subheading mt-3 max-w-2xl">
           Export event data for
           operations, reporting,
           analysis, and handoffs.
@@ -42,21 +42,21 @@ export default function ExportPage() {
       <div className="grid gap-4 lg:grid-cols-2">
 
         {/* CSV */}
-        <section className=" border border-[#243B72] bg-[#10224A] p-6  transition-all duration-300 hover:-translate-y-1">
+        <section className="rounded-2xl border-2 border-border bg-panel p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 md:border-4">
 
           <div className="mb-5 flex items-start gap-4">
 
-            <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
+            <span className="rounded-xl border-2 border-border bg-primary-yellow p-3 text-foreground">
               <FileText size={18} />
             </span>
 
             <div>
 
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-black uppercase tracking-tight text-foreground">
                 CSV Export
               </h2>
 
-              <p className="mt-2 text-sm leading-6 text-slate-400">
+              <p className="mt-2 text-sm font-medium leading-6 text-foreground-soft">
                 Best for spreadsheets,
                 imports, and quick
                 operational sharing.
@@ -74,21 +74,21 @@ export default function ExportPage() {
         </section>
 
         {/* Excel */}
-        <section className=" border border-[#243B72] bg-[#10224A] p-6  transition-all duration-300 hover:-translate-y-1">
+        <section className="rounded-2xl border-2 border-border bg-panel p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 md:border-4">
 
           <div className="mb-5 flex items-start gap-4">
 
-            <span className=" bg-[#0B1736] p-3 text-[#93C5FD]">
+            <span className="rounded-xl border-2 border-border bg-primary-blue p-3 text-white">
               <FileSpreadsheet size={18} />
             </span>
 
             <div>
 
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-black uppercase tracking-tight text-foreground">
                 Excel Export
               </h2>
 
-              <p className="mt-2 text-sm leading-6 text-slate-400">
+              <p className="mt-2 text-sm font-medium leading-6 text-foreground-soft">
                 Ideal for richer
                 reports, filters,
                 and Excel workflows.
@@ -101,7 +101,6 @@ export default function ExportPage() {
           <ExportButton
             eventId={id}
             format="xlsx"
-            className="border border-[#243B72] bg-[#0B1736] text-[#93C5FD] hover:bg-[#132B59]"
           />
 
         </section>
@@ -109,7 +108,7 @@ export default function ExportPage() {
       </div>
 
       {/* Info */}
-      <div className=" border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
+      <div className="app-alert-info">
         Includes registrations,
         team members,
         attendance status,

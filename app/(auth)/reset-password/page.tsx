@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { KeyRound, ArrowRight } from 'lucide-react'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { OtpInput, MIN_OTP } from '@/components/auth/OtpInput'
+import { PosterHeading } from '@/components/brand/PosterHeading'
+import { Sparkle } from '@/components/brand/Starburst'
 
 function ResetForm() {
   const searchParams = useSearchParams()
@@ -67,14 +69,19 @@ function ResetForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 sm:p-8 text-slate-100 relative">
-      <div className="w-full max-w-md border border-white/10 bg-[#112240] p-8 sm:p-10 relative z-10 app-fade-in">
+    <div className="flex min-h-screen items-center justify-center p-4 sm:p-8 text-foreground relative">
+      <div className="w-full max-w-md rounded-poster border-2 sm:border-4 border-border bg-panel shadow-lg p-8 sm:p-10 relative z-10 app-fade-in overflow-hidden">
+        {/* Poster corner accent */}
+        <div className="absolute -right-3 -top-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-yellow border-2 border-border pointer-events-none">
+          <Sparkle className="h-4 w-4 text-[#14120F]" />
+        </div>
+
         <div className="mb-8 space-y-3">
-          <div className="w-12 h-12 bg-white/5 border border-amber-300/30 flex items-center justify-center text-amber-300 mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-accent text-white border-2 border-border flex items-center justify-center mb-4">
             <KeyRound size={22} />
           </div>
-          <h1 className="text-2xl font-semibold text-white tracking-tight">Reset your password.</h1>
-          <p className="text-sm text-slate-500 leading-relaxed">
+          <PosterHeading as="h1" fillClassName="text-brand" className="text-2xl sm:text-3xl">Reset your password.</PosterHeading>
+          <p className="text-sm text-foreground-soft leading-relaxed">
             {step === 'email'
               ? "Enter your email and we'll send you a verification code."
               : step === 'code'
@@ -84,29 +91,29 @@ function ResetForm() {
         </div>
 
         {step === 'done' ? (
-          <div className="border border-green-500/20 bg-green-500/5 px-4 py-3 text-sm text-green-400">
+          <div className="app-alert-success px-4 py-3 text-sm font-bold">
             Password updated. Redirecting you to sign in…
           </div>
         ) : step === 'email' ? (
           <form onSubmit={handleEmailSubmit} className="space-y-5">
             <div>
-              <label className="mb-2 block text-xs font-bold text-slate-400 tracking-wide">Email</label>
+              <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all text-sm font-medium"
+                className="app-input w-full text-sm font-medium"
               />
             </div>
             {error && (
-              <div className="border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm font-medium text-red-400">{error}</div>
+              <div className="bg-brand text-white border-2 border-border rounded-xl px-4 py-3 text-sm font-bold">{error}</div>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="public-force-white w-full border border-amber-300/35 bg-amber-300 hover:bg-amber-200 text-slate-950 font-semibold uppercase tracking-[0.14em] py-4 flex items-center justify-center gap-2 transition-all disabled:opacity-60 text-sm"
+              className="app-button-primary w-full py-4 flex items-center justify-center gap-2 text-sm disabled:opacity-60"
             >
               {loading ? 'Sending…' : 'Send code'}
               {!loading && <ArrowRight size={16} />}
@@ -115,11 +122,11 @@ function ResetForm() {
         ) : (
           <form onSubmit={handleReset} className="space-y-5">
             <div>
-              <label className="mb-2 block text-xs font-bold text-slate-400 tracking-wide">Verification code</label>
+              <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Verification code</label>
               <OtpInput value={otp} onChange={setOtp} autoFocus disabled={loading} />
             </div>
             <div>
-              <label className="mb-2 block text-xs font-bold text-slate-400 tracking-wide">New password</label>
+              <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">New password</label>
               <input
                 type="password"
                 value={password}
@@ -127,11 +134,11 @@ function ResetForm() {
                 placeholder="••••••••••••"
                 required
                 minLength={8}
-                className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all font-mono tracking-widest text-lg"
+                className="app-input w-full font-mono tracking-widest text-lg"
               />
             </div>
             <div>
-              <label className="mb-2 block text-xs font-bold text-slate-400 tracking-wide">Confirm new password</label>
+              <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Confirm new password</label>
               <input
                 type="password"
                 value={confirmPassword}
@@ -139,29 +146,29 @@ function ResetForm() {
                 placeholder="••••••••••••"
                 required
                 minLength={8}
-                className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all font-mono tracking-widest text-lg"
+                className="app-input w-full font-mono tracking-widest text-lg"
               />
             </div>
 
             {error && (
-              <div className="border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm font-medium text-red-400">{error}</div>
+              <div className="bg-brand text-white border-2 border-border rounded-xl px-4 py-3 text-sm font-bold">{error}</div>
             )}
             {info && (
-              <div className="border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-sm font-medium text-amber-200">{info}</div>
+              <div className="app-alert-info px-4 py-3 text-sm font-medium">{info}</div>
             )}
 
             <button
               type="submit"
               disabled={loading || otp.length < MIN_OTP}
-              className="public-force-white w-full border border-amber-300/35 bg-amber-300 hover:bg-amber-200 text-slate-950 font-semibold uppercase tracking-[0.14em] py-4 flex items-center justify-center gap-2 transition-all disabled:opacity-60 text-sm"
+              className="app-button-primary w-full py-4 flex items-center justify-center gap-2 text-sm disabled:opacity-60"
             >
               {loading ? 'Updating…' : 'Update password'}
               {!loading && <ArrowRight size={16} />}
             </button>
 
-            <div className="text-center text-sm text-slate-500">
+            <div className="text-center font-tech text-xs text-foreground-soft">
               Didn't get a code?{' '}
-              <button type="button" onClick={() => sendCode(email)} className="text-amber-400 hover:text-amber-300 font-semibold">
+              <button type="button" onClick={() => sendCode(email)} className="text-brand hover:underline font-bold uppercase tracking-wide">
                 Resend
               </button>
             </div>
@@ -169,7 +176,7 @@ function ResetForm() {
         )}
 
         <div className="pt-6 text-center">
-          <Link href="/login" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+          <Link href="/login" className="font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground transition-colors">
             ← Back to sign in
           </Link>
         </div>

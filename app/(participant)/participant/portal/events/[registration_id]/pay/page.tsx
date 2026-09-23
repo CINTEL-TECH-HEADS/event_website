@@ -43,7 +43,7 @@ export default function PayPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-brand" />
       </div>
     )
   }
@@ -55,26 +55,26 @@ export default function PayPage() {
     <div className="mx-auto max-w-md px-4 py-10">
       <Link
         href="/participant/portal"
-        className="mb-6 inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-white"
+        className="mb-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-foreground-soft transition hover:text-foreground"
       >
         <ArrowLeft size={14} /> Back to My Events
       </Link>
 
-      <div className="border border-white/10 bg-[#0a1629] p-6">
-        <div className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-300">
+      <div className="relative overflow-hidden rounded-poster border-4 border-border bg-panel p-6 shadow-lg">
+        <div className="mb-1 flex items-center gap-2 font-tech text-[10px] font-bold uppercase tracking-widest text-brand">
           <IndianRupee size={14} /> Payment
         </div>
-        <h1 className="text-2xl font-semibold text-white">{reg?.events?.title}</h1>
+        <h1 className="font-display text-2xl uppercase leading-tight tracking-tight text-foreground">{reg?.events?.title}</h1>
 
-        <div className="mt-6 flex items-baseline justify-between border-y border-white/10 py-5">
-          <span className="text-sm text-slate-400">Amount due</span>
-          <span className="text-3xl font-bold text-white">₹{fee}</span>
+        <div className="mt-6 flex items-baseline justify-between border-y-2 border-border py-5">
+          <span className="text-sm font-bold uppercase tracking-wide text-foreground-soft">Amount due</span>
+          <span className="font-display text-3xl text-foreground">₹{fee}</span>
         </div>
 
         {alreadyPaid ? (
-          <div className="mt-6 rounded border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          <div className="mt-6 rounded-xl border-2 border-border bg-success/15 px-4 py-3 text-sm font-medium text-foreground">
             This registration is already paid.{' '}
-            <Link href={`/confirmation/${registration_id}`} className="font-semibold underline">
+            <Link href={`/confirmation/${registration_id}`} className="font-bold underline">
               View your pass
             </Link>
           </div>
@@ -83,13 +83,13 @@ export default function PayPage() {
             <button
               onClick={pay}
               disabled={paying}
-              className="mt-6 flex w-full items-center justify-center gap-2 bg-[#F5E62D] px-5 py-4 text-sm font-bold uppercase tracking-[0.12em] text-black transition hover:brightness-110 disabled:opacity-60"
+              className="app-button-primary !bg-primary-yellow !text-[#121212] mt-6 flex w-full !py-4 disabled:opacity-60"
             >
               {paying ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
               {paying ? 'Processing…' : 'Simulate successful payment'}
             </button>
-            {error && <p className="mt-3 text-sm text-red-300">{error}</p>}
-            <p className="mt-3 text-center text-xs text-slate-500">
+            {error && <p className="mt-3 text-sm font-bold text-danger">{error}</p>}
+            <p className="mt-3 text-center text-xs font-medium text-foreground-soft">
               Payment gateway integration is pending — this simulates a successful payment and issues your
               pass.
             </p>

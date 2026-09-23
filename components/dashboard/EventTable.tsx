@@ -20,13 +20,13 @@ export function EventTable({
     return (
       <div className="app-empty-state">
 
-        <p className="text-sm font-medium">
+        <p className="text-sm font-bold uppercase tracking-wide">
           No active events detected
         </p>
 
         <Link
           href="/dashboard/events/new"
-          className="mt-4 inline-flex text-sm font-semibold text-[#F5E62D] hover:text-[#FFF27A]"
+          className="mt-4 inline-flex text-sm font-bold uppercase tracking-wide text-accent transition-colors duration-200 hover:text-brand"
         >
           Initialize first event
         </Link>
@@ -53,7 +53,7 @@ export function EventTable({
 
               <div className="mb-3 flex flex-wrap items-center gap-3">
 
-                <h3 className="text-lg font-bold text-white transition group-hover:text-[#F5E62D]">
+                <h3 className="text-lg font-black uppercase tracking-tight text-foreground transition-colors duration-200 group-hover:text-accent">
                   {
                     event.title
                   }
@@ -73,13 +73,13 @@ export function EventTable({
 
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-400">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium text-foreground-soft">
 
                 <div className="flex items-center gap-1.5">
 
                   <MapPin
                     size={14}
-                    className="text-[#F5E62D]"
+                    className="text-brand"
                   />
 
                   {event.venue}
@@ -90,7 +90,7 @@ export function EventTable({
 
                   <Calendar
                     size={14}
-                    className="text-[#F5E62D]"
+                    className="text-brand"
                   />
 
                   {event.starts_at
@@ -107,7 +107,7 @@ export function EventTable({
 
                   <Users
                     size={14}
-                    className="text-[#F5E62D]"
+                    className="text-brand"
                   />
 
                   {
@@ -126,20 +126,20 @@ export function EventTable({
 
               <div className="text-right">
 
-                <div className="text-4xl font-semibold text-[#F5E62D]">
+                <div className="text-4xl font-black text-foreground">
                   {
                     event.confirmed_count
                   }
                 </div>
 
-                <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-foreground-soft">
                   Confirmed
                 </p>
 
                 {(event.waitlist_count ??
                   0) >
                   0 && (
-                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#93C5FD]">
+                  <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.12em] text-accent">
                     {
                       event.waitlist_count
                     }{' '}
@@ -149,7 +149,7 @@ export function EventTable({
 
               </div>
 
-              <span className="hidden h-10 w-10 items-center justify-center border border-[#243B72] bg-[#10224A] text-slate-400 transition group-hover:border-[#F5E62D] group-hover:text-[#F5E62D] sm:flex">
+              <span className="hidden h-10 w-10 items-center justify-center rounded-full border-2 border-border bg-panel-muted text-foreground-soft transition-all duration-200 ease-out group-hover:border-accent group-hover:text-accent sm:flex">
 
                 <ChevronRight
                   size={18}

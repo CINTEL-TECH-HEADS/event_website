@@ -1,8 +1,16 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import { Calendar, RefreshCcw, Award, Mail, LogIn } from 'lucide-react'
 import { ThemeToggle } from '@/components/public/ThemeToggle'
 import { AuthNav } from '@/components/public/AuthNav'
+import { PlanetMark } from '@/components/brand/PlanetMark'
+import { Sparkle } from '@/components/brand/Starburst'
 
+const NAV_LINKS = [
+  { href: '/events', label: 'Events', icon: Calendar, tone: 'bg-[#14120F] text-[#F5F0E3]' },
+  { href: '/resend', label: 'Resend', icon: RefreshCcw, tone: 'bg-primary-yellow text-[#14120F]', hideOnSmall: true },
+  { href: '/certificate', label: 'Certificate', icon: Award, tone: 'bg-primary-red text-white', hideOnSmall: true },
+  { href: '/contact', label: 'Contact', icon: Mail, tone: 'bg-[#14120F] text-[#F5F0E3]' },
+]
 
 export default function PublicLayout({
   children
@@ -10,52 +18,33 @@ export default function PublicLayout({
   children: React.ReactNode
 }) {
   return (
-     <div className="public-theme-shell relative flex min-h-screen flex-col overflow-hidden bg-[#07101d] text-slate-100">
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px,24px_24px]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(245,158,11,0.08),transparent)]" />
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#07101d]/94 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2 sm:gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-amber-300/40 bg-amber-300 text-sm font-bold text-slate-950 sm:h-10 sm:w-10">
-               <Image
-                  src="/Logo.png"
-                  alt="Cintel Logo"
-                  width={40}
-                  height={40}
-                  className="h-full w-full object-cover"
-                />
-            </span>
-            <div>
-              <p className="text-xs font-semibold tracking-[0.18em] text-white sm:text-sm">CINTEL EVENTS</p>
-              <p className="hidden text-xs uppercase tracking-[0.3em] text-slate-500 sm:block">PUBLIC RELEASE</p>
+     <div className="public-theme-shell relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
+      <header className="sticky top-0 z-50 border-b-2 border-border bg-background lg:border-b-4">
+        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 sm:px-6 lg:h-24 lg:px-8">
+          <Link href="/" className="group flex items-center gap-3">
+            <PlanetMark className="h-11 w-11 shrink-0 transition duration-300 group-hover:rotate-6 sm:h-12 sm:w-12" />
+            <div className="leading-none">
+              <p className="relative inline-flex items-center font-display text-xl uppercase text-primary-red text-poster-outline sm:text-2xl">
+                Cintel
+                <Sparkle className="ml-1 h-3 w-3 text-primary-yellow sm:h-4 sm:w-4" />
+              </p>
+              <p className="mt-1 font-tech text-[9px] uppercase tracking-[0.3em] text-foreground-soft sm:text-[10px]">
+                Student Association
+              </p>
             </div>
           </Link>
 
-          <nav className="flex items-center gap-1 text-sm sm:gap-2">
-            <Link
-              href="/events"
-              className="border border-transparent px-2 py-1.5 font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white sm:px-4 sm:py-2 hover:shadow-[0_0_0_1px_rgba(252,211,77,0.12),0_0_24px_rgba(250,204,21,0.18)]"
-            >
-              Events
-            </Link>
-            <Link
-              href="/resend"
-              className="hidden border border-transparent px-4 py-2 font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white sm:inline-flex"
-            >
-              Resend
-            </Link>
-            <Link
-              href="/certificate"
-              className="hidden border border-transparent px-4 py-2 font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white sm:inline-flex"
-            >
-              Certificate
-            </Link>
-            <Link
-              href="/contact"
-              className="border border-transparent px-2 py-1.5 font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white sm:px-4 sm:py-2"
-            >
-              Contact
-            </Link>
+          <nav className="flex items-center gap-1.5 sm:gap-2">
+            {NAV_LINKS.map(({ href, label, icon: Icon, tone, hideOnSmall }) => (
+              <Link
+                key={href}
+                href={href}
+                className={`${hideOnSmall ? 'hidden sm:inline-flex' : 'inline-flex'} items-center gap-1.5 rounded-full border-2 border-border px-2.5 py-1.5 font-tech text-[10px] font-bold uppercase tracking-wider shadow-sm transition duration-200 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none sm:px-4 sm:py-2 sm:text-xs ${tone}`}
+              >
+                <Icon className="h-3.5 w-3.5" strokeWidth={2.5} />
+                <span className="hidden md:inline">{label}</span>
+              </Link>
+            ))}
             <AuthNav />
             <ThemeToggle />
           </nav>
@@ -64,12 +53,26 @@ export default function PublicLayout({
 
       <main className="relative z-10 flex-1">{children}</main>
 
-      <footer className="relative z-10 border-t border-white/10 bg-[#07101d]">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <p>© {new Date().getFullYear()} Cintel Student Association</p>
+      <footer className="poster-panel relative z-10 mx-3 mb-3 overflow-hidden rounded-poster sm:mx-6 sm:mb-6 lg:mx-8">
+        <div className="relative mx-auto flex max-w-6xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-10">
+          <div className="flex items-center gap-3">
+            <PlanetMark className="h-8 w-8 shrink-0" />
+            <div className="leading-none">
+              <p className="font-display text-sm uppercase text-primary-yellow">Cintel Student Association</p>
+              <p className="mt-1.5 font-tech text-[10px] uppercase tracking-[0.3em] text-[#F5F0E3]/60">
+                &copy; {new Date().getFullYear()} &mdash; All orbits reserved
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 font-tech text-[10px] uppercase tracking-[0.3em] text-[#F5F0E3]/80">
+            <span>People</span>
+            <Sparkle className="h-2.5 w-2.5 text-primary-yellow" />
+            <span>Ideas</span>
+            <Sparkle className="h-2.5 w-2.5 text-primary-red" />
+            <span>Impact</span>
+          </div>
         </div>
       </footer>
     </div>
   )
 }
-//Added

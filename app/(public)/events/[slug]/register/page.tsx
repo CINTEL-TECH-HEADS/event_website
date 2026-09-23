@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import type { EventWithFields } from '@/types'
 import { RegistrationForm } from '@/components/public/RegistrationForm'
 import { isPast } from '@/lib/utils'
+import { Sparkle } from '@/components/brand/Starburst'
 
 // Instant join with a shared group code (known teammate).
 function JoinByCode() {
@@ -28,24 +29,24 @@ function JoinByCode() {
   }
 
   return (
-    <div className="space-y-3 rounded-2xl border border-white/10 bg-[#0f1d36] p-5">
-      <p className="text-sm text-slate-300">Have a group code from a teammate? Enter it to join instantly.</p>
+    <div className="space-y-3 rounded-2xl border-2 border-border bg-panel-muted p-5">
+      <p className="text-sm font-medium text-foreground-soft">Have a group code from a teammate? Enter it to join instantly.</p>
       <div className="flex gap-2">
         <input
           value={code}
           onChange={(e) => { setCode(e.target.value.toUpperCase()); setStatus('idle') }}
           placeholder="TEAM-XXXXX"
-          className="flex-1 rounded-2xl border border-[#243B72] bg-[#07101f] px-4 py-3 font-mono text-sm tracking-widest text-white outline-none focus:border-[#F5E62D]"
+          className="app-input flex-1 font-mono tracking-widest"
         />
         <button
           onClick={join}
           disabled={!code || status === 'loading'}
-          className="rounded-2xl bg-[#F5E62D] px-5 text-sm font-bold text-black transition hover:brightness-110 disabled:opacity-50"
+          className="app-button-primary disabled:opacity-50"
         >
           {status === 'loading' ? 'Joining…' : 'Join'}
         </button>
       </div>
-      {status === 'error' && <p className="text-sm text-red-300">{message}</p>}
+      {status === 'error' && <p className="text-sm font-bold text-danger">{message}</p>}
     </div>
   )
 }
@@ -120,9 +121,9 @@ export default function RegisterPage() {
   if (loading) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4">
-        <div className="rounded-3xl border border-white/10 bg-white/5 px-8 py-10 text-center shadow-sm backdrop-blur">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
-          <p className="mt-4 text-sm text-slate-400">Loading registration form...</p>
+        <div className="app-empty-state">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+          <p className="mt-4 text-sm font-bold uppercase tracking-wider text-foreground-soft">Loading registration form...</p>
         </div>
       </div>
     )
@@ -131,7 +132,7 @@ export default function RegisterPage() {
   if (error || !event) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4">
-        <div className="w-full rounded-3xl border border-red-200 bg-red-50 p-8 text-center text-red-700">
+        <div className="w-full rounded-2xl border-2 border-border bg-danger p-8 text-center text-sm font-bold text-white lg:border-4">
           {error ?? 'Event not found'}
         </div>
       </div>
@@ -142,39 +143,34 @@ export default function RegisterPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="space-y-6 border border-white/10 bg-[#0a1629] p-6 sm:p-8">
+      <div className="relative space-y-6 rounded-poster border-2 border-border bg-panel p-6 shadow-lg sm:p-8 lg:border-4">
+        <Sparkle className="absolute right-6 top-6 h-5 w-5 text-primary-yellow" />
         <div className="space-y-3">
-          <span className="inline-flex rounded-full border border-amber-300/25 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-amber-200">
-            Registration
-          </span>
-          <div className="h-px w-24 bg-[linear-gradient(90deg,rgba(245,158,11,0.8),rgba(245,158,11,0))]" />
+          <span className="app-badge app-badge-warning">Registration</span>
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <h1 className="font-display text-2xl uppercase leading-[0.95] tracking-tight text-foreground sm:text-4xl">
               Register for {event.title}
             </h1>
-            <p className="max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+            <p className="max-w-2xl text-sm font-medium leading-relaxed text-foreground-soft sm:text-base">
               Enter your details below. The form adjusts automatically based on this event&apos;s registration mode and custom fields.
             </p>
           </div>
         </div>
 
         {closed ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <div className="rounded-2xl border-2 border-border bg-danger px-4 py-3 text-sm font-bold text-white">
             Registration is closed for this event.
           </div>
         ) : null}
 
         {alreadyRegistered ? (
-          <div className="space-y-4 rounded-2xl border border-emerald-300/25 bg-emerald-400/10 px-5 py-6 text-center">
-            <p className="text-lg font-semibold text-white">You&apos;re already registered</p>
-            <p className="text-sm text-emerald-100/80">
+          <div className="space-y-4 rounded-2xl border-2 border-border bg-panel-muted px-5 py-6 text-center">
+            <p className="text-lg font-black uppercase text-foreground">You&apos;re already registered</p>
+            <p className="text-sm font-medium text-foreground-soft">
               You have already registered for this event. You can view your registration and QR code in
               your portal.
             </p>
-            <Link
-              href="/participant/portal"
-              className="inline-flex items-center justify-center rounded-2xl border border-emerald-300/35 bg-emerald-400/20 px-5 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-400/30"
-            >
+            <Link href="/participant/portal" className="app-button-success">
               View in Portal
             </Link>
           </div>
@@ -197,10 +193,10 @@ export default function RegisterPage() {
                     key={p}
                     type="button"
                     onClick={() => setParticipation(p)}
-                    className={`rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
+                    className={`rounded-xl border-2 px-3 py-3 text-sm font-bold uppercase tracking-wide transition duration-200 ${
                       part === p
-                        ? 'border-amber-300/40 bg-amber-300/15 text-amber-100'
-                        : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                        ? 'border-border bg-warning text-foreground shadow-sm'
+                        : 'border-border bg-panel-muted text-foreground-soft hover:bg-panel'
                     }`}
                   >
                     {label}
@@ -211,8 +207,8 @@ export default function RegisterPage() {
 
             {/* Prompt to pick for `both` before showing a form */}
             {event.registration_mode === 'both' && part === null && !closed ? (
-              <p className="rounded-2xl border border-white/10 bg-[#0f1d36] px-4 py-4 text-sm text-slate-300">
-                This event allows both solo and team entries — choose how you&apos;d like to register.
+              <p className="rounded-2xl border-2 border-border bg-panel-muted px-4 py-4 text-sm font-medium text-foreground-soft">
+                This event allows both solo and team entries &mdash; choose how you&apos;d like to register.
               </p>
             ) : part === 'team' ? (
               <>
@@ -228,10 +224,10 @@ export default function RegisterPage() {
                         key={m}
                         type="button"
                         onClick={() => setMode(m)}
-                        className={`rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
+                        className={`rounded-xl border-2 px-3 py-3 text-sm font-bold uppercase tracking-wide transition duration-200 ${
                           mode === m
-                            ? 'border-amber-300/40 bg-amber-300/15 text-amber-100'
-                            : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                            ? 'border-border bg-warning text-foreground shadow-sm'
+                            : 'border-border bg-panel-muted text-foreground-soft hover:bg-panel'
                         }`}
                       >
                         {label}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Timer } from 'lucide-react'
 
 function getCountdownLabel(closesAt: string) {
   const diff = new Date(closesAt).getTime() - Date.now()
@@ -25,9 +26,14 @@ export function CountdownTimer({ closesAt }: { closesAt: string }) {
   }, [closesAt])
 
   return (
-    <div className="rounded-xl border border-blue-300/20 bg-[#101b33] px-4 py-4 text-sm font-medium text-blue-200">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-100">Countdown</p>
-      <p className="mt-2 text-base font-semibold text-blue-200">{label}</p>
+    <div className="flex items-center gap-3 rounded-2xl border-2 border-border bg-accent-soft px-4 py-4">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-border bg-accent text-white">
+        <Timer className="h-4 w-4" strokeWidth={2.5} />
+      </span>
+      <div>
+        <p className="font-tech text-[11px] font-bold uppercase tracking-widest text-accent">Countdown</p>
+        <p className="mt-1 text-sm font-bold text-foreground">{label}</p>
+      </div>
     </div>
   )
 }

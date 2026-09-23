@@ -3,6 +3,7 @@
 // TODO: Implement upload logic using supabase.storage.from('uploads').upload(...)
 'use client'
 import { useState } from 'react'
+import { UploadCloud } from 'lucide-react'
 
 interface Props {
   fieldId: string
@@ -31,13 +32,22 @@ export function FileUploadField({ fieldId, label, allowedTypes, maxSizeMb = 10, 
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <input type="file" onChange={handleChange}
-        accept={allowedTypes?.join(',') ?? '*'}
-        className="text-sm" />
-      {status === 'uploading' && <p className="text-xs text-gray-400 mt-1">Uploading...</p>}
-      {status === 'done'      && <p className="text-xs text-green-600 mt-1">Uploaded</p>}
-      {error                  && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-foreground-soft">{label}</label>
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-4 border-dashed border-border bg-panel-muted px-4 py-6 text-center transition duration-200 hover:border-brand">
+        <UploadCloud className="h-6 w-6 text-foreground-soft" strokeWidth={2.5} />
+        <span className="text-xs font-bold uppercase tracking-widest text-foreground-soft">
+          Click to choose a file
+        </span>
+        <input
+          type="file"
+          onChange={handleChange}
+          accept={allowedTypes?.join(',') ?? '*'}
+          className="hidden"
+        />
+      </label>
+      {status === 'uploading' && <p className="mt-1 text-xs font-medium text-foreground-soft">Uploading...</p>}
+      {status === 'done'      && <p className="mt-1 text-xs font-medium text-success">Uploaded</p>}
+      {error                  && <p className="mt-1 text-xs font-medium text-danger">{error}</p>}
     </div>
   )
 }

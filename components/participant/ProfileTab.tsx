@@ -85,24 +85,23 @@ export function ProfileTab() {
   }
 
   if (loading) {
-    return <div className="py-16 text-center text-sm text-slate-400">Loading your profile…</div>
+    return <div className="py-16 text-center text-sm font-bold uppercase tracking-widest text-foreground-soft">Loading your profile…</div>
   }
 
-  const inputCls =
-    'w-full bg-[#0a1629] border border-white/10 px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition disabled:opacity-70'
+  const inputCls = 'app-input disabled:opacity-70'
 
   return (
-    <div className="bg-[#0a1629] border border-white/10 p-6 sm:p-8 max-w-2xl">
-      <div className="flex items-center justify-between mb-6">
+    <div className="rounded-poster border-4 border-border bg-panel p-6 shadow-lg sm:p-8 max-w-2xl">
+      <div className="flex items-center justify-between mb-6 border-b-2 border-border pb-4">
         <div className="flex items-center gap-2">
-          <CircleUser size={18} className="text-amber-300" />
-          <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300">My Profile</h2>
+          <CircleUser size={18} className="text-brand" />
+          <h2 className="font-display text-sm uppercase tracking-widest text-foreground">My Profile</h2>
         </div>
         {!editing && (
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-300 hover:text-amber-200"
+            className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-brand hover:text-foreground"
           >
             <Pencil size={13} /> Edit
           </button>
@@ -112,7 +111,7 @@ export function ProfileTab() {
       <div className="grid gap-4 sm:grid-cols-2">
         {TEXT_FIELDS.map(({ key, label }) => (
           <div key={key}>
-            <label className="mb-1.5 block text-xs font-bold text-slate-400 tracking-wide">{label}</label>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-foreground-soft">{label}</label>
             <input
               value={(form[key] as string) ?? ''}
               onChange={(e) => set(key, e.target.value)}
@@ -124,23 +123,23 @@ export function ProfileTab() {
         ))}
 
         <div>
-          <label className="mb-1.5 block text-xs font-bold text-slate-400 tracking-wide">Year of Study</label>
-          <select value={form.year_of_study ?? ''} onChange={(e) => set('year_of_study', e.target.value)} disabled={!editing} className={inputCls}>
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-foreground-soft">Year of Study</label>
+          <select value={form.year_of_study ?? ''} onChange={(e) => set('year_of_study', e.target.value)} disabled={!editing} className="app-select disabled:opacity-70">
             <option value="">—</option>
             {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-bold text-slate-400 tracking-wide">Batch</label>
-          <select value={form.batch ?? ''} onChange={(e) => set('batch', e.target.value)} disabled={!editing} className={inputCls}>
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-foreground-soft">Batch</label>
+          <select value={form.batch ?? ''} onChange={(e) => set('batch', e.target.value)} disabled={!editing} className="app-select disabled:opacity-70">
             <option value="">—</option>
             {BATCHES.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-bold text-slate-400 tracking-wide">Section</label>
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-foreground-soft">Section</label>
           <input
             value={form.section ?? ''}
             onChange={(e) => set('section', e.target.value)}
@@ -152,14 +151,15 @@ export function ProfileTab() {
       </div>
 
       {/* Networking — shown to teams in Find Teammates */}
-      <div className="mt-6 border-t border-white/10 pt-6">
-        <p className="mb-4 text-xs font-bold uppercase tracking-widest text-amber-300">
+      <div className="mt-6 border-t-2 border-border pt-6">
+        <p className="mb-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent">
+          <span aria-hidden className="h-2 w-2 rotate-45 bg-accent" />
           Networking (Find Teammates)
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           {NETWORK_FIELDS.map(({ key, label, placeholder }) => (
             <div key={key}>
-              <label className="mb-1.5 block text-xs font-bold text-slate-400 tracking-wide">{label}</label>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-foreground-soft">{label}</label>
               <input
                 value={(form[key] as string) ?? ''}
                 onChange={(e) => set(key, e.target.value)}
@@ -173,13 +173,13 @@ export function ProfileTab() {
       </div>
 
       {msg && (
-        <div className="mt-5 inline-flex items-center gap-2 border border-amber-300/20 bg-amber-300/5 px-4 py-2 text-sm text-amber-200">
+        <div className="mt-5 inline-flex items-center gap-2 rounded-full border-2 border-border bg-primary-yellow px-4 py-2 text-sm font-bold text-[#121212]">
           <Check size={14} /> {msg}
         </div>
       )}
 
       <div className="mt-6 flex items-center justify-between">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs font-medium text-foreground-soft">
           {exists && updatedAt ? `Last updated: ${formatShortDate(updatedAt)}` : 'Not saved yet'}
         </p>
         {editing && (
@@ -187,7 +187,7 @@ export function ProfileTab() {
             type="button"
             onClick={save}
             disabled={saving}
-            className="public-force-white border border-amber-300/35 bg-amber-300 hover:bg-amber-200 text-slate-950 font-semibold uppercase tracking-[0.14em] px-5 py-2.5 text-sm transition disabled:opacity-60"
+            className="app-button-primary disabled:opacity-60"
           >
             {saving ? 'Saving…' : 'Save Changes'}
           </button>

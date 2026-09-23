@@ -331,7 +331,7 @@ export function FormFieldBuilder({
 
   if (loading) {
     return (
-      <div className="text-sm text-slate-400">
+      <div className="text-sm font-bold uppercase tracking-wide text-foreground-soft">
         Loading custom fields...
       </div>
     )
@@ -341,17 +341,17 @@ export function FormFieldBuilder({
     <div className="space-y-4">
 
       {/* List */}
-      <section className="app-panel  p-5 sm:p-6">
+      <section className="app-panel p-5 sm:p-6">
 
         <div className="mb-5 flex items-center justify-between gap-4">
 
           <div>
 
-            <h2 className="text-xl font-semibold text-white">
+            <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
               Custom Fields
             </h2>
 
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm font-medium text-foreground-soft">
               Add extra questions
               for registrations
               and members.
@@ -385,8 +385,8 @@ export function FormFieldBuilder({
           )
           if (available.length === 0) return null
           return (
-            <div className="mb-5 border border-[#243B72] bg-[#0B1736] p-4">
-              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+            <div className="mb-5 rounded-xl border-2 border-border bg-warning-soft p-4">
+              <p className="mb-3 font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">
                 Standard fields — pre-fill from the participant&apos;s profile
               </p>
               <div className="flex flex-wrap gap-2">
@@ -396,7 +396,7 @@ export function FormFieldBuilder({
                     type="button"
                     disabled={saving}
                     onClick={() => addStandardField(sf)}
-                    className="inline-flex items-center gap-1.5 border border-amber-300/25 bg-amber-300/5 px-3 py-1.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-300/10 disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-full border-2 border-border bg-panel px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-foreground shadow-sm transition-all duration-200 ease-out hover:bg-warning disabled:opacity-50"
                   >
                     <PlusCircle size={13} /> {sf.label}
                   </button>
@@ -408,7 +408,7 @@ export function FormFieldBuilder({
 
         {fields.length ===
         0 ? (
-          <div className=" border border-dashed border-[#243B72] bg-[#0B1736] p-6 text-sm text-slate-400">
+          <div className="app-empty-state">
             No custom fields
             yet.
           </div>
@@ -424,12 +424,12 @@ export function FormFieldBuilder({
                   key={
                     field.id
                   }
-                  className="flex flex-col gap-4  border border-[#243B72] bg-[#10224A] p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4 rounded-xl border-2 border-border bg-panel-muted p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
 
                   <div>
 
-                    <p className="font-semibold text-white">
+                    <p className="font-bold text-foreground">
                       {
                         field.label
                       }
@@ -443,7 +443,7 @@ export function FormFieldBuilder({
                         }
                       </span>
 
-                      <span className="rounded-full bg-[#0B1736] px-3 py-1 text-xs font-semibold text-[#93C5FD]">
+                      <span className="app-badge bg-accent text-white">
                         {
                           field.applies_to
                         }
@@ -500,7 +500,7 @@ export function FormFieldBuilder({
                           field
                         )
                       }
-                      className="app-button-secondary px-3 py-3 text-[#F5E62D]"
+                      className="app-button-secondary px-3 py-3"
                     >
                       <Edit2 size={16} />
                     </button>
@@ -511,7 +511,7 @@ export function FormFieldBuilder({
                           field.id
                         )
                       }
-                      className="app-button-secondary px-3 py-3 text-red-400"
+                      className="app-button-danger px-3 py-3"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -530,9 +530,9 @@ export function FormFieldBuilder({
       {/* Form */}
       {(editingId ||
         showAddForm) && (
-        <section className="app-panel  p-5 sm:p-6">
+        <section className="app-panel p-5 sm:p-6">
 
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="text-lg font-black uppercase tracking-tight text-foreground">
             {editingId
               ? 'Edit Field'
               : 'Add New Field'}
@@ -542,7 +542,7 @@ export function FormFieldBuilder({
 
             <div>
 
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
+              <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">
                 Label
               </label>
 
@@ -570,7 +570,7 @@ export function FormFieldBuilder({
 
               <div>
 
-                <label className="mb-2 block text-sm font-semibold text-slate-300">
+                <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">
                   Field Type
                 </label>
 
@@ -614,7 +614,7 @@ export function FormFieldBuilder({
 
               <div>
 
-                <label className="mb-2 block text-sm font-semibold text-slate-300">
+                <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">
                   Applies To
                 </label>
 
@@ -651,7 +651,7 @@ export function FormFieldBuilder({
             {/* Accepted file types — only for file/upload fields */}
             {editForm.field_type === 'file' && (
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-300">
+                <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">
                   Accepted files
                 </label>
                 <select
@@ -683,10 +683,11 @@ export function FormFieldBuilder({
               </div>
             )}
 
-            <label className="flex items-center gap-3  border border-[#243B72] bg-[#0B1736] px-4 py-3 text-sm font-medium text-slate-300">
+            <label className="flex items-center gap-3 rounded-xl border-2 border-border bg-panel-muted px-4 py-3 text-sm font-bold uppercase tracking-wide text-foreground">
 
               <input
                 type="checkbox"
+                className="h-4 w-4 accent-accent"
                 checked={
                   editForm.is_required
                 }
@@ -706,7 +707,7 @@ export function FormFieldBuilder({
 
             </label>
 
-            <div className="flex flex-wrap gap-3 border-t border-[#243B72] pt-5">
+            <div className="flex flex-wrap gap-3 border-t-2 border-border pt-5">
 
               <button
                 onClick={
@@ -731,7 +732,7 @@ export function FormFieldBuilder({
                     false
                   )
                 }}
-                className=" border border-[#243B72] px-4 py-2 text-slate-300 hover:bg-[#0B1736]"
+                className="rounded-full border-2 border-border px-4 py-2 text-sm font-bold uppercase tracking-wide text-foreground-soft transition-all duration-200 ease-out hover:bg-panel-muted hover:text-foreground"
               >
                 Cancel
               </button>

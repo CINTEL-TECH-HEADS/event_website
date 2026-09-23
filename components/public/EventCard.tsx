@@ -2,55 +2,73 @@ import Link from 'next/link'
 import type { Event } from '@/types'
 import { formatShortDate } from '@/lib/utils'
 import { CapacityBadge } from './CapacityBadge'
+import { RockShape } from '@/components/brand/RockShape'
+import { Sparkle } from '@/components/brand/Starburst'
 
 type PublicEvent = Event & {
   confirmed_count: number
   waitlist_count?: number
 }
 
-export function EventCard({ event }: { event: PublicEvent }) {
+const ACCENTS = ['#D6294C', '#14120F', '#F2C230']
+const ROCK_VARIANTS = [1, 2, 3] as const
+
+export function EventCard({ event, accentIndex = 0 }: { event: PublicEvent; accentIndex?: number }) {
+  const accent = ACCENTS[accentIndex % ACCENTS.length]
+  const rockVariant = ROCK_VARIANTS[accentIndex % ROCK_VARIANTS.length]
+
   return (
     <Link
       href={`/events/${event.slug}`}
-      className="group overflow-hidden border border-white/10 bg-[#0a1629] transition duration-300 hover:border-amber-300/25"
+      className="group relative block overflow-hidden rounded-poster border-2 border-border bg-panel shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-lg lg:border-4"
     >
-      <div className="relative h-48 overflow-hidden border-b border-white/10 bg-[#112240]">
+      {/* Decorative corner accent, rotated 1-in-3 */}
+      {accentIndex % 3 === 1 ? (
+        <Sparkle className="absolute right-3 top-3 z-10 h-6 w-6" color={accent} />
+      ) : (
+        <RockShape
+          variant={rockVariant}
+          fill={accent}
+          className={`absolute right-3 top-3 z-10 h-7 w-7 ${accentIndex % 3 === 0 ? 'rotate-[12deg]' : '-rotate-6'}`}
+        />
+      )}
+
+      <div className="relative h-48 overflow-hidden border-b-2 border-border bg-panel-muted lg:border-b-4">
         {event.banner_url ? (
           <img
             src={event.banner_url}
             alt={event.title}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover grayscale transition duration-300 group-hover:scale-[1.03] group-hover:grayscale-0"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm font-medium text-slate-200">
+          <div className="flex h-full items-center justify-center font-tech text-xs font-bold uppercase tracking-wider text-foreground-soft">
             Event banner coming soon
           </div>
         )}
 
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,17,31,0.06),rgba(9,17,31,0.72))]" />
-        <span className="absolute left-4 top-4 border border-amber-300/30 bg-[#07101d]/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-200">
+        <span className="absolute left-4 top-4 rounded-full border-2 border-border bg-panel px-3 py-1 font-tech text-[10px] font-bold uppercase tracking-widest text-foreground">
           {event.event_type}
         </span>
-        <div className="absolute bottom-4 left-4 border-l-2 border-amber-300 bg-[#07101d]/80 px-3 py-2 text-white">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-amber-100">Starts</p>
-          <p className="mt-1 text-sm font-semibold">{formatShortDate(event.starts_at)}</p>
+        <div className="absolute bottom-0 left-0 rounded-tr-2xl border-r-2 border-t-2 border-border bg-foreground px-3 py-2 text-background">
+          <p className="font-tech text-[9px] font-bold uppercase tracking-widest opacity-70">Starts</p>
+          <p className="mt-1 font-display text-sm">{formatShortDate(event.starts_at)}</p>
         </div>
       </div>
 
       <div className="space-y-4 p-5">
         <div className="space-y-2">
-          <h2 className="line-clamp-2 text-xl font-semibold tracking-tight text-white transition group-hover:text-amber-200">
+          <h2 className="line-clamp-2 text-xl font-black uppercase leading-tight tracking-tight text-foreground transition duration-200 group-hover:text-brand">
             {event.title}
           </h2>
-          <div className="space-y-1 text-sm text-slate-300">
+          <div className="space-y-1 text-sm font-medium text-foreground-soft">
             <p className="line-clamp-1">{event.venue}</p>
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-4">
+        <div className="flex items-center justify-between gap-3 border-t-2 border-border pt-4">
           <CapacityBadge event={event} />
-          <span className="text-sm font-semibold text-amber-200 transition group-hover:translate-x-1">
-            View event
+          <span className="font-tech text-xs font-bold uppercase tracking-widest text-brand transition duration-200 group-hover:translate-x-1">
+            View &rarr;
           </span>
         </div>
       </div>

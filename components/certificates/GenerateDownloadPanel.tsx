@@ -282,21 +282,21 @@ export function GenerateDownloadPanel({
   return (
     <div className="space-y-6">
       {/* Step 3: Post Certificates (Release to Participant Portal) */}
-      <section className="border border-[#243B72] bg-[#0B1736] p-6 space-y-4">
+      <section className="app-panel-muted space-y-4 p-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <span className="rounded-none bg-[#F5E62D]/10 px-3 py-1 text-xs font-semibold text-[#F5E62D] uppercase tracking-wider">
+            <span className="app-badge app-badge-warning">
               Step 3
             </span>
-            <h2 className="mt-2 text-lg font-bold text-white">Post Certificates (Release to Participants)</h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <h2 className="mt-2 text-lg font-black uppercase tracking-tight text-foreground">Post Certificates (Release to Participants)</h2>
+            <p className="mt-1 text-xs font-medium text-foreground-soft">
               Publishing certificates makes them visible to participants in their dashboard and activates public QR code verification.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             {releasedAt ? (
-              <div className="inline-flex items-center gap-2 border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-emerald-400">
+              <div className="app-badge app-badge-success">
                 <CheckCircle2 size={16} />
                 <span>Certificates Posted ({new Date(releasedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })})</span>
               </div>
@@ -305,7 +305,7 @@ export function GenerateDownloadPanel({
             <button
               onClick={handlePostCertificates}
               disabled={posting}
-              className="inline-flex items-center justify-center gap-2 bg-emerald-500 px-6 py-3 text-sm font-bold uppercase tracking-wider text-slate-950 hover:bg-emerald-400 disabled:opacity-50"
+              className="app-button-success text-sm disabled:opacity-50"
             >
               {posting ? (
                 <Loader2 size={16} className="animate-spin" />
@@ -319,14 +319,14 @@ export function GenerateDownloadPanel({
       </section>
 
       {/* Step 4: Batch Certificate Export (ZIP) */}
-      <section className="border border-[#243B72] bg-[#0B1736] p-6 space-y-4">
+      <section className="app-panel-muted space-y-4 p-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <span className="rounded-none bg-[#F5E62D]/10 px-3 py-1 text-xs font-semibold text-[#F5E62D] uppercase tracking-wider">
+            <span className="app-badge app-badge-warning">
               Step 4
             </span>
-            <h2 className="mt-2 text-lg font-bold text-white">Batch Certificate Export (ZIP)</h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <h2 className="mt-2 text-lg font-black uppercase tracking-tight text-foreground">Batch Certificate Export (ZIP)</h2>
+            <p className="mt-1 text-xs font-medium text-foreground-soft">
               Renders full-resolution PNG certificates for all eligible checked-in attendees and packages them into a single ZIP file.
               Templates are automatically selected based on registration type (Solo/Team) and assigned certificate type.
             </p>
@@ -335,7 +335,7 @@ export function GenerateDownloadPanel({
           <button
             onClick={handleDownloadAllZip}
             disabled={generating}
-            className="inline-flex items-center justify-center gap-2 bg-[#F5E62D] px-6 py-3 text-sm font-bold uppercase tracking-wider text-[#0B1736] hover:bg-[#FFF27A] disabled:opacity-50"
+            className="app-button-primary text-sm disabled:opacity-50"
           >
             {generating ? (
               <Loader2 size={16} className="animate-spin" />
@@ -347,36 +347,36 @@ export function GenerateDownloadPanel({
         </div>
 
         {errorNotice && (
-          <div className="flex items-start gap-2 border border-amber-500/40 bg-amber-500/10 p-4 text-xs text-amber-200">
-            <AlertTriangle size={16} className="shrink-0 text-amber-400 mt-0.5" />
+          <div className="app-alert-warning flex items-start gap-2">
+            <AlertTriangle size={16} className="mt-0.5 shrink-0 text-warning" />
             <span>{errorNotice}</span>
           </div>
         )}
 
         {progress && (
-          <div className="border border-[#243B72] bg-[#10224A] p-4 space-y-3">
-            <div className="flex items-center justify-between text-xs font-semibold">
-              <span className="text-white">{progress.statusText}</span>
-              <span className="text-[#F5E62D]">
+          <div className="rounded-xl border-2 border-border bg-panel p-4 space-y-3">
+            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider">
+              <span className="text-foreground">{progress.statusText}</span>
+              <span className="text-warning">
                 {Math.round((progress.processed / (progress.total || 1)) * 100)}%
               </span>
             </div>
 
             {/* Progress bar */}
-            <div className="h-2 w-full overflow-hidden bg-[#070E1E]">
+            <div className="h-2 w-full overflow-hidden rounded-full border-2 border-border bg-panel-muted">
               <div
-                className="h-full bg-[#F5E62D] transition-all duration-200"
+                className="h-full bg-warning transition-all duration-200"
                 style={{
                   width: `${(progress.processed / (progress.total || 1)) * 100}%`,
                 }}
               />
             </div>
 
-            <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-300">
+            <div className="flex flex-wrap gap-4 text-xs font-mono font-medium text-foreground-soft">
               <span>Total: {progress.total}</span>
-              <span className="text-emerald-400">Succeeded: {progress.succeeded}</span>
-              <span className="text-slate-500">Skipped (Not Eligible): {progress.skipped}</span>
-              {progress.failed > 0 && <span className="text-red-400">Failed: {progress.failed}</span>}
+              <span className="text-success">Succeeded: {progress.succeeded}</span>
+              <span className="text-foreground-soft">Skipped (Not Eligible): {progress.skipped}</span>
+              {progress.failed > 0 && <span className="text-brand">Failed: {progress.failed}</span>}
             </div>
           </div>
         )}

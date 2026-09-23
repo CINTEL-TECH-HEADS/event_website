@@ -19,13 +19,13 @@ export default function RegistrationDetailPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center py-32">
-      <div className="w-10 h-10 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
+      <div className="w-10 h-10 border-4 border-border border-t-brand rounded-full animate-spin" />
     </div>
   )
 
   if (!reg) return (
     <div className="flex items-center justify-center py-32">
-      <p className="text-red-400">Registration not found</p>
+      <p className="font-bold text-danger">Registration not found</p>
     </div>
   )
 
@@ -35,56 +35,56 @@ export default function RegistrationDetailPage() {
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
-      <Link href="/participant/portal" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors mb-6">
+      <Link href="/participant/portal" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground transition-colors mb-6">
         <ArrowLeft size={14} /> Back to My Events
       </Link>
 
       {/* Event Info */}
-      <div className="bg-slate-900/80 border border-white/10  p-6 mb-4">
-        <span className="text-xs font-bold text-amber-400 uppercase tracking-widest mb-2 block">
+      <div className="relative overflow-hidden rounded-poster border-4 border-border bg-panel p-6 mb-4 shadow-lg">
+        <span className="mb-2 block font-tech text-[10px] font-bold uppercase tracking-widest text-brand">
           {event?.event_type}
         </span>
-        <h1 className="text-2xl font-semibold text-white mb-4">{event?.title}</h1>
+        <h1 className="font-display text-2xl uppercase leading-tight tracking-tight text-foreground mb-4">{event?.title}</h1>
 
         <div className="space-y-2">
           {event?.starts_at && (
-            <div className="flex items-center gap-2 text-sm text-slate-300">
-              <Calendar size={14} className="text-amber-400 shrink-0" />
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Calendar size={14} className="text-brand shrink-0" />
               {formatEventDate(event.starts_at)}
             </div>
           )}
           {event?.venue && (
-            <div className="flex items-center gap-2 text-sm text-slate-300">
-              <MapPin size={14} className="text-amber-400 shrink-0" />
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <MapPin size={14} className="text-brand shrink-0" />
               {event.venue}
             </div>
           )}
-          <div className="flex items-center gap-2 text-sm text-slate-300">
-            <Hash size={14} className="text-amber-400 shrink-0" />
-            <span className="font-mono font-bold text-white">{reg.display_id}</span>
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Hash size={14} className="text-brand shrink-0" />
+            <span className="font-mono font-bold text-foreground">{reg.display_id}</span>
           </div>
         </div>
 
         {/* Status badges */}
         <div className="flex flex-wrap gap-2 mt-4">
           {reg.status === 'waitlisted' && (
-            <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
-              ⏳ Waitlisted — position #{reg.waitlist_position}
+            <span className="app-badge-warning app-badge">
+              Waitlisted — position #{reg.waitlist_position}
             </span>
           )}
           {reg.status === 'confirmed' && !attended && (
-            <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
-              ✓ Confirmed
+            <span className="app-badge-neutral app-badge">
+              Confirmed
             </span>
           )}
           {attended && (
-            <span className="text-xs font-bold text-green-400 bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-full">
-              ✓ Attended
+            <span className="app-badge-success app-badge">
+              Attended
             </span>
           )}
           {hasCert && (
-            <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
-              🎓 Certificate Ready
+            <span className="app-badge-warning app-badge">
+              Certificate Ready
             </span>
           )}
         </div>
@@ -94,42 +94,42 @@ export default function RegistrationDetailPage() {
       <div className="grid grid-cols-2 gap-3 mb-4">
         <Link
           href={`/participant/portal/events/${registration_id}/qr`}
-          className="bg-white text-slate-950  p-4 text-center font-bold hover:bg-slate-100 transition-colors flex flex-col items-center gap-2"
+          className="app-button-secondary !rounded-2xl !bg-panel !text-foreground !border-4 !flex-col !py-4 gap-2"
         >
-          <QrCode size={22} className="text-amber-500" />
-          <span className="text-sm">My QR Code</span>
+          <QrCode size={22} className="text-accent" />
+          <span className="text-sm normal-case">My QR Code</span>
         </Link>
 
         {reg.registration_type === 'team' && reg.is_leader && (
           <Link
             href={`/participant/portal/events/${registration_id}/team`}
-            className="bg-slate-800 border border-white/10 text-white  p-4 text-center font-bold hover:bg-[#112240] transition-colors flex flex-col items-center gap-2"
+            className="app-button-secondary !rounded-2xl !bg-panel-muted !text-foreground !border-4 !flex-col !py-4 gap-2"
           >
-            <Users size={22} className="text-amber-300" />
-            <span className="text-sm">Manage Team</span>
+            <Users size={22} className="text-accent" />
+            <span className="text-sm normal-case">Manage Team</span>
           </Link>
         )}
 
         <Link
           href={`/participant/portal/events/${registration_id}/certificate`}
-          className={`bg-slate-800 border  p-4 text-center font-bold transition-colors flex flex-col items-center gap-2 ${
-            hasCert ? 'border-amber-500/30 text-amber-200 hover:bg-[#112240]' : 'border-white/10 text-slate-300 hover:bg-[#112240]'
+          className={`app-button-secondary !rounded-2xl !border-4 !flex-col !py-4 gap-2 ${
+            hasCert ? '!bg-primary-yellow !text-[#121212]' : '!bg-panel-muted !text-foreground'
           }`}
         >
-          <Award size={22} className={hasCert ? 'text-amber-300' : 'text-slate-500'} />
-          <span className="text-sm">Certificate</span>
+          <Award size={22} className={hasCert ? 'text-[#121212]' : 'text-foreground-soft'} />
+          <span className="text-sm normal-case">Certificate</span>
         </Link>
       </div>
 
       {/* Registration Answers */}
       {reg.answers?.length > 0 && (
-        <div className="bg-slate-900/80 border border-white/10  p-6 mb-4">
-          <h2 className="font-semibold text-white mb-4">Your Answers</h2>
+        <div className="rounded-poster border-4 border-border bg-panel p-6 mb-4 shadow-md">
+          <h2 className="font-display text-sm uppercase tracking-wide text-foreground mb-4">Your Answers</h2>
           <div className="space-y-4">
             {reg.answers.map((a: any) => (
-              <div key={a.id} className="border-b border-white/5 pb-3 last:border-0 last:pb-0">
-                <p className="text-xs text-slate-500 mb-1">{a.form_fields?.label}</p>
-                <p className="text-sm text-white font-medium">{a.answer}</p>
+              <div key={a.id} className="border-b-2 border-border pb-3 last:border-0 last:pb-0">
+                <p className="text-xs font-bold uppercase tracking-wide text-foreground-soft mb-1">{a.form_fields?.label}</p>
+                <p className="text-sm text-foreground font-medium">{a.answer}</p>
               </div>
             ))}
           </div>
@@ -138,19 +138,19 @@ export default function RegistrationDetailPage() {
 
       {/* Team Members */}
       {reg.members?.length > 0 && (
-        <div className="bg-slate-900/80 border border-white/10  p-6">
-          <h2 className="font-semibold text-white mb-4">Team Members</h2>
+        <div className="rounded-poster border-4 border-border bg-panel p-6 shadow-md">
+          <h2 className="font-display text-sm uppercase tracking-wide text-foreground mb-4">Team Members</h2>
           <div className="space-y-3">
             {reg.members.map((m: any) => (
-              <div key={m.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+              <div key={m.id} className="flex items-center justify-between py-2 border-b-2 border-border last:border-0">
                 <div>
-                  <p className="text-sm font-bold text-white">
+                  <p className="text-sm font-bold text-foreground">
                     {m.full_name}
                     {m.is_leader && (
-                      <span className="ml-2 text-xs text-amber-400 font-bold">Leader</span>
+                      <span className="ml-2 text-xs text-brand font-bold">Leader</span>
                     )}
                   </p>
-                  <p className="text-xs text-slate-400">{m.email}</p>
+                  <p className="text-xs text-foreground-soft">{m.email}</p>
                 </div>
               </div>
             ))}

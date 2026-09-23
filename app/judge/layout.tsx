@@ -17,14 +17,17 @@ export default async function JudgeLayout({ children }: { children: React.ReactN
   return (
     <>
       <SessionGuard />
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#07101d]/94 backdrop-blur">
+      <header className="sticky top-0 z-50 border-b-2 border-border bg-panel sm:border-b-4">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <span className="text-sm font-semibold tracking-[0.18em] text-white">CINTEL · JUDGING</span>
+          <span className="flex items-center gap-2 font-tech text-sm font-black uppercase tracking-[0.18em] text-foreground">
+            <span className="h-3 w-3 rounded-full bg-brand" aria-hidden="true" />
+            CINTEL · Judging
+          </span>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 border border-transparent px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-amber-300/25 hover:bg-white/5 hover:text-white"
+            className="inline-flex items-center gap-2 rounded-full border-2 border-border bg-panel px-3 py-2 text-xs font-bold uppercase tracking-widest text-foreground shadow-sm transition duration-200 ease-out active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
           >
-            <Home size={16} className="text-amber-300" />
+            <Home size={16} className="text-brand" />
             Home
           </Link>
         </div>

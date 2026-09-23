@@ -8,11 +8,11 @@ type Theme = 'dark' | 'light'
 const STORAGE_KEY = 'cintel-public-theme'
 
 export function ThemeToggle({ className = '' }: { className?: string }) {
-  const [theme, setTheme] = useState<Theme>('dark')
+  const [theme, setTheme] = useState<Theme>('light')
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem(STORAGE_KEY)
-    const nextTheme: Theme = savedTheme === 'light' ? 'light' : 'dark'
+    const nextTheme: Theme = savedTheme === 'dark' ? 'dark' : 'light'
 
     setTheme(nextTheme)
     document.documentElement.dataset.theme = nextTheme
@@ -32,11 +32,11 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`public-theme-toggle inline-flex h-10 w-10 items-center justify-center border border-white/15 bg-white/5 text-slate-200 transition hover:border-amber-300/25 hover:bg-white/10 hover:text-white ${className}`}
+      className={`inline-flex h-10 w-10 items-center justify-center border-2 border-border bg-panel text-foreground shadow-sm transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-none ${className}`}
       aria-label={isLight ? 'Switch to dark theme' : 'Switch to light theme'}
       title={isLight ? 'Dark theme' : 'Light theme'}
     >
-      {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+      {isLight ? <Moon className="h-4 w-4" strokeWidth={2.5} /> : <Sun className="h-4 w-4" strokeWidth={2.5} />}
     </button>
   )
 }

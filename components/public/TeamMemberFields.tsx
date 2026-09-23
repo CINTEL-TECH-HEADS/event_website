@@ -15,6 +15,9 @@ import {
   DynamicFormRenderer,
 } from '@/components/forms/DynamicFormRenderer'
 
+import { RockShape } from '@/components/brand/RockShape'
+import { Sparkle } from '@/components/brand/Starburst'
+
 type MemberRow = {
   id: string
 }
@@ -34,8 +37,7 @@ type Props = {
   setValue: any
 }
 
-const inputClass =
-  'w-full rounded-2xl border border-[#243B72] bg-[#07101f] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#F5E62D] focus:ring-4 focus:ring-[#F5E62D]/10 disabled:bg-[#0b1736] disabled:text-slate-500'
+const inputClass = 'app-input'
 
 function createMemberRow() {
   return {
@@ -145,11 +147,11 @@ export function TeamMemberFields({
       <div className="flex items-center justify-between">
 
         <div>
-          <h3 className="text-sm font-semibold text-white">
+          <h3 className="font-display text-sm uppercase tracking-tight text-foreground">
             Team members
           </h3>
 
-          <p className="text-xs text-slate-400">
+          <p className="text-xs font-medium text-foreground-soft">
             Add or remove members before submitting.
           </p>
         </div>
@@ -162,7 +164,7 @@ export function TeamMemberFields({
           disabled={
             disabled
           }
-          className="rounded-xl border border-[#F5E62D]/30 bg-[#F5E62D]/10 px-4 py-2 text-sm font-semibold text-[#F5E62D] transition hover:bg-[#F5E62D]/20"
+          className="rounded-full border-2 border-border bg-warning px-4 py-2 font-tech text-xs font-bold uppercase tracking-wider text-foreground shadow-sm transition duration-200 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50"
         >
           Add member
         </button>
@@ -180,12 +182,21 @@ export function TeamMemberFields({
               key={
                 row.id
               }
-              className="rounded-2xl border border-[#243B72] bg-[#0b172b] p-5"
+              className="relative rounded-2xl border-2 border-border bg-panel p-5"
             >
+              {index % 3 === 1 ? (
+                <Sparkle className="absolute right-3 top-3 h-4 w-4 text-primary-yellow" />
+              ) : (
+                <RockShape
+                  variant={((index % 3) + 1) as 1 | 2 | 3}
+                  fill={index % 3 === 0 ? '#D6294C' : '#14120F'}
+                  className={`absolute right-3 top-3 h-4 w-4 ${index % 3 === 0 ? 'rotate-12' : '-rotate-6'}`}
+                />
+              )}
 
               <div className="mb-4 flex items-center justify-between">
 
-                <p className="text-sm font-semibold text-white">
+                <p className="font-display text-xs uppercase tracking-tight text-foreground">
                   Member{' '}
                   {index +
                     1}
@@ -201,7 +212,7 @@ export function TeamMemberFields({
                   disabled={
                     disabled
                   }
-                  className="text-sm font-medium text-red-400 hover:text-red-300"
+                  className="font-tech text-xs font-bold uppercase tracking-wider text-danger transition duration-200 hover:opacity-70"
                 >
                   Remove
                 </button>
@@ -212,7 +223,7 @@ export function TeamMemberFields({
 
                 <label>
 
-                  <span className="mb-2 block text-sm text-slate-300">
+                  <span className="mb-2 block font-tech text-xs font-bold uppercase tracking-wide text-foreground-soft">
                     Full name
                   </span>
 
@@ -233,7 +244,7 @@ export function TeamMemberFields({
 
                 <label>
 
-                  <span className="mb-2 block text-sm text-slate-300">
+                  <span className="mb-2 block font-tech text-xs font-bold uppercase tracking-wide text-foreground-soft">
                     Email address
                   </span>
 
@@ -257,9 +268,9 @@ export function TeamMemberFields({
 
               {memberFields.length >
               0 ? (
-                <div className="mt-4 rounded-2xl border border-[#243B72] bg-[#0f1d36] p-4">
+                <div className="mt-4 rounded-xl border-2 border-border bg-panel-muted p-4">
 
-                  <p className="mb-3 text-sm font-medium text-slate-300">
+                  <p className="mb-3 font-tech text-xs font-bold uppercase tracking-wide text-foreground-soft">
                     Member-specific fields
                   </p>
 
@@ -267,35 +278,16 @@ export function TeamMemberFields({
                     className="
                     [&_label]:mb-2
                     [&_label]:block
-                    [&_label]:text-sm
-                    [&_label]:text-slate-300
+                    [&_label]:font-tech
+                    [&_label]:text-xs
+                    [&_label]:font-bold
+                    [&_label]:uppercase
+                    [&_label]:tracking-wide
+                    [&_label]:text-foreground-soft
 
-                    [&_input]:w-full
-                    [&_input]:rounded-2xl
-                    [&_input]:border
-                    [&_input]:border-[#243B72]
-                    [&_input]:bg-[#07101f]
-                    [&_input]:px-4
-                    [&_input]:py-3
-                    [&_input]:text-white
-
-                    [&_select]:w-full
-                    [&_select]:rounded-2xl
-                    [&_select]:border
-                    [&_select]:border-[#243B72]
-                    [&_select]:bg-[#07101f]
-                    [&_select]:px-4
-                    [&_select]:py-3
-                    [&_select]:text-white
-
-                    [&_textarea]:w-full
-                    [&_textarea]:rounded-2xl
-                    [&_textarea]:border
-                    [&_textarea]:border-[#243B72]
-                    [&_textarea]:bg-[#07101f]
-                    [&_textarea]:px-4
-                    [&_textarea]:py-3
-                    [&_textarea]:text-white
+                    [&_input]:app-input
+                    [&_select]:app-select
+                    [&_textarea]:app-textarea
                   "
                   >
 

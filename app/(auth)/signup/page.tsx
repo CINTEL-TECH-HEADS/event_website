@@ -5,6 +5,10 @@ import { ArrowRight, TerminalSquare, LayoutGrid, Zap, ShieldCheck, MailCheck } f
 import Link from 'next/link'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { OtpInput, MIN_OTP } from '@/components/auth/OtpInput'
+import { PosterHeading } from '@/components/brand/PosterHeading'
+import { Starburst, Sparkle } from '@/components/brand/Starburst'
+import { RockShape } from '@/components/brand/RockShape'
+import { ShipShape } from '@/components/brand/ShipShape'
 
 function SignupForm() {
   const searchParams = useSearchParams()
@@ -91,9 +95,9 @@ function SignupForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 sm:p-8 text-slate-100 relative">
+    <div className="flex min-h-screen items-center justify-center p-4 sm:p-8 text-foreground relative">
 
-      <div className="grid w-full max-w-[1100px] overflow-hidden border border-white/10 bg-[#112240]  lg:grid-cols-2 relative z-10 app-fade-in">
+      <div className="grid w-full max-w-[1100px] overflow-hidden rounded-poster border-2 sm:border-4 border-border bg-panel shadow-lg lg:grid-cols-2 relative z-10 app-fade-in">
 
         {/* Left Side: Auth Block */}
         <section className="p-8 sm:p-12 lg:p-16 flex flex-col justify-center relative">
@@ -101,12 +105,12 @@ function SignupForm() {
           {step === 'otp' ? (
             <>
               <div className="mb-10 space-y-3">
-                <div className="w-12 h-12 bg-white/5 border border-amber-300/30 flex items-center justify-center text-amber-300 mb-8">
+                <div className="w-12 h-12 rounded-2xl bg-accent text-white border-2 border-border flex items-center justify-center mb-8">
                   <MailCheck size={24} />
                 </div>
-                <h1 className="text-3xl font-bold text-white tracking-tight">Verify your email.</h1>
-                <p className="text-sm font-medium text-slate-500 leading-relaxed max-w-sm">
-                  Enter the code we sent to <span className="text-slate-300">{email}</span>.
+                <PosterHeading as="h1" fillClassName="text-brand" className="text-3xl sm:text-4xl">Verify your email.</PosterHeading>
+                <p className="text-sm font-medium text-foreground-soft leading-relaxed max-w-sm">
+                  Enter the code we sent to <span className="text-foreground font-bold">{email}</span>.
                 </p>
               </div>
 
@@ -114,12 +118,12 @@ function SignupForm() {
                 <OtpInput value={otp} onChange={setOtp} autoFocus disabled={loading} />
 
                 {error && (
-                  <div className="border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm font-medium text-red-400">
+                  <div className="bg-brand text-white border-2 border-border rounded-xl px-4 py-3 text-sm font-bold">
                     {error}
                   </div>
                 )}
                 {info && (
-                  <div className="border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-sm font-medium text-amber-200">
+                  <div className="app-alert-info px-4 py-3 text-sm font-medium">
                     {info}
                   </div>
                 )}
@@ -127,15 +131,15 @@ function SignupForm() {
                 <button
                   type="submit"
                   disabled={loading || otp.length < MIN_OTP}
-                  className="public-force-white w-full border border-amber-300/35 bg-amber-300 hover:bg-amber-200 text-slate-950 font-semibold uppercase tracking-[0.14em] py-4 flex items-center justify-center gap-2 transition-all disabled:opacity-60 text-sm"
+                  className="app-button-primary w-full py-4 flex items-center justify-center gap-2 text-sm disabled:opacity-60"
                 >
                   {loading ? 'Verifying…' : 'Verify & continue'}
                   {!loading && <ArrowRight size={16} />}
                 </button>
 
-                <div className="pt-1 text-center text-sm text-slate-500">
+                <div className="pt-1 text-center font-tech text-xs text-foreground-soft">
                   Didn't get it?{' '}
-                  <button type="button" onClick={handleResend} className="text-amber-400 hover:text-amber-300 font-semibold">
+                  <button type="button" onClick={handleResend} className="text-brand hover:underline font-bold uppercase tracking-wide">
                     Resend code
                   </button>
                 </div>
@@ -143,7 +147,7 @@ function SignupForm() {
                   <button
                     type="button"
                     onClick={() => { setStep('form'); setOtp(''); setError(null); setInfo(null) }}
-                    className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                    className="font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground transition-colors"
                   >
                     ← Use a different email
                   </button>
@@ -153,11 +157,11 @@ function SignupForm() {
           ) : (
             <>
               <div className="mb-10 space-y-3">
-                <div className="w-12 h-12 bg-white/5 border border-amber-300/30 flex items-center justify-center text-amber-300 mb-8">
+                <div className="w-12 h-12 rounded-2xl bg-primary-yellow text-[#14120F] border-2 border-border flex items-center justify-center mb-8">
                   <ShieldCheck size={24} />
                 </div>
-                <h1 className="text-3xl font-bold text-white tracking-tight">Create your account.</h1>
-                <p className="text-sm font-medium text-slate-500 leading-relaxed max-w-sm">
+                <PosterHeading as="h1" fillClassName="text-brand" className="text-3xl sm:text-4xl">Create your account.</PosterHeading>
+                <p className="text-sm font-medium text-foreground-soft leading-relaxed max-w-sm">
                   Sign up to track your event registrations, QR passes, teams and certificates — all in one place.
                 </p>
               </div>
@@ -165,20 +169,20 @@ function SignupForm() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-5">
                   <div>
-                    <label className="mb-2 block text-xs font-bold text-slate-400 tracking-wide">Email</label>
+                    <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Email</label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="john@example.com"
                       required
-                      className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all text-sm font-medium"
+                      className="app-input w-full text-sm font-medium"
                     />
                   </div>
 
                   <div>
                     <div className="mb-2 flex items-center justify-between">
-                      <label className="block text-xs font-bold text-slate-400 tracking-wide">Password</label>
+                      <label className="block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Password</label>
                     </div>
                     <input
                       type="password"
@@ -187,13 +191,13 @@ function SignupForm() {
                       placeholder="••••••••••••"
                       required
                       minLength={8}
-                      className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all font-mono tracking-widest text-lg"
+                      className="app-input w-full font-mono tracking-widest text-lg"
                     />
                   </div>
 
                   <div>
                     <div className="mb-2 flex items-center justify-between">
-                      <label className="block text-xs font-bold text-slate-400 tracking-wide">Confirm Password</label>
+                      <label className="block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Confirm Password</label>
                     </div>
                     <input
                       type="password"
@@ -202,26 +206,26 @@ function SignupForm() {
                       placeholder="••••••••••••"
                       required
                       minLength={8}
-                      className="w-full bg-[#0a1629] border border-white/10 px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-300/60 focus:ring-1 focus:ring-amber-300/40 transition-all font-mono tracking-widest text-lg"
+                      className="app-input w-full font-mono tracking-widest text-lg"
                     />
                   </div>
 
                   {error && (
-                    <div className="border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm font-medium text-red-400 flex items-center gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                    <div className="bg-brand text-white border-2 border-border rounded-xl px-4 py-3 text-sm font-bold flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-white shrink-0" />
                       {error}
                     </div>
                   )}
 
-                  <button type="submit" disabled={loading} className="public-force-white w-full border border-amber-300/35 bg-amber-300 hover:bg-amber-200 text-slate-950 font-semibold uppercase tracking-[0.14em] py-4 flex items-center justify-center gap-2 transition-all mt-4 text-sm">
+                  <button type="submit" disabled={loading} className="app-button-primary w-full py-4 flex items-center justify-center gap-2 mt-4 text-sm">
                     {loading ? 'Creating account…' : 'Create account'}
                     {!loading && <ArrowRight size={16} />}
                   </button>
                 </div>
 
                 <div className="pt-4 text-center">
-                  <span className="text-slate-500 text-sm">Already have an account? </span>
-                  <Link href="/login" className="text-amber-400 hover:text-amber-300 font-bold text-sm tracking-wide transition-colors">
+                  <span className="font-tech text-sm text-foreground-soft">Already have an account? </span>
+                  <Link href="/login" className="text-brand hover:underline font-bold text-sm uppercase tracking-wide transition-colors">
                     Sign in
                   </Link>
                 </div>
@@ -231,38 +235,51 @@ function SignupForm() {
 
         </section>
 
-        {/* Right Side: Showcase (Premium EdTech Style) */}
-        <section className="hidden lg:flex flex-col justify-between border-l border-white/10 bg-[#0a1629] p-12 lg:p-16 relative overflow-hidden">
-           {/* Abstract Geometric shapes */}
-           <div className="absolute right-0 bottom-0 w-64 h-64 border border-amber-300/10 rounded-full translate-x-1/3 translate-y-1/3 pointer-events-none" />
-           <div className="absolute right-0 bottom-0 w-48 h-48 border border-white/5 bg-white/5 rounded-full translate-x-1/4 translate-y-1/4 pointer-events-none" />
+        {/* Right Side: Showcase — vintage arcade sci-fi poster scene */}
+        <section className="hidden lg:flex flex-col justify-between border-l-2 sm:border-l-4 border-border bg-[#14120F] text-[#F5F0E3] p-12 lg:p-16 relative overflow-hidden">
+           <div className="halftone pointer-events-none absolute inset-0 opacity-[0.15]" />
 
-           <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-amber-300/25 bg-amber-300/10 text-amber-200 text-[0.65rem] font-bold tracking-[0.14em] uppercase mb-8">
-                 <TerminalSquare size={14} /> Cintel Events
-              </div>
-              <h2 className="text-3xl font-semibold text-white leading-tight">
-                 Everything you registered for <br/><span className="text-slate-500">in one place.</span>
-              </h2>
+           {/* orbit rings + scattered rocks + ship, all decorative */}
+           <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-90">
+             <svg className="absolute -right-14 top-4 h-2/3 w-full opacity-40" viewBox="0 0 400 400" fill="none">
+               <ellipse cx="200" cy="200" rx="180" ry="65" stroke="#F2C230" strokeWidth="1" transform="rotate(10 200 200)" />
+               <ellipse cx="200" cy="200" rx="140" ry="50" stroke="#F2C230" strokeWidth="1" transform="rotate(10 200 200)" />
+             </svg>
+             <RockShape variant={1} fill="#F2C230" className="absolute -left-6 top-12 h-16 w-16 rotate-[-16deg] opacity-95" />
+             <RockShape variant={2} fill="#F2C230" className="absolute right-6 top-24 h-12 w-12 rotate-[12deg] opacity-90" />
+             <RockShape variant={3} fill="#F2C230" className="absolute bottom-24 left-12 h-14 w-14 rotate-[22deg] opacity-90" />
+             <Starburst rings color="#F5F0E3" className="absolute right-[16%] top-1/4 h-28 w-28 opacity-90" />
+             <Sparkle className="absolute left-1/3 top-16 h-3 w-3 text-primary-yellow" />
+             <Sparkle className="absolute right-1/4 bottom-28 h-2.5 w-2.5 text-[#F5F0E3]" />
+             <ShipShape fill="#F5F0E3" className="absolute -bottom-2 -right-6 h-24 w-40 opacity-95" />
            </div>
 
-           <div className="space-y-6 mt-12">
+           <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border-2 border-white bg-transparent text-white font-tech text-[0.65rem] font-bold tracking-[0.14em] uppercase mb-8">
+                 <TerminalSquare size={14} /> Cintel Events
+              </div>
+              <PosterHeading as="h2" fillClassName="text-primary-yellow" className="text-3xl leading-tight">
+                 Everything you registered for <br /><span className="text-white/70">in one place.</span>
+              </PosterHeading>
+           </div>
+
+           <div className="space-y-6 mt-12 relative z-10">
               <div className="flex gap-4 items-start">
-                 <div className="w-8 h-8  bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 shrink-0">
+                 <div className="w-8 h-8 rounded-full bg-white text-primary-red border-2 border-white flex items-center justify-center shrink-0">
                     <Zap size={14} />
                  </div>
                  <div>
-                    <h3 className="text-white font-bold text-sm mb-1">Your QR passes, always handy</h3>
-                    <p className="text-slate-500 text-sm leading-relaxed">Pull up your check-in QR code for any event you've registered for, right from your phone.</p>
+                    <h3 className="text-white font-tech font-bold text-sm mb-1 uppercase tracking-wide">Your QR passes, always handy</h3>
+                    <p className="text-white/70 text-sm leading-relaxed">Pull up your check-in QR code for any event you've registered for, right from your phone.</p>
                  </div>
               </div>
               <div className="flex gap-4 items-start">
-                 <div className="w-8 h-8  bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 shrink-0">
+                 <div className="w-8 h-8 rounded-full bg-white text-primary-red border-2 border-white flex items-center justify-center shrink-0">
                     <LayoutGrid size={14} />
                  </div>
                  <div>
-                    <h3 className="text-white font-bold text-sm mb-1">Teams &amp; certificates</h3>
-                    <p className="text-slate-500 text-sm leading-relaxed">Manage your team for group events and download certificates once they're released.</p>
+                    <h3 className="text-white font-tech font-bold text-sm mb-1 uppercase tracking-wide">Teams &amp; certificates</h3>
+                    <p className="text-white/70 text-sm leading-relaxed">Manage your team for group events and download certificates once they're released.</p>
                  </div>
               </div>
            </div>
@@ -277,7 +294,7 @@ export default function SignupPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center text-[0.65rem] tracking-widest font-mono text-amber-500 uppercase">
+        <div className="flex min-h-screen items-center justify-center text-xs tracking-widest font-mono text-brand uppercase font-bold">
           [System Connecting...]
         </div>
       }

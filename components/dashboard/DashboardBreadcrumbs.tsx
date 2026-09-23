@@ -48,23 +48,23 @@ export function DashboardBreadcrumbs() {
       <button
         type="button"
         onClick={() => router.back()}
-        className="inline-flex items-center gap-1.5 border border-[#243B72] bg-[#10224A] px-3 py-1.5 text-sm font-semibold text-slate-300 transition hover:border-[#F5E62D] hover:text-white"
+        className="inline-flex items-center gap-1.5 rounded-full border-2 border-border bg-panel px-3 py-1.5 font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft shadow-sm transition-all duration-200 ease-out hover:text-foreground active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
       >
         <ArrowLeft size={15} />
         Back
       </button>
 
-      <nav className="flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
+      <nav className="flex flex-wrap items-center gap-1.5 font-tech text-xs font-bold uppercase tracking-wide text-foreground-soft">
         {crumbs.map((c) => (
           <span key={c.href} className="flex items-center gap-1.5">
             {c.isLast ? (
-              <span className="font-semibold text-slate-200">{c.label}</span>
+              <span className="text-foreground">{c.label}</span>
             ) : (
-              <Link href={c.href} className="transition hover:text-[#F5E62D]">
+              <Link href={c.href} className="transition-colors duration-200 hover:text-accent">
                 {c.label}
               </Link>
             )}
-            {!c.isLast && <ChevronRight size={13} className="text-slate-600" />}
+            {!c.isLast && <ChevronRight size={13} className="text-border" />}
           </span>
         ))}
       </nav>

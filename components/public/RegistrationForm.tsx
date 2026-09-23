@@ -23,8 +23,7 @@ type RegistrationFormValues = {
   answers?: Record<string, string | number | boolean>
 }
 
-const inputClass =
-  'w-full rounded-2xl border border-[#243B72] bg-[#07101f] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#F5E62D] focus:ring-4 focus:ring-[#F5E62D]/10 disabled:bg-[#0b1736] disabled:text-slate-500'
+const inputClass = 'app-input'
 
 const clientSchema = z.object({
   event_id: z.string().uuid(),
@@ -236,8 +235,8 @@ export function RegistrationForm({
 
       {/* Organizer-configured fields */}
       {registrationFields.length > 0 ? (
-        <div className="rounded-2xl border border-[#243B72] bg-[#0f1d36] p-5">
-          <h2 className="text-lg font-semibold text-white">Your Details</h2>
+        <div className="rounded-poster border-2 border-border bg-panel-muted p-5">
+          <h2 className="font-display text-base uppercase tracking-tight text-foreground">Your Details</h2>
           <div className="mt-4">
             <DynamicFormRenderer
               fields={registrationFields}
@@ -248,17 +247,17 @@ export function RegistrationForm({
           </div>
         </div>
       ) : (
-        <p className="rounded-2xl border border-white/10 bg-[#0f1d36] px-4 py-4 text-sm text-slate-300">
+        <p className="rounded-2xl border-2 border-border bg-panel-muted px-4 py-4 text-sm font-medium text-foreground-soft">
           No additional details required — just confirm your registration below.
         </p>
       )}
 
       {teamMode ? (
-        <div className="rounded-2xl border border-[#243B72] bg-[#0f1d36] p-5">
-          <h2 className="text-lg font-semibold text-white">Team Details</h2>
+        <div className="rounded-poster border-2 border-border bg-panel-muted p-5">
+          <h2 className="font-display text-base uppercase tracking-tight text-foreground">Team Details</h2>
 
           {seeking ? (
-            <p className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-sm text-amber-100/80">
+            <p className="mt-4 rounded-xl border-2 border-border border-l-8 border-l-warning bg-warning-soft px-4 py-3 text-sm font-medium text-foreground">
               You&apos;ll be added to this event as <strong>looking for a team</strong>. Teams short of
               members can invite you, and you can request to join open teams — a team forms once one side
               accepts.
@@ -266,20 +265,20 @@ export function RegistrationForm({
           ) : (
             <>
               <label className="mt-4 block">
-                <span className="mb-2 block text-sm text-slate-300">Team name</span>
+                <span className="mb-2 block font-tech text-xs font-bold uppercase tracking-wide text-foreground-soft">Team name</span>
                 <input
                   {...register('team_name')}
                   className={inputClass}
                   placeholder="Enter your team name"
                 />
                 {nameCheck.status === 'checking' && (
-                  <p className="mt-1.5 text-xs text-slate-400">Checking availability…</p>
+                  <p className="mt-1.5 font-tech text-[11px] font-bold uppercase tracking-wide text-foreground-soft">Checking availability…</p>
                 )}
                 {nameCheck.status === 'available' && (
-                  <p className="mt-1.5 text-xs text-emerald-400">✓ Available</p>
+                  <p className="mt-1.5 font-tech text-[11px] font-bold uppercase tracking-wide text-success">✓ Available</p>
                 )}
                 {nameCheck.status === 'taken' && (
-                  <p className="mt-1.5 text-xs text-red-300">
+                  <p className="mt-1.5 text-xs font-bold text-danger">
                     Taken.
                     {nameCheck.suggestion && (
                       <>
@@ -290,7 +289,7 @@ export function RegistrationForm({
                             setValue('team_name', nameCheck.suggestion!)
                             setNameCheck({ status: 'available' })
                           }}
-                          className="font-semibold text-amber-300 underline underline-offset-2"
+                          className="font-bold text-accent underline underline-offset-2"
                         >
                           {nameCheck.suggestion}
                         </button>
@@ -300,7 +299,7 @@ export function RegistrationForm({
                 )}
               </label>
 
-              <p className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-sm text-amber-100/80">
+              <p className="mt-4 rounded-xl border-2 border-border border-l-8 border-l-warning bg-warning-soft px-4 py-3 text-sm font-medium text-foreground">
                 You&apos;ll create the team now and get a shareable <strong>group code</strong>. Teammates
                 sign in and enter the code (or request to join from the Team Finder) — no need to add them
                 here.
@@ -311,7 +310,7 @@ export function RegistrationForm({
       ) : null}
 
       {submitError ? (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <div className="rounded-xl border-2 border-border border-l-8 border-l-danger bg-brand-soft px-4 py-3 text-sm font-bold text-foreground">
           {submitError}
         </div>
       ) : null}
@@ -319,7 +318,7 @@ export function RegistrationForm({
       <button
         type="submit"
         disabled={isSubmitting || disabled}
-        className="w-full rounded-2xl bg-[#F5E62D] px-5 py-4 text-sm font-bold uppercase tracking-[0.12em] text-black transition hover:brightness-110 disabled:bg-slate-700 disabled:text-white"
+        className="app-button-primary w-full disabled:opacity-50"
       >
         {disabled ? 'Registration Closed' : isSubmitting ? 'Submitting...' : 'Complete Registration'}
       </button>

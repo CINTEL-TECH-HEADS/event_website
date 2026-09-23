@@ -5,6 +5,7 @@ import { MobileNav } from '@/components/dashboard/MobileNav'
 import { DashboardBreadcrumbs } from '@/components/dashboard/DashboardBreadcrumbs'
 import { SessionGuard } from '@/components/auth/SessionGuard'
 import { getUserAccess } from '@/lib/auth/get-session'
+import { Starburst } from '@/components/brand/Starburst'
 
 // Never statically cache authenticated dashboard content
 export const dynamic = 'force-dynamic'
@@ -21,7 +22,7 @@ export default async function DashboardLayout({
   if (!access.isOrganizer) redirect('/participant/portal')
 
   return (
-    <div className="dashboard-theme-shell relative flex min-h-screen flex-col bg-[#07101d] text-slate-100 lg:flex-row">
+    <div className="dashboard-theme-shell relative flex min-h-screen flex-col bg-background text-foreground lg:flex-row">
 
       <SessionGuard />
 
@@ -34,14 +35,14 @@ export default async function DashboardLayout({
       </div>
 
       {/* Main Content */}
-      <main className="app-main relative flex-1 bg-transparent px-4 py-4 sm:px-6 lg:px-8 lg:py-8">
+      <main className="app-main relative flex-1 bg-background px-4 py-4 sm:px-6 lg:px-8 lg:py-8">
 
-        {/* Amber top glow — matches homescreen */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(245,158,11,0.08),transparent)]" />
-        {/* Grid overlay — matches homescreen */}
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px,24px_24px]" />
+        {/* Faint corner starburst — restrained poster accent, not a scene */}
+        <div className="pointer-events-none absolute right-6 top-6 hidden opacity-[0.07] lg:block">
+          <Starburst rings color="rgb(var(--border))" className="h-32 w-32" />
+        </div>
 
-        <div className="relative mx-auto max-w-7xl animate-in fade-in duration-500">
+        <div className="relative mx-auto max-w-7xl animate-fade-in">
           <DashboardBreadcrumbs />
           {children}
         </div>

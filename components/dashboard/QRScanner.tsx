@@ -64,24 +64,31 @@ export default function QRScanner({ onScan, onError }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-lg">
-      <div className="overflow-hidden border border-[#243B72] bg-[#10224A]">
-        <div className="flex items-center gap-3 border-b border-[#243B72] px-5 py-4">
-          <span className="bg-[#0B1736] p-3 text-[#F5E62D]">
+      <div className="overflow-hidden rounded-2xl border-2 border-border bg-panel sm:border-4">
+        <div className="flex items-center gap-3 border-b-2 border-border px-5 py-4 sm:border-b-4">
+          <span className="rounded-xl border-2 border-border bg-panel-muted p-3 text-brand">
             <ScanLine size={18} />
           </span>
           <div>
-            <h3 className="text-sm font-semibold text-white">QR Attendance Scanner</h3>
-            <p className="text-xs text-slate-400">Scan participant QR codes quickly</p>
+            <h3 className="text-sm font-black uppercase tracking-tight text-foreground">QR Attendance Scanner</h3>
+            <p className="text-xs font-medium text-foreground-soft">Scan participant QR codes quickly</p>
           </div>
         </div>
 
         <div className="p-5">
-          <div className="border border-[#243B72] bg-black p-3">
-            <div id="qr-reader-container" className="overflow-hidden" />
+          {/* Viewfinder frame with corner ticks */}
+          <div className="relative overflow-hidden rounded-2xl border-4 border-border bg-black p-3 shadow-lg">
+            <div id="qr-reader-container" className="overflow-hidden rounded-lg" />
+
+            {/* Corner brackets */}
+            <span className="pointer-events-none absolute left-1 top-1 h-6 w-6 rounded-tl-lg border-l-4 border-t-4 border-primary-yellow" />
+            <span className="pointer-events-none absolute right-1 top-1 h-6 w-6 rounded-tr-lg border-r-4 border-t-4 border-primary-red" />
+            <span className="pointer-events-none absolute bottom-1 left-1 h-6 w-6 rounded-bl-lg border-b-4 border-l-4 border-primary-red" />
+            <span className="pointer-events-none absolute bottom-1 right-1 h-6 w-6 rounded-br-lg border-b-4 border-r-4 border-primary-yellow" />
           </div>
 
-          <div className="mt-4 flex items-center justify-center gap-2 text-sm text-slate-400">
-            <Camera size={16} className="text-[#F5E62D]" />
+          <div className="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-foreground-soft">
+            <Camera size={16} className="text-brand" />
             Point camera at a participant QR code
           </div>
         </div>

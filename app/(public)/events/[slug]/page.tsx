@@ -5,10 +5,14 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { CalendarPlus, CheckCircle2, MapPin, Users } from 'lucide-react'
 import type { EventWithFields } from '@/types'
 import { CountdownTimer } from '@/components/public/CountdownTimer'
 import { generateGoogleCalendarLink } from '@/lib/calendar/gcal-link'
 import { formatEventDate, isPast, spotsLeft } from '@/lib/utils'
+import { PosterHeading } from '@/components/brand/PosterHeading'
+import { Starburst, Sparkle } from '@/components/brand/Starburst'
+import { RockShape } from '@/components/brand/RockShape'
 
 function normalizeCount(value: unknown): number {
   if (typeof value === 'number') return value
@@ -67,9 +71,9 @@ export default function EventPage() {
   if (loading) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-6xl items-center justify-center px-4">
-        <div className="rounded-3xl border border-white/10 bg-white/5 px-8 py-10 text-center shadow-sm backdrop-blur">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
-          <p className="mt-4 text-sm text-slate-400">Loading event details...</p>
+        <div className="app-empty-state">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+          <p className="mt-4 text-sm font-bold uppercase tracking-wider text-foreground-soft">Loading event details...</p>
         </div>
       </div>
     )
@@ -78,7 +82,7 @@ export default function EventPage() {
   if (error || !event) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4">
-        <div className="w-full rounded-3xl border border-red-200 bg-red-50 p-8 text-center text-red-700">
+        <div className="w-full rounded-2xl border-2 border-border bg-danger p-8 text-center text-sm font-bold text-white lg:border-4">
           {error ?? 'Event not found'}
         </div>
       </div>
@@ -97,68 +101,76 @@ export default function EventPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="overflow-hidden border border-white/10 bg-[#0a1629]">
-        <div className="grid gap-px bg-white/10 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="relative min-h-[360px] bg-[#112240]">
+      <div className="overflow-hidden rounded-poster border-2 border-border bg-panel shadow-lg lg:border-4">
+        <div className="grid gap-px bg-border lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="poster-panel relative min-h-[360px] !rounded-none">
             {event.banner_url ? (
               <img
                 src={event.banner_url}
                 alt={event.title}
-                className="absolute inset-0 h-full w-full object-cover opacity-70"
+                className="absolute inset-0 h-full w-full object-cover opacity-80 grayscale"
               />
-            ) : null}
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,17,31,0.18),rgba(9,17,31,0.76))]" />
-            <div className="public-event-hero-copy relative flex h-full flex-col justify-between p-8 text-white">
+            ) : (
+              <>
+                <div className="halftone pointer-events-none absolute inset-0 opacity-[0.15]" />
+                <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-90">
+                  <Starburst rings color="#F2C230" className="absolute -left-6 -top-6 h-28 w-28 opacity-70" />
+                  <RockShape variant={2} fill="#D6294C" className="absolute bottom-6 right-10 h-20 w-20 rotate-[14deg]" />
+                  <Sparkle className="absolute right-1/4 top-6 h-3 w-3 text-primary-yellow" />
+                </div>
+              </>
+            )}
+            <div className="absolute inset-0 bg-foreground/40" />
+            <div className="relative flex h-full flex-col justify-between p-8 text-[#F5F0E3]">
               <div className="flex flex-wrap gap-2">
-                <span className="inline-flex w-fit border border-amber-300/30 bg-[#09111f]/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-amber-200">
+                <span className="inline-flex w-fit rounded-full border-2 border-[#F5F0E3] bg-primary-yellow px-3 py-1 font-tech text-[11px] font-bold uppercase tracking-widest text-[#14120F]">
                   {event.event_type}
                 </span>
-                <span className="inline-flex w-fit border border-white/20 bg-[#09111f]/60 px-3 py-1 text-xs font-medium text-slate-200">
+                <span className="inline-flex w-fit rounded-full border-2 border-[#F5F0E3]/60 px-3 py-1 font-tech text-[11px] font-bold uppercase tracking-widest text-[#F5F0E3]">
                   {event.registration_mode} registration
                 </span>
               </div>
               <div>
-                <h1 className="mt-6 text-3xl font-bold tracking-tight sm:text-5xl">{event.title}</h1>
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-blue-50 sm:text-base">
+                <PosterHeading as="h1" fillClassName="text-primary-yellow" className="mt-6 text-3xl sm:text-5xl">
+                  {event.title}
+                </PosterHeading>
+                <p className="mt-4 max-w-2xl text-sm font-medium leading-relaxed text-[#F5F0E3]/90 sm:text-base">
                   {event.description ?? 'Check the schedule, venue, capacity, and registration rules before you continue.'}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="space-y-6 bg-[#0a1629] p-8">
-            <div className="h-px w-24 bg-[linear-gradient(90deg,rgba(180,83,9,0.85),rgba(180,83,9,0))]" />
-            <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 text-sm text-slate-300 sm:grid-cols-2">
-              <div>
-                <div className="bg-[#0f1d36] p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">When</p>
-                  <p className="mt-1 leading-6 text-white">{formatEventDate(event.starts_at)}</p>
-                </div>
+          <div className="space-y-6 bg-panel p-8">
+            <div className="grid gap-px overflow-hidden rounded-2xl border-2 border-border bg-border text-sm sm:grid-cols-2">
+              <div className="bg-panel-muted p-5">
+                <p className="font-tech text-xs font-bold uppercase tracking-widest text-brand">When</p>
+                <p className="mt-1 font-bold leading-6 text-foreground">{formatEventDate(event.starts_at)}</p>
               </div>
-              <div>
-                <div className="bg-[#0f1d36] p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">Where</p>
-                  <p className="mt-1 leading-6 text-white">{event.venue}</p>
-                </div>
+              <div className="bg-panel-muted p-5">
+                <p className="font-tech text-xs font-bold uppercase tracking-widest text-brand">Where</p>
+                <p className="mt-1 flex items-center gap-1.5 font-bold leading-6 text-foreground">
+                  <MapPin className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
+                  {event.venue}
+                </p>
               </div>
-              <div>
-                <div className="bg-[#0f1d36] p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-200">Registration Mode</p>
-                  <p className="mt-1 capitalize text-white">{event.registration_mode}</p>
-                </div>
+              <div className="bg-panel-muted p-5">
+                <p className="font-tech text-xs font-bold uppercase tracking-widest text-accent">Registration Mode</p>
+                <p className="mt-1 flex items-center gap-1.5 font-bold capitalize text-foreground">
+                  <Users className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
+                  {event.registration_mode}
+                </p>
               </div>
-              <div>
-                <div className="bg-[#0f1d36] p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-200">Capacity</p>
-                  <p className="mt-1 text-white">
-                    {spots === null ? 'Unlimited seats' : `${spots} spots left`}
-                  </p>
-                </div>
+              <div className="bg-panel-muted p-5">
+                <p className="font-tech text-xs font-bold uppercase tracking-widest text-accent">Capacity</p>
+                <p className="mt-1 font-bold text-foreground">
+                  {spots === null ? 'Unlimited seats' : `${spots} spots left`}
+                </p>
               </div>
             </div>
 
             {closed ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              <div className="rounded-xl border-2 border-border bg-danger px-4 py-3 text-sm font-bold text-white">
                 Registration is closed.
               </div>
             ) : (
@@ -166,7 +178,7 @@ export default function EventPage() {
             )}
 
             {event.registration_mode !== 'solo' && (event.min_team_size || event.max_team_size) ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3 text-sm font-bold text-foreground">
                 Team size: {event.min_team_size ?? 1} to {event.max_team_size ?? 'any'} members.
               </div>
             ) : null}
@@ -175,19 +187,20 @@ export default function EventPage() {
               {alreadyRegistered ? (
                 <Link
                   href="/participant/portal"
-                  className="inline-flex items-center justify-center rounded-2xl border border-emerald-300/35 bg-emerald-400/15 px-5 py-3 text-sm font-semibold text-emerald-200 transition hover:bg-emerald-400/25"
+                  className="app-button-success flex-1"
                 >
-                  ✓ Already Registered — View in Portal
+                  <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
+                  Already Registered &mdash; View in Portal
                 </Link>
               ) : (
                 <Link
                   href={`/events/${event.slug}/register`}
                   aria-disabled={closed}
-                  className={`inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-sm transition ${
+                  className={
                     closed
-                      ? 'pointer-events-none bg-slate-300 text-white'
-                      : 'border border-amber-300/35 bg-amber-300 text-slate-950 hover:bg-amber-200'
-                  }`}
+                      ? 'pointer-events-none flex-1 rounded-full border-2 border-border bg-panel-muted px-5 py-3 text-center text-sm font-bold uppercase tracking-wider text-foreground-soft'
+                      : 'app-button-primary flex-1'
+                  }
                 >
                   {closed ? 'Registration Closed' : 'Register Now'}
                 </Link>
@@ -196,15 +209,16 @@ export default function EventPage() {
                 href={calLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-amber-200 transition hover:bg-white/10"
+                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-border bg-panel px-5 py-3 font-tech text-sm font-bold uppercase tracking-wider text-accent shadow-sm transition duration-200 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
               >
-                + Add to Google Calendar
+                <CalendarPlus className="h-4 w-4" strokeWidth={2.5} />
+                Add to Calendar
               </a>
             </div>
 
-            <div className="border border-white/10 bg-[#0f1d36] p-5 text-sm text-slate-300">
-              <p className="font-semibold text-white">Before you register</p>
-              <p className="mt-2 leading-6">
+            <div className="rounded-2xl border-2 border-border bg-panel-muted p-5 text-sm">
+              <p className="font-display text-sm uppercase tracking-tight text-foreground">Before you register</p>
+              <p className="mt-2 font-medium leading-6 text-foreground-soft">
                 Review the deadline, confirm the event format, and keep your confirmation QR ready after registration for a smoother check-in.
               </p>
             </div>

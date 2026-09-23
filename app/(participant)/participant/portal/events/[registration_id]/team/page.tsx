@@ -60,7 +60,7 @@ export default function TeamPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center py-32">
-      <div className="w-10 h-10 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
+      <div className="w-10 h-10 border-4 border-border border-t-brand rounded-full animate-spin" />
     </div>
   )
 
@@ -70,7 +70,7 @@ export default function TeamPage() {
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
-      <Link href={`/participant/portal/events/${registration_id}`} className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors mb-6">
+      <Link href={`/participant/portal/events/${registration_id}`} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground transition-colors mb-6">
         <ArrowLeft size={14} /> Back
       </Link>
 
@@ -81,47 +81,47 @@ export default function TeamPage() {
               <input
                 value={nameDraft}
                 onChange={e => setNameDraft(e.target.value)}
-                className="bg-[#0a1629] border border-white/10 px-3 py-1.5 text-lg font-semibold text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                className="app-input !w-auto text-lg font-bold"
               />
               <button
                 disabled={busy}
                 onClick={async () => { if (await patchTeam({ team_name: nameDraft })) setEditing(false) }}
-                className="text-xs font-bold bg-amber-400 text-slate-950 px-3 py-1.5 hover:bg-amber-300 disabled:opacity-50"
+                className="app-button-primary !px-3 !py-1.5 !text-xs disabled:opacity-50"
               >
                 Save
               </button>
-              <button onClick={() => { setEditing(false); setNameDraft(reg.team_name ?? '') }} className="text-xs text-slate-400 px-2 py-1.5">Cancel</button>
+              <button onClick={() => { setEditing(false); setNameDraft(reg.team_name ?? '') }} className="text-xs font-bold uppercase tracking-wide text-foreground-soft px-2 py-1.5">Cancel</button>
             </div>
           ) : (
-            <h1 className="text-2xl font-semibold text-white flex items-center gap-2">
+            <h1 className="font-display text-2xl uppercase leading-tight tracking-tight text-foreground flex items-center gap-2">
               {reg?.team_name}
-              <button onClick={() => setEditing(true)} className="text-slate-500 hover:text-amber-300" title="Rename team">
+              <button onClick={() => setEditing(true)} className="text-foreground-soft hover:text-brand" title="Rename team">
                 <Pencil size={15} />
               </button>
             </h1>
           )}
-          <p className="text-slate-400 text-sm mt-1">{reg?.events?.title}</p>
+          <p className="text-foreground-soft text-sm font-medium mt-1">{reg?.events?.title}</p>
         </div>
       </div>
 
       {/* Group code */}
-      <div className="bg-slate-900/80 border border-white/10 p-6 mb-4">
+      <div className="rounded-poster border-4 border-border bg-panel p-6 mb-4 shadow-lg">
         <div className="flex items-center gap-2 mb-2">
-          <KeyRound size={16} className="text-amber-300" />
-          <h2 className="font-semibold text-white">Group code</h2>
+          <KeyRound size={16} className="text-brand" />
+          <h2 className="font-display text-sm uppercase tracking-wide text-foreground">Group code</h2>
         </div>
-        <p className="text-sm text-slate-400 mb-4">
+        <p className="text-sm font-medium text-foreground-soft mb-4">
           Share this code. Teammates sign in and enter it (or find your team in the Team Finder) to join.
         </p>
         <div className="flex gap-2">
-          <div className="flex-1 bg-[#0a1629] border border-white/10 px-4 py-3 font-mono text-lg font-bold tracking-widest text-white">
+          <div className="flex-1 rounded-full border-2 border-border bg-panel-muted px-4 py-3 font-mono text-lg font-bold tracking-widest text-foreground">
             {reg?.group_code ?? '—'}
           </div>
           <button
             onClick={copyCode}
-            className="flex items-center justify-center gap-2 bg-white text-slate-950 px-4 font-bold hover:bg-slate-100 transition-colors"
+            className="app-button-secondary !bg-panel-muted !text-foreground"
           >
-            {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} className="text-amber-500" />}
+            {copied ? <Check size={16} /> : <Copy size={16} />}
             {copied ? 'Copied' : 'Copy'}
           </button>
         </div>
@@ -130,39 +130,39 @@ export default function TeamPage() {
         <button
           disabled={busy}
           onClick={() => patchTeam({ is_open: !reg.is_open })}
-          className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-300 border border-white/10 px-4 py-2 hover:bg-white/5 disabled:opacity-50"
+          className="mt-4 inline-flex items-center gap-2 rounded-full border-2 border-border px-4 py-2 text-sm font-bold uppercase tracking-wide text-foreground transition duration-200 hover:bg-panel-muted disabled:opacity-50"
         >
-          {reg?.is_open ? <Unlock size={14} className="text-emerald-400" /> : <Lock size={14} className="text-slate-400" />}
+          {reg?.is_open ? <Unlock size={14} className="text-success" /> : <Lock size={14} className="text-foreground-soft" />}
           {reg?.is_open ? 'Open — visible in Team Finder' : 'Closed — hidden from Team Finder'}
         </button>
       </div>
 
       {/* Members */}
-      <div className="bg-slate-900/80 border border-white/10 p-6">
+      <div className="rounded-poster border-4 border-border bg-panel p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-white flex items-center gap-2">
-            <Users size={16} className="text-amber-400" />
+          <h2 className="font-display text-sm uppercase tracking-wide text-foreground flex items-center gap-2">
+            <Users size={16} className="text-brand" />
             Members
           </h2>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${isFull ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20' : 'text-slate-400 bg-slate-800 border-white/5'}`}>
+          <span className={isFull ? 'app-badge-success app-badge' : 'app-badge-neutral app-badge'}>
             {memberCount}{maxSize ? `/${maxSize}` : ''}
           </span>
         </div>
 
         <div className="space-y-3">
           {reg?.members?.map((m: any) => (
-            <div key={m.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+            <div key={m.id} className="flex items-center justify-between py-2 border-b-2 border-border last:border-0">
               <div>
-                <p className="text-sm font-bold text-white">
+                <p className="text-sm font-bold text-foreground">
                   {m.full_name}
-                  {m.is_leader && <span className="ml-2 text-xs text-amber-400 font-bold">Creator</span>}
+                  {m.is_leader && <span className="ml-2 text-xs text-brand font-bold">Creator</span>}
                 </p>
-                <p className="text-xs text-slate-400">{m.email}</p>
+                <p className="text-xs font-medium text-foreground-soft">{m.email}</p>
               </div>
               {!m.is_leader && (
                 <button
                   onClick={() => removeMember(m.id, m.full_name)}
-                  className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="p-1.5 text-foreground-soft hover:text-danger hover:bg-danger/10 transition-colors"
                   title="Remove member"
                 >
                   <Trash2 size={14} />

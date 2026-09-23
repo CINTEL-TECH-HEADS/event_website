@@ -17,8 +17,7 @@ interface Props {
   memberIndex?: number // provided when rendering applies_to='member' fields for a specific member
 }
 
-const inputClass =
-  'w-full rounded-2xl border border-[#243B72] bg-[#07101f] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#F5E62D] focus:ring-4 focus:ring-[#F5E62D]/10'
+const inputClass = 'app-input'
 
 // Uploads a file/image and stores the returned storage path as the field answer.
 function FileField({
@@ -63,14 +62,14 @@ function FileField({
         type="file"
         accept={accept}
         onChange={onChange}
-        className="w-full text-sm text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-[#243B72] file:px-3 file:py-2 file:text-sm file:text-white"
+        className="w-full text-sm font-medium text-foreground-soft file:mr-3 file:rounded-full file:border-2 file:border-border file:bg-panel-muted file:px-3 file:py-2 file:text-sm file:font-bold file:uppercase file:tracking-wider file:text-foreground"
       />
-      {status === 'uploading' && <p className="mt-1 text-xs text-slate-400">Uploading…</p>}
-      {status === 'done' && !preview && <p className="mt-1 text-xs text-emerald-400">Uploaded ✓</p>}
+      {status === 'uploading' && <p className="mt-1 text-xs font-medium text-foreground-soft">Uploading…</p>}
+      {status === 'done' && !preview && <p className="mt-1 text-xs font-medium text-success">Uploaded ✓</p>}
       {preview && (
-        <img src={preview} alt="preview" className="mt-2 max-h-40 rounded-lg border border-white/10" />
+        <img src={preview} alt="preview" className="mt-2 max-h-40 rounded-lg border-2 border-border" />
       )}
-      {err && <p className="mt-1 text-xs text-red-400">{err}</p>}
+      {err && <p className="mt-1 text-xs font-medium text-danger">{err}</p>}
     </div>
   )
 }
@@ -88,9 +87,9 @@ export function DynamicFormRenderer({ fields, register, errors, setValue, member
         return (
           <div key={field.id}>
             {!isCheckbox && (
-              <label className="mb-2 block text-sm text-slate-300">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-foreground-soft">
                 {field.label}
-                {field.is_required && <span className="ml-1 text-red-400">*</span>}
+                {field.is_required && <span className="ml-1 text-brand">*</span>}
               </label>
             )}
 
@@ -129,14 +128,14 @@ export function DynamicFormRenderer({ fields, register, errors, setValue, member
 
             {/* Checkbox */}
             {isCheckbox && (
-              <label className="flex items-center gap-3 text-sm text-slate-300">
+              <label className="flex items-center gap-3 text-sm font-medium text-foreground">
                 <input
                   type="checkbox"
                   {...register(name, { required: field.is_required })}
-                  className="h-4 w-4 rounded border-[#243B72] bg-[#07101f] accent-[#F5E62D]"
+                  className="h-4 w-4 rounded border-2 border-border bg-panel accent-brand"
                 />
                 {field.label}
-                {field.is_required && <span className="ml-1 text-red-400">*</span>}
+                {field.is_required && <span className="ml-1 text-brand">*</span>}
               </label>
             )}
 
@@ -152,7 +151,7 @@ export function DynamicFormRenderer({ fields, register, errors, setValue, member
             )}
 
             {errors?.[name] && (
-              <p className="mt-1 text-xs text-red-400">{errors[name]?.message ?? 'This field is required'}</p>
+              <p className="mt-1 text-xs font-medium text-danger">{errors[name]?.message ?? 'This field is required'}</p>
             )}
           </div>
         )

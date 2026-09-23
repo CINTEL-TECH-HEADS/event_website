@@ -9,11 +9,13 @@ import {
   LayoutGrid,
   Activity,
   Users,
-  Rocket,
 } from 'lucide-react'
 
 import { EventTable } from '@/components/dashboard/EventTable'
 import { isPast } from '@/lib/utils'
+import { PosterHeading } from '@/components/brand/PosterHeading'
+import { Sparkle } from '@/components/brand/Starburst'
+import { RockShape } from '@/components/brand/RockShape'
 
 type EventWithStats = {
   id: string
@@ -86,7 +88,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="text-sm text-slate-400">
+      <div className="text-sm font-bold uppercase tracking-wide text-foreground-soft">
         Loading command center...
       </div>
     )
@@ -96,9 +98,14 @@ export default function DashboardPage() {
     <div className="space-y-8">
 
       {/* Hero */}
-      <section className="app-panel relative overflow-hidden  px-6 py-7 sm:px-8 sm:py-8">
+      <section className="app-panel relative overflow-hidden px-6 py-7 sm:px-8 sm:py-8">
 
-        <div className="absolute inset-x-0 top-0 h-24 bg-[linear-gradient(90deg,rgba(245,230,45,0.08),transparent,rgba(59,130,246,0.10))]" />
+        {/* Restrained poster flourish — a single rock in the corner, not a scene */}
+        <RockShape
+          variant={2}
+          fill="#F2C230"
+          className="pointer-events-none absolute -right-4 -top-4 h-28 w-28 rotate-[12deg] opacity-[0.1]"
+        />
 
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
 
@@ -111,11 +118,11 @@ export default function DashboardPage() {
 
             <div>
 
-              <h1 className="app-heading max-w-3xl">
+              <PosterHeading as="h1" fillClassName="text-primary-yellow" className="max-w-3xl text-3xl sm:text-5xl">
                 All your events,
                 from planning to
                 execution day.
-              </h1>
+              </PosterHeading>
 
               <p className="app-subheading mt-3 max-w-2xl">
                 Monitor registrations,
@@ -148,17 +155,17 @@ export default function DashboardPage() {
           <div className="flex items-start justify-between">
 
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+              <p className="font-tech text-xs font-bold uppercase tracking-[0.2em] text-foreground-soft">
                 Total Events
               </p>
 
-              <p className="mt-3 text-5xl font-semibold text-white">
+              <p className="mt-3 font-display text-4xl text-foreground sm:text-5xl">
                 {events.length}
               </p>
             </div>
 
-            <span className=" bg-[#0B1736] p-3 text-[#F5E62D]">
-              <Rocket size={18} />
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-border bg-primary-yellow text-[#121212]">
+              <RockShape variant={1} className="h-6 w-6" />
             </span>
 
           </div>
@@ -170,11 +177,11 @@ export default function DashboardPage() {
           <div className="flex items-start justify-between">
 
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+              <p className="font-tech text-xs font-bold uppercase tracking-[0.2em] text-foreground-soft">
                 Published
               </p>
 
-              <p className="mt-3 text-5xl font-semibold text-green-400">
+              <p className="mt-3 font-display text-4xl text-success sm:text-5xl">
                 {
                   events.filter(
                     (event) =>
@@ -184,8 +191,8 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <span className=" bg-[#0B1736] p-3 text-green-400">
-              <Activity size={18} />
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-border bg-success text-white">
+              <Activity size={18} strokeWidth={2.5} />
             </span>
 
           </div>
@@ -197,11 +204,11 @@ export default function DashboardPage() {
           <div className="flex items-start justify-between">
 
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+              <p className="font-tech text-xs font-bold uppercase tracking-[0.2em] text-foreground-soft">
                 Registrations
               </p>
 
-              <p className="mt-3 text-5xl font-semibold text-[#F5E62D]">
+              <p className="mt-3 font-display text-4xl text-foreground sm:text-5xl">
                 {
                   events.reduce(
                     (
@@ -216,8 +223,8 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <span className=" bg-[#0B1736] p-3 text-[#93C5FD]">
-              <Users size={18} />
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-border bg-accent text-white">
+              <Users size={18} strokeWidth={2.5} />
             </span>
 
           </div>
@@ -236,12 +243,13 @@ export default function DashboardPage() {
             <section>
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-white">Managed Events</h2>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <h2 className="font-display text-lg uppercase tracking-tight text-foreground sm:text-xl">Managed Events</h2>
+                  <p className="mt-1 text-sm font-medium text-foreground-soft">
                     Active and upcoming events — jump into setup, registrations, exports, and operations.
                   </p>
                 </div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#F5E62D]">
+                <p className="app-kicker">
+                  <Sparkle className="h-3 w-3 text-primary-red" />
                   Live Workspace
                 </p>
               </div>
@@ -251,8 +259,8 @@ export default function DashboardPage() {
             {pastEvents.length > 0 && (
               <section>
                 <div className="mb-4">
-                  <h2 className="text-xl font-bold text-white">Past Events</h2>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <h2 className="font-display text-lg uppercase tracking-tight text-foreground sm:text-xl">Past Events</h2>
+                  <p className="mt-1 text-sm font-medium text-foreground-soft">
                     Concluded events (end date has passed).
                   </p>
                 </div>

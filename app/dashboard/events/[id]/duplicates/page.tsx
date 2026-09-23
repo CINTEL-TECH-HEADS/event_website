@@ -155,7 +155,7 @@ export default function DuplicateReviewPage() {
 
   if (loading) {
     return (
-      <div className="text-sm text-slate-400">
+      <div className="text-sm font-medium text-foreground-soft">
         Loading duplicate flags...
       </div>
     )
@@ -167,17 +167,17 @@ export default function DuplicateReviewPage() {
       {/* Hero */}
       <section className="app-panel  px-6 py-7  sm:px-8">
 
-        <span className="inline-flex items-center gap-2 rounded-full bg-[#0B1736] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#F5E62D]">
+        <span className="app-kicker inline-flex items-center gap-2">
           <ShieldAlert size={14} />
           Duplicate Review
         </span>
 
-        <h1 className="mt-5 text-3xl font-bold text-white">
+        <h1 className="app-heading mt-5">
           Keep registrations
           clean and trusted.
         </h1>
 
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
+        <p className="app-subheading mt-3 max-w-2xl">
           Review suspicious
           submissions, dismiss
           false positives, or
@@ -190,7 +190,7 @@ export default function DuplicateReviewPage() {
       {/* Empty */}
       {duplicates.length ===
       0 ? (
-        <div className=" border border-green-500/20 bg-green-500/10 px-5 py-4 text-sm font-medium text-green-400">
+        <div className="app-alert-success">
           No duplicate
           registrations
           require review.
@@ -206,7 +206,7 @@ export default function DuplicateReviewPage() {
                 key={
                   duplicate.id
                 }
-                className=" border border-[#243B72] bg-[#10224A] p-6  transition-all duration-300 hover:-translate-y-1"
+                className="rounded-2xl border-2 border-brand border-l-8 bg-panel p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 md:border-4 md:border-l-8"
               >
 
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -216,14 +216,14 @@ export default function DuplicateReviewPage() {
 
                     <div>
 
-                      <h2 className="text-lg font-semibold text-white">
+                      <h2 className="text-lg font-black uppercase tracking-tight text-foreground">
                         {duplicate
                           .registration
                           ?.leader_name ||
                           'Unknown'}
                       </h2>
 
-                      <p className="mt-1 text-sm text-[#93C5FD]">
+                      <p className="mt-1 text-sm font-medium text-accent">
                         {duplicate
                           .registration
                           ?.leader_email ||
@@ -234,14 +234,14 @@ export default function DuplicateReviewPage() {
 
                     <div className="flex flex-wrap gap-2">
 
-                      <span className="rounded-full bg-[#0B1736] px-3 py-1 text-xs font-semibold text-[#F5E62D]">
+                      <span className="app-badge app-badge-danger">
                         {duplicate.reason ===
                         'same_name_phone'
                           ? 'Same Name & Phone'
                           : 'Rapid Submission'}
                       </span>
 
-                      <span className="rounded-full bg-[#0B1736] px-3 py-1 text-xs font-semibold text-slate-300">
+                      <span className="app-badge app-badge-neutral">
                         Flagged{' '}
                         {new Date(
                           duplicate.created_at
@@ -253,11 +253,11 @@ export default function DuplicateReviewPage() {
                     </div>
 
                     {duplicate.registration && (
-                      <div className="grid gap-3  border border-[#243B72] bg-[#0B1736] p-4 text-sm text-slate-300 sm:grid-cols-2">
+                      <div className="grid gap-3 rounded-xl border-2 border-border bg-panel-muted p-4 text-sm font-medium text-foreground-soft sm:grid-cols-2">
 
                         <div>
                           Registration ID
-                          <div className="font-semibold text-white">
+                          <div className="font-bold text-foreground">
                             {
                               duplicate
                                 .registration
@@ -268,7 +268,7 @@ export default function DuplicateReviewPage() {
 
                         <div>
                           Type
-                          <div className="font-semibold text-white">
+                          <div className="font-bold text-foreground">
                             {duplicate
                               .registration
                               .registration_type ===
@@ -280,7 +280,7 @@ export default function DuplicateReviewPage() {
 
                         <div>
                           Status
-                          <div className="font-semibold capitalize text-white">
+                          <div className="font-bold capitalize text-foreground">
                             {
                               duplicate
                                 .registration
@@ -291,7 +291,7 @@ export default function DuplicateReviewPage() {
 
                         <div>
                           Registered
-                          <div className="font-semibold text-white">
+                          <div className="font-bold text-foreground">
                             {new Date(
                               duplicate
                                 .registration
@@ -320,7 +320,7 @@ export default function DuplicateReviewPage() {
                         processing ===
                         duplicate.id
                       }
-                      className="inline-flex items-center gap-2  bg-green-500 px-4 py-2 text-sm font-semibold text-white hover:bg-green-400 disabled:opacity-50"
+                      className="app-button-success"
                     >
                       <Check size={16} />
                       Dismiss
@@ -337,7 +337,7 @@ export default function DuplicateReviewPage() {
                         processing ===
                         duplicate.id
                       }
-                      className="inline-flex items-center gap-2  bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-400 disabled:opacity-50"
+                      className="app-button-danger"
                     >
                       <Trash2 size={16} />
                       Delete
@@ -355,7 +355,7 @@ export default function DuplicateReviewPage() {
       )}
 
       {/* Footer */}
-      <div className=" border border-[#243B72] bg-[#10224A] px-5 py-4 text-sm text-slate-300">
+      <div className="app-alert-info">
         Dismiss marks a flag
         as reviewed. Delete
         permanently removes
