@@ -211,14 +211,14 @@ portal; organizers run events from a dashboard; judges review participants.
 
 ## 6. Current state (2026-09-23)
 - Branch **`feat/google-auth-profile`** — 10 feature commits + a merge of `origin/main`; the merge
-  commit is **local only (not pushed)**. Tree clean. `tsc` 0 errors.
+  commit is pushed; **PR #14** open to `main`. Tree clean. `tsc` 0 errors.
 - `main` = PRs #8, #9, #11, #12 merged. PR #13 (`ER-Improvements1`) open.
 - Live DB: migrations through **024** applied.
 - Auth note: §4 is partly superseded — participants now use **Google only**; organizers use
   email/password.
 
 ## 7. Future plan / open items (prioritized)
-1. **Push** `feat/google-auth-profile` and **open PR** → `main` (payments, Google auth, profile identity).
+1. **Review + merge PR #14** (`feat/google-auth-profile` → `main`; payments, Google auth, profile identity).
 2. **Duplicate migration numbers** — `019`, `020`, `021`, `022` each have two files (cert set from PR #11
    vs ours). All applied live, but renumber so a fresh replay has a deterministic order.
 3. **Google OAuth prod config** — Supabase Google provider + prod redirect URLs allowlisted.
