@@ -6,7 +6,7 @@ import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
-import { isTeamCreator } from '@/lib/registrations/access'
+import { isTeamCreator, isTeamLocked } from '@/lib/registrations/access'
 import { isTeamNameTaken } from '@/lib/registrations/team-name'
 
 export async function PATCH(
@@ -21,6 +21,9 @@ export async function PATCH(
     const admin = createAdminClient()
     if (!(await isTeamCreator(admin, registration_id, user.id, user.email!))) {
       return apiError('Only the team creator can update the team', 403)
+    }
+    if (await isTeamLocked(admin, registration_id)) {
+      return apiError('Team is locked after payment')
     }
 
     const body = await req.json().catch(() => ({}))

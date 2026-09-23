@@ -7,13 +7,17 @@ import { isPast, isRegistrationOpen, formatShortDate } from '@/lib/utils'
 import {
   LogOut, Sun, Moon, Sunset, Calendar,
   Users, Copy, Check, ChevronRight, AlertTriangle,
-  Zap,
+  Zap, IndianRupee, Clock,
 } from 'lucide-react'
 import { PortalTabs, type PortalTab } from '@/components/participant/PortalTabs'
 import { PastEventCard } from '@/components/participant/PastEventCard'
 import { ProfileTab } from '@/components/participant/ProfileTab'
 import { RockShape } from '@/components/brand/RockShape'
 import { Sparkle } from '@/components/brand/Starburst'
+
+function firstName(full: string) {
+  return full.trim().split(/\s+/)[0] ?? ''
+}
 
 function getGreeting(name: string) {
   const hour = new Date().getHours()
@@ -38,13 +42,15 @@ function isRegistrationComplete(reg: any): boolean {
 export default function PortalPage() {
   const [registrations, setRegistrations] = useState<any[]>([])
   const [activeEvents, setActiveEvents]   = useState<any[]>([])
-  const [userName, setUserName]           = useState('')
+  const [profileName, setProfileName]     = useState('')
+  const [regName, setRegName]             = useState('')
   const [loading, setLoading]             = useState(true)
   const [error, setError]                 = useState<string | null>(null)
   const [copied, setCopied]               = useState<string | null>(null)
   const [invites, setInvites]             = useState<any[]>([])
   const [respBusy, setRespBusy]           = useState<string | null>(null)
   const [tab, setTab]                     = useState<PortalTab>('events')
+  const [profileComplete, setProfileComplete] = useState(true)
   const router = useRouter()
 
   async function loadRegistrations() {
@@ -54,7 +60,7 @@ export default function PortalPage() {
     const regs = data ?? []
     setRegistrations(regs)
     const first = regs[0]
-    if (first?.leader_name) setUserName(first.leader_name.split(' ')[0])
+    if (first?.leader_name) setRegName(firstName(first.leader_name))
   }
 
   async function loadInvites() {
@@ -67,6 +73,10 @@ export default function PortalPage() {
       loadRegistrations(),
       loadInvites(),
       fetch('/api/events').then(r => r.json()).then(({ data }) => setActiveEvents(data ?? [])),
+      fetch('/api/participant/profile').then(r => r.json()).then(j => {
+        setProfileComplete(!!j.data?.complete)
+        if (j.data?.profile?.full_name) setProfileName(firstName(j.data.profile.full_name))
+      }).catch(() => {}),
     ]).finally(() => setLoading(false))
   }, [])
 
@@ -126,6 +136,24 @@ export default function PortalPage() {
     <div className="flex items-center justify-center py-32"><p className="font-bold text-danger">{error}</p></div>
   )
 
+  // First sign-in gate: participants must record their college email + registration
+  // number before using the portal.
+  if (!profileComplete) return (
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="mb-6">
+        <h1 className="font-display text-2xl uppercase leading-tight tracking-tight text-foreground">Welcome — complete your details</h1>
+        <p className="mt-1 text-sm font-medium text-foreground-soft">
+          Before you register for events, add your <strong className="text-foreground">college email</strong> and
+          <strong className="text-foreground"> registration number</strong>. These are required and unique to your account.
+        </p>
+      </div>
+      <ProfileTab required onSaved={(p) => { if (p?.college_email && p?.register_number) setProfileComplete(true) }} />
+      <div className="mt-6 text-center">
+        <button onClick={handleLogout} className="text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground">Sign out</button>
+      </div>
+    </div>
+  )
+
   const upcoming          = registrations.filter(r => !isPast(r.events?.starts_at))
   const past              = registrations.filter(r => isPast(r.events?.starts_at))
   const actionRequired    = upcoming.filter(r => !isRegistrationComplete(r))
@@ -135,7 +163,7 @@ export default function PortalPage() {
   const availableEvents   = activeEvents.filter(
     e => !registeredIds.includes(e.id) && isRegistrationOpen(e)
   )
-  const greeting          = getGreeting(userName || 'there')
+  const greeting          = getGreeting(profileName || regName || 'there')
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -198,6 +226,9 @@ export default function PortalPage() {
           <div className="flex items-center gap-3 mb-3">
             <Users size={13} className="text-brand" />
             <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-brand">Team Invites</h2>
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-border bg-brand px-1.5 text-[11px] font-bold text-white">
+              {invites.filter((i: any) => i.incoming).length}
+            </span>
           </div>
           <div className="space-y-2">
             {invites.filter((i: any) => i.incoming).map((i: any) => (
@@ -318,9 +349,17 @@ export default function PortalPage() {
                         </Link>
                         <Link
                           href={`/participant/portal/events/${r.id}/find`}
-                          className="app-button-primary flex-1"
+                          className="app-button-primary relative flex-1"
                         >
                           <Users size={12} /> Find Teammates
+                          {(() => {
+                            const pending = invites.filter((i: any) => i.incoming && i.team_registration_id === r.id).length
+                            return pending > 0 ? (
+                              <span className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-border bg-brand px-1 text-[10px] font-bold text-white">
+                                {pending}
+                              </span>
+                            ) : null
+                          })()}
                         </Link>
                       </div>
                     </div>
@@ -432,15 +471,26 @@ function EventCard({ reg }: { reg: any }) {
   const attended   = Array.isArray(reg.attendance) ? reg.attendance.length > 0 : !!reg.attendance?.id
   const hasCert    = Array.isArray(reg.certificates) ? reg.certificates.length > 0 : !!reg.certificates?.id
 
+  // Payment state — only the owner (solo owner / team leader) pays, and for a
+  // team only once it has reached the minimum size.
+  const fee               = event?.fee ?? 0
+  const teamComplete      = !isTeam || (reg.members?.length ?? 0) >= (event?.min_team_size ?? 1)
+  const owesPayment       = reg._owner && fee > 0 && reg.status === 'confirmed' && teamComplete &&
+                            (reg.payment_status === 'pending' || reg.payment_status === 'rejected')
+  const paymentUnderReview = fee > 0 && reg.payment_status === 'submitted'
+
   const statusBadge = () => {
     if (reg.status === 'waitlisted')  return <span className="app-badge-warning app-badge">Waitlisted</span>
     if (reg.status === 'cancelled')   return <span className="app-badge-danger app-badge">Cancelled</span>
+    if (owesPayment)                  return <span className="app-badge-danger app-badge">Payment due</span>
+    if (paymentUnderReview)           return <span className="app-badge-warning app-badge">Under review</span>
     if (attended && hasCert)          return <span className="app-badge-success app-badge">Certificate</span>
     if (attended)                     return <span className="app-badge-success app-badge">Attended</span>
     return <span className="app-badge-neutral app-badge">Confirmed</span>
   }
 
   return (
+    <div>
     <Link href={`/participant/portal/events/${reg.id}`}>
       <div className="app-card-hover relative rounded-poster border-4 border-border bg-panel p-5 shadow-md transition-all cursor-pointer group">
         {isTeam ? (
@@ -481,5 +531,20 @@ function EventCard({ reg }: { reg: any }) {
         </div>
       </div>
     </Link>
+
+    {owesPayment && (
+      <Link
+        href={`/participant/portal/events/${reg.id}/pay`}
+        className="app-button-primary mt-2 flex w-full items-center justify-center gap-2 !py-2.5 text-sm"
+      >
+        <IndianRupee size={14} /> Complete payment — ₹{fee}
+      </Link>
+    )}
+    {paymentUnderReview && (
+      <p className="mt-2 flex items-center justify-center gap-1.5 text-xs font-bold text-brand">
+        <Clock size={12} /> Payment submitted — awaiting organizer verification
+      </p>
+    )}
+    </div>
   )
 }

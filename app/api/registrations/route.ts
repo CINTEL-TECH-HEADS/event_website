@@ -146,8 +146,11 @@ export async function POST(req: NextRequest) {
   // Paid events collect payment before issuing the pass; free events don't.
   const isPaid = (event.fee ?? 0) > 0
   const payment_status = isPaid ? 'pending' : 'not_required'
-  // A confirmed spot on a paid event must pay before the QR/pass is issued.
-  const requiresPayment = isPaid && status === 'confirmed'
+  // Solo paid registrations pay immediately (routed to the pay step). Team
+  // registrations pay later — only once the team reaches minimum size — so they
+  // are not routed to payment at creation.
+  const requiresPayment =
+    isPaid && status === 'confirmed' && payload.registration_type === 'solo'
 
   // Step 6b: Resolve the team name — unique per event. A seeker's auto-name is
   // uniquified silently; an explicit team name that's taken is rejected.
@@ -172,9 +175,10 @@ export async function POST(req: NextRequest) {
       ? await generateUniqueGroupCode(supabase)
       : null
 
-  // Step 8: Generate QR — only for a confirmed spot that doesn't still owe payment.
+  // Step 8: Generate QR — only for a free confirmed spot. Any paid event (solo or
+  // team) issues the QR only after its payment is verified by an organizer.
   let qr_storage_path: string | null = null
-  if (status === 'confirmed' && !requiresPayment) {
+  if (status === 'confirmed' && !isPaid) {
     try {
       qr_storage_path = await uploadQrToStorage(regId, event.id)
     } catch (err) {

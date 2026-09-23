@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     // Resolve the team registration by group code or id.
     let query = admin
       .from('registrations')
-      .select('id, event_id, team_name, status, is_open, registration_type, events(title, max_team_size, registration_closes_at)')
+      .select('id, event_id, team_name, status, is_open, registration_type, payment_status, events(title, max_team_size, registration_closes_at)')
     query = rawCode
       ? query.eq('group_code', rawCode.toUpperCase().trim())
       : query.eq('id', registrationId!)
@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
 
     if (!team || team.registration_type !== 'team') return apiError('Team not found')
     if (team.status !== 'confirmed') return apiError('This team is no longer active')
+    if (team.payment_status === 'paid') return apiError('This team is locked after payment')
     if (!team.is_open) return apiError('This team is not accepting new members')
 
     const event = team.events as any

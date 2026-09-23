@@ -1,58 +1,68 @@
 // Owner: FE2 - Login page
+// Participants sign in with Google; organizers/superadmins use the email +
+// password form revealed by the "Organizer sign-in" link.
 'use client'
-import { Suspense, useEffect, useState } from 'react'
-import { ArrowRight, TerminalSquare, LayoutGrid, Zap, Fingerprint, MailCheck } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowRight, TerminalSquare, LayoutGrid, Zap, Fingerprint } from 'lucide-react'
 import Link from 'next/link'
 import { createBrowserClient } from '@/lib/supabase/client'
-import { OtpInput, MIN_OTP } from '@/components/auth/OtpInput'
 import { PosterHeading } from '@/components/brand/PosterHeading'
 import { Starburst, Sparkle } from '@/components/brand/Starburst'
 import { RockShape } from '@/components/brand/RockShape'
 import { ShipShape } from '@/components/brand/ShipShape'
 
-function LoginForm() {
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+      <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.71-1.57 2.68-3.89 2.68-6.62z" />
+      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z" />
+      <path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z" />
+      <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z" />
+    </svg>
+  )
+}
+
+export default function LoginPage() {
   const [supabase] = useState(() => createBrowserClient())
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [otp, setOtp] = useState('')
-  const [verifyStep, setVerifyStep] = useState(false)
+  const [showOrg, setShowOrg] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [info, setInfo] = useState<string | null>(null)
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('error') === 'auth_callback_failed') {
-      setError('That link was invalid or expired. Sign in, or request a new code.')
+      setError('That sign-in link was invalid or expired. Please try again.')
     }
   }, [])
 
-  function handleForgot() {
+  async function signInWithGoogle() {
+    setGoogleLoading(true)
     setError(null)
-    // Go to the OTP reset flow, prefilling the email when present
-    window.location.assign('/reset-password' + (email ? `?email=${encodeURIComponent(email)}` : ''))
+    const params = new URLSearchParams(window.location.search)
+    const next = params.get('redirect')
+    const redirectTo = `${window.location.origin}/api/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}`
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo },
+    })
+    if (error) {
+      setError(error.message)
+      setGoogleLoading(false)
+    }
   }
 
-  async function handleResend() {
-    setInfo('Sending…')
-    try {
-      const res = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-      const result = await res.json()
-      setInfo(result.data?.message ?? result.error ?? 'A new code is on its way.')
-    } catch {
-      setInfo('Could not resend. Try again.')
-    }
+  function handleForgot() {
+    setError(null)
+    window.location.assign('/reset-password' + (email ? `?email=${encodeURIComponent(email)}` : ''))
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    setInfo(null)
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -60,43 +70,16 @@ function LoginForm() {
         body: JSON.stringify({ email, password }),
       })
       const result = await response.json()
-
       if (!response.ok) {
-        setError(result.error ?? 'Access Denied. Invalid credentials.')
+        setError(result.error ?? 'Access denied. Invalid credentials.')
         return
       }
-
-      // Unverified account → move to the 6-digit code step
-      if (result.data?.needsVerification) {
-        setInfo(`Your email isn't verified yet. We sent a verification code to ${email}.`)
-        setVerifyStep(true)
-        return
-      }
-
-      // Server decides the destination based on the account's role
-      window.location.assign(result.data?.redirect ?? '/participant/portal')
-    } catch (error) {
+      window.location.assign(result.data?.redirect ?? '/dashboard')
+    } catch {
       setError('Connection dropped. Try again.')
     } finally {
       setLoading(false)
     }
-  }
-
-  async function handleVerify(e: React.FormEvent) {
-    e.preventDefault()
-    if (otp.length < MIN_OTP) {
-      setError('Enter the code from your email.')
-      return
-    }
-    setLoading(true)
-    setError(null)
-    const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'signup' })
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
-    }
-    window.location.assign('/participant/portal')
   }
 
   return (
@@ -111,126 +94,87 @@ function LoginForm() {
             <ArrowRight size={14} className="rotate-180" /> Back to Home
           </Link>
 
-          {verifyStep ? (
-            <>
-              <div className="mb-10 space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-accent text-white border-2 border-border flex items-center justify-center mb-8">
-                  <MailCheck size={24} />
-                </div>
-                <PosterHeading as="h1" fillClassName="text-brand" className="text-3xl sm:text-4xl">Verify your email.</PosterHeading>
-                <p className="text-sm font-medium text-foreground-soft leading-relaxed max-w-sm">
-                  Enter the code we sent to <span className="text-foreground font-bold">{email}</span>.
-                </p>
-              </div>
+          <div className="mb-10 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-primary-yellow text-[#14120F] border-2 border-border flex items-center justify-center mb-8">
+              <Fingerprint size={24} />
+            </div>
+            <PosterHeading as="h1" fillClassName="text-brand" className="text-3xl sm:text-4xl">Sign in.</PosterHeading>
+            <p className="text-sm font-medium text-foreground-soft leading-relaxed max-w-sm">
+              Participants sign in with Google. Organisers use their email and password.
+            </p>
+          </div>
 
-              <form onSubmit={handleVerify} className="space-y-5">
-                <OtpInput value={otp} onChange={setOtp} autoFocus disabled={loading} />
+          {/* Google (participants) */}
+          <button
+            type="button"
+            onClick={signInWithGoogle}
+            disabled={googleLoading}
+            className="app-button-secondary w-full py-4 flex items-center justify-center gap-3 text-sm disabled:opacity-60"
+          >
+            <GoogleIcon />
+            {googleLoading ? 'Redirecting…' : 'Continue with Google'}
+          </button>
+          <p className="mt-2 text-center font-tech text-xs uppercase tracking-widest text-foreground-soft">for participants</p>
 
-                {error && (
-                  <div className="bg-brand text-white border-2 border-border rounded-xl px-4 py-3 text-sm font-bold">{error}</div>
-                )}
-                {info && (
-                  <div className="app-alert-info px-4 py-3 text-sm font-medium">{info}</div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading || otp.length < MIN_OTP}
-                  className="app-button-primary w-full py-4 flex items-center justify-center gap-2 text-sm disabled:opacity-60"
-                >
-                  {loading ? 'Verifying…' : 'Verify & continue'}
-                  {!loading && <ArrowRight size={16} />}
-                </button>
-
-                <div className="pt-1 text-center font-tech text-xs text-foreground-soft">
-                  Didn't get it?{' '}
-                  <button type="button" onClick={handleResend} className="text-brand hover:underline font-bold uppercase tracking-wide">Resend code</button>
-                </div>
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => { setVerifyStep(false); setOtp(''); setError(null); setInfo(null) }}
-                    className="font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground transition-colors"
-                  >
-                    ← Back to sign in
-                  </button>
-                </div>
-              </form>
-            </>
-          ) : (
-            <>
-              <div className="mb-10 space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-primary-yellow text-[#14120F] border-2 border-border flex items-center justify-center mb-8">
-                  <Fingerprint size={24} />
-                </div>
-                <PosterHeading as="h1" fillClassName="text-brand" className="text-3xl sm:text-4xl">Sign in.</PosterHeading>
-                <p className="text-sm font-medium text-foreground-soft leading-relaxed max-w-sm">
-                  One login for everyone — organisers land in the dashboard, participants in their portal.
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-5">
-                  <div>
-                    <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Workspace Email</label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="admin@cintel.in"
-                      required
-                      className="app-input w-full text-sm font-medium"
-                    />
-                  </div>
-
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <label className="block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Master Password</label>
-                      <button
-                        type="button"
-                        onClick={handleForgot}
-                        className="font-tech text-xs font-bold uppercase tracking-wide text-brand hover:underline transition-colors"
-                      >
-                        Forgot password?
-                      </button>
-                    </div>
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••••••"
-                      required
-                      className="app-input w-full font-mono tracking-widest text-lg"
-                    />
-                  </div>
-
-                  {error && (
-                    <div className="bg-brand text-white border-2 border-border rounded-xl px-4 py-3 text-sm font-bold flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-white shrink-0" />
-                      {error}
-                    </div>
-                  )}
-
-                  {info && (
-                    <div className="app-alert-info px-4 py-3 text-sm font-medium">{info}</div>
-                  )}
-
-                  <button type="submit" disabled={loading} className="app-button-primary w-full py-4 flex items-center justify-center gap-2 mt-4 text-sm">
-                    {loading ? 'Authenticating...' : 'Sign In'}
-                    {!loading && <ArrowRight size={16} />}
-                  </button>
-                </div>
-
-                <div className="pt-4 text-center">
-                  <span className="font-tech text-sm text-foreground-soft">New here? </span>
-                  <Link href="/signup" className="text-brand hover:underline font-bold text-sm uppercase tracking-wide transition-colors">
-                    Sign up
-                  </Link>
-                </div>
-              </form>
-            </>
+          {error && (
+            <div className="mt-5 bg-brand text-white border-2 border-border rounded-xl px-4 py-3 text-sm font-bold flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-white shrink-0" />
+              {error}
+            </div>
           )}
 
+          {/* Divider + organizer reveal */}
+          <div className="my-7 flex items-center gap-4 font-tech text-[0.7rem] font-bold uppercase tracking-widest text-foreground-soft">
+            <div className="h-0.5 flex-1 bg-border" /> or <div className="h-0.5 flex-1 bg-border" />
+          </div>
+
+          {!showOrg ? (
+            <button
+              type="button"
+              onClick={() => setShowOrg(true)}
+              className="inline-flex items-center gap-1.5 self-center font-tech text-sm font-bold uppercase tracking-wide text-brand hover:underline transition-colors"
+            >
+              Organizer sign-in <ArrowRight size={14} />
+            </button>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Organizer Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@cintel.in"
+                  required
+                  className="app-input w-full text-sm font-medium"
+                />
+              </div>
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Password</label>
+                  <button
+                    type="button"
+                    onClick={handleForgot}
+                    className="font-tech text-xs font-bold uppercase tracking-wide text-brand hover:underline transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  required
+                  className="app-input w-full font-mono tracking-widest text-lg"
+                />
+              </div>
+              <button type="submit" disabled={loading} className="app-button-primary w-full py-4 flex items-center justify-center gap-2 text-sm">
+                {loading ? 'Authenticating…' : 'Sign in'}
+                {!loading && <ArrowRight size={16} />}
+              </button>
+            </form>
+          )}
         </section>
 
         {/* Right Side: Showcase — vintage arcade sci-fi poster scene */}
@@ -285,19 +229,5 @@ function LoginForm() {
 
       </div>
     </div>
-  )
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center text-xs tracking-widest font-mono text-brand uppercase font-bold">
-          [System Connecting...]
-        </div>
-      }
-    >
-      <LoginForm />
-    </Suspense>
   )
 }

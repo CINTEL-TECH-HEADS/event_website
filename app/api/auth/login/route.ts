@@ -15,7 +15,7 @@
 
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
-import { createSessionClient, createAdminClient } from '@/lib/supabase/server'
+import { createSessionClient } from '@/lib/supabase/server'
 import { resolveUserAccess } from '@/lib/auth/get-session'
 import { rateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
@@ -46,22 +46,18 @@ export async function POST(req: NextRequest) {
     const { password } = parsed.data
 
     const supabase = await createSessionClient()
-    const admin = createAdminClient()
 
     // 2. Sign in
     const { data: signInData, error: signInError } =
       await supabase.auth.signInWithPassword({ email, password })
 
     if (!signInData?.user) {
-      // Account exists but the email hasn't been verified
+      // Account exists but the email hasn't been verified. Outbound email is
+      // disabled and the login page has no verify step, so an admin must confirm it.
       if (isEmailNotConfirmed(signInError)) {
-        return apiSuccess({
-          needsVerification: true,
-          email,
-          message: 'Please verify your email — we sent a confirmation link to your inbox.',
-        })
+        return apiError("This account's email hasn't been verified yet. Ask a Cintel admin to verify it, then sign in again.", 403)
       }
-      return apiError('Invalid email or password. New here? Create an account with Sign up.', 401)
+      return apiError('Invalid email or password. Participants: use Continue with Google instead.', 401)
     }
 
     const userId = signInData.user.id
@@ -69,16 +65,16 @@ export async function POST(req: NextRequest) {
     // 3. Determine role/home (shared with layout gates + /api/auth/me)
     const access = await resolveUserAccess(userId, email)
 
-    // 4. Link any of this email's registrations to the account (participant convenience)
-    await admin
-      .from('registrations')
-      .update({ participant_id: userId })
-      .eq('leader_email', email)
-      .is('participant_id', null)
+    // 4. Password login is for organizers/superadmins only — participants must
+    // use Google sign-in. Reject and fully sign out any participant-role account.
+    if (!access.isOrganizer) {
+      await supabase.auth.signOut()
+      return apiError('Participants must sign in with Google.', 403)
+    }
 
     return apiSuccess({
       redirect: access.home,
-      role: access.isOrganizer ? 'organizer' : 'participant',
+      role: 'organizer',
     })
   } catch (err) {
     console.error('[POST /api/auth/login]', err)

@@ -36,6 +36,13 @@ export default function EventDetailPage() {
     max_team_size: '',
     fee: '',
     waitlist_capacity: '',
+    payment_method: 'upi' as 'upi' | 'bank',
+    upi_id: '',
+    upi_payee_name: '',
+    bank_account_name: '',
+    bank_account_number: '',
+    bank_ifsc: '',
+    bank_name: '',
   })
 
   useEffect(() => {
@@ -62,6 +69,13 @@ export default function EventDetailPage() {
         max_team_size: data.max_team_size?.toString() ?? '',
         fee: data.fee ? data.fee.toString() : '',
         waitlist_capacity: data.waitlist_capacity?.toString() ?? '',
+        payment_method: (data.payment_method as 'upi' | 'bank') ?? 'upi',
+        upi_id: data.upi_id ?? '',
+        upi_payee_name: data.upi_payee_name ?? '',
+        bank_account_name: data.bank_account_name ?? '',
+        bank_account_number: data.bank_account_number ?? '',
+        bank_ifsc: data.bank_ifsc ?? '',
+        bank_name: data.bank_name ?? '',
       })
 
       // Fields count gates publishing.
@@ -99,6 +113,14 @@ export default function EventDetailPage() {
               : null,
           fee: formData.fee ? Number(formData.fee) : 0,
           waitlist_capacity: formData.waitlist_capacity ? Number(formData.waitlist_capacity) : null,
+          // Payment config — only persisted when the event is paid.
+          payment_method: Number(formData.fee) > 0 ? formData.payment_method : null,
+          upi_id: formData.upi_id || null,
+          upi_payee_name: formData.upi_payee_name || null,
+          bank_account_name: formData.bank_account_name || null,
+          bank_account_number: formData.bank_account_number || null,
+          bank_ifsc: formData.bank_ifsc || null,
+          bank_name: formData.bank_name || null,
         }),
       })
 
@@ -345,6 +367,62 @@ export default function EventDetailPage() {
                   />
                 </div>
               </div>
+
+              {Number(formData.fee) > 0 && (
+                <div className="border-t-2 border-border pt-5">
+                  <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Payment method</label>
+                  <p className="mb-3 text-xs font-medium text-foreground-soft">
+                    Participants pay to these details and submit proof; verify each payment in the Payments tab. Switchable any time.
+                  </p>
+                  <div className="mb-4 inline-flex flex-wrap gap-2">
+                    {(['upi', 'bank'] as const).map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, payment_method: m })}
+                        className={`rounded-full border-2 px-4 py-2 font-tech text-xs font-bold uppercase tracking-widest transition-all duration-200 ease-out ${
+                          formData.payment_method === m
+                            ? 'border-border bg-accent text-white shadow-sm'
+                            : 'border-border bg-panel-muted text-foreground-soft hover:text-foreground'
+                        }`}
+                      >
+                        {m === 'upi' ? 'UPI ID' : 'Bank transfer'}
+                      </button>
+                    ))}
+                  </div>
+                  {formData.payment_method === 'upi' ? (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">UPI ID</label>
+                        <input value={formData.upi_id} onChange={(e) => setFormData({ ...formData, upi_id: e.target.value })} placeholder="cintel@oksbi" className="app-input" />
+                      </div>
+                      <div>
+                        <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Payee name</label>
+                        <input value={formData.upi_payee_name} onChange={(e) => setFormData({ ...formData, upi_payee_name: e.target.value })} placeholder="Shown to payer" className="app-input" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Account holder</label>
+                        <input value={formData.bank_account_name} onChange={(e) => setFormData({ ...formData, bank_account_name: e.target.value })} className="app-input" />
+                      </div>
+                      <div>
+                        <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Account number</label>
+                        <input value={formData.bank_account_number} onChange={(e) => setFormData({ ...formData, bank_account_number: e.target.value })} className="app-input" />
+                      </div>
+                      <div>
+                        <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">IFSC</label>
+                        <input value={formData.bank_ifsc} onChange={(e) => setFormData({ ...formData, bank_ifsc: e.target.value })} className="app-input" />
+                      </div>
+                      <div>
+                        <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Bank name</label>
+                        <input value={formData.bank_name} onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })} className="app-input" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex justify-end border-t-2 border-border pt-5">
                 <button onClick={handleSaveEvent} disabled={saving} className="app-button-primary">

@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       .from('registrations')
       .select(`
         *,
-        events(id, title, event_type, venue, starts_at, ends_at, is_published),
+        events(id, title, event_type, venue, starts_at, ends_at, is_published, fee, min_team_size),
         members:team_members(id, full_name, email, is_leader),
         attendance(id, checked_in_at),
         certificates(id, certificate_url, generated_at)
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
         email,
         registrations(
           *,
-          events(id, title, event_type, venue, starts_at, ends_at),
+          events(id, title, event_type, venue, starts_at, ends_at, fee, min_team_size),
           members:team_members(id, full_name, email, is_leader),
           attendance(id, checked_in_at),
           certificates(id, certificate_url, generated_at)
@@ -51,10 +51,15 @@ export async function GET(req: NextRequest) {
       .map((m: any) => m.registrations)
       .filter(Boolean)
 
-    // Merge and dedupe by registration id.
+    // Merge and dedupe by registration id. Tag whether the caller OWNS the
+    // registration (solo owner or team leader) — only owners pay. Owned rows are
+    // added first so they win the dedupe.
     const byId = new Map<string, any>()
-    for (const r of [...(ownedRegs ?? []), ...memberRegData]) {
-      if (r && !byId.has(r.id)) byId.set(r.id, r)
+    for (const r of ownedRegs ?? []) {
+      if (r && !byId.has(r.id)) byId.set(r.id, { ...r, _owner: true })
+    }
+    for (const r of memberRegData) {
+      if (r && !byId.has(r.id)) byId.set(r.id, { ...r, _owner: false })
     }
 
     return apiSuccess(Array.from(byId.values()))

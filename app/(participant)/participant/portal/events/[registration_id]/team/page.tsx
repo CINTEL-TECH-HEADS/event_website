@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Users, Copy, Check, Trash2, KeyRound, Lock, Unlock, Pencil } from 'lucide-react'
+import { ArrowLeft, Users, Copy, Check, Trash2, KeyRound, Lock, Unlock, Pencil, IndianRupee, Clock, Phone } from 'lucide-react'
 
 export default function TeamPage() {
   const { registration_id } = useParams<{ registration_id: string }>()
@@ -68,6 +68,15 @@ export default function TeamPage() {
   const memberCount = reg?.members?.length ?? 0
   const isFull      = maxSize && memberCount >= maxSize
 
+  const fee         = reg?.events?.fee ?? 0
+  const minSize     = reg?.events?.min_team_size ?? 1
+  const payStatus   = reg?.payment_status ?? 'not_required'
+  const isPaid      = payStatus === 'paid'
+  const isPaidEvent = fee > 0
+  const locked      = isPaid
+  const canPay      = isPaidEvent && !isPaid && memberCount >= minSize
+  const confirmed   = reg?.status === 'confirmed' && (isPaid || !isPaidEvent)
+
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
       <Link href={`/participant/portal/events/${registration_id}`} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground transition-colors mb-6">
@@ -95,9 +104,11 @@ export default function TeamPage() {
           ) : (
             <h1 className="font-display text-2xl uppercase leading-tight tracking-tight text-foreground flex items-center gap-2">
               {reg?.team_name}
-              <button onClick={() => setEditing(true)} className="text-foreground-soft hover:text-brand" title="Rename team">
-                <Pencil size={15} />
-              </button>
+              {!locked && (
+                <button onClick={() => setEditing(true)} className="text-foreground-soft hover:text-brand" title="Rename team">
+                  <Pencil size={15} />
+                </button>
+              )}
             </h1>
           )}
           <p className="text-foreground-soft text-sm font-medium mt-1">{reg?.events?.title}</p>
@@ -128,7 +139,7 @@ export default function TeamPage() {
 
         {/* Open / closed for the finder */}
         <button
-          disabled={busy}
+          disabled={busy || locked}
           onClick={() => patchTeam({ is_open: !reg.is_open })}
           className="mt-4 inline-flex items-center gap-2 rounded-full border-2 border-border px-4 py-2 text-sm font-bold uppercase tracking-wide text-foreground transition duration-200 hover:bg-panel-muted disabled:opacity-50"
         >
@@ -136,6 +147,46 @@ export default function TeamPage() {
           {reg?.is_open ? 'Open — visible in Team Finder' : 'Closed — hidden from Team Finder'}
         </button>
       </div>
+
+      {/* Payment (paid team events) */}
+      {isPaidEvent && (
+        <div className="rounded-poster border-4 border-border bg-panel p-6 mb-4 shadow-md">
+          <div className="flex items-center gap-2 mb-2">
+            <IndianRupee size={16} className="text-brand" />
+            <h2 className="font-display text-sm uppercase tracking-wide text-foreground">Payment</h2>
+          </div>
+          {isPaid ? (
+            <p className="flex items-center gap-2 text-sm font-bold text-success">
+              <Check size={15} /> Paid — team confirmed. Your roster is now locked.
+            </p>
+          ) : payStatus === 'submitted' ? (
+            <p className="flex items-center gap-2 text-sm font-bold text-brand">
+              <Clock size={15} /> Payment under review by the organizer.
+            </p>
+          ) : canPay ? (
+            <>
+              <p className="mb-3 text-sm text-foreground-soft">
+                Your team has enough members. Pay the ₹{fee} fee to confirm all {memberCount} members.
+              </p>
+              <Link
+                href={`/participant/portal/events/${registration_id}/pay`}
+                className="app-button-primary inline-flex items-center gap-2 px-5 py-2.5 text-sm"
+              >
+                <IndianRupee size={15} /> Pay ₹{fee}
+                {payStatus === 'rejected' && ' again'}
+              </Link>
+              {payStatus === 'rejected' && (
+                <p className="mt-2 text-xs font-bold text-danger">Your previous payment was rejected — please pay and resubmit.</p>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-foreground-soft">
+              Add at least <strong className="text-foreground">{minSize}</strong> members
+              (currently {memberCount}) to unlock payment.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Members */}
       <div className="rounded-poster border-4 border-border bg-panel p-6 shadow-lg">
@@ -152,14 +203,19 @@ export default function TeamPage() {
         <div className="space-y-3">
           {reg?.members?.map((m: any) => (
             <div key={m.id} className="flex items-center justify-between py-2 border-b-2 border-border last:border-0">
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-bold text-foreground">
                   {m.full_name}
                   {m.is_leader && <span className="ml-2 text-xs text-brand font-bold">Creator</span>}
                 </p>
                 <p className="text-xs font-medium text-foreground-soft">{m.email}</p>
+                {confirmed && m.phone && (
+                  <a href={`tel:${m.phone}`} className="mt-0.5 inline-flex items-center gap-1 text-xs font-bold text-accent hover:text-brand">
+                    <Phone size={11} /> {m.phone}
+                  </a>
+                )}
               </div>
-              {!m.is_leader && (
+              {!m.is_leader && !locked && (
                 <button
                   onClick={() => removeMember(m.id, m.full_name)}
                   className="p-1.5 text-foreground-soft hover:text-danger hover:bg-danger/10 transition-colors"
@@ -171,6 +227,12 @@ export default function TeamPage() {
             </div>
           ))}
         </div>
+
+        {confirmed && (
+          <p className="mt-4 text-xs text-foreground-soft">
+            Members&apos; contact numbers are shared here so your team can coordinate.
+          </p>
+        )}
       </div>
     </div>
   )

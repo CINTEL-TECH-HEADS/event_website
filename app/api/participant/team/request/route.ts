@@ -19,11 +19,12 @@ export async function POST(req: NextRequest) {
 
     const { data: team } = await admin
       .from('registrations')
-      .select('id, event_id, participant_id, is_open, status, members:team_members(id), events(max_team_size)')
+      .select('id, event_id, participant_id, is_open, status, payment_status, members:team_members(id), events(max_team_size)')
       .eq('id', team_registration_id)
       .maybeSingle()
     if (!team) return apiError('Team not found', 404)
     if (team.participant_id === user.id) return apiError('This is your own team')
+    if (team.payment_status === 'paid') return apiError('This team is locked after payment')
     if (team.status !== 'confirmed' || !team.is_open) return apiError('This team is not accepting members')
     const maxSize = (team.events as any)?.max_team_size ?? null
     if (maxSize != null && (team.members as any[]).length >= maxSize) return apiError('This team is already full')

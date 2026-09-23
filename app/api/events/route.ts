@@ -315,6 +315,20 @@ export async function POST(
               payload.waitlist_capacity ?? null,
             fee:
               payload.fee ?? 0,
+            payment_method:
+              payload.fee > 0 ? (payload.payment_method ?? null) : null,
+            upi_id:
+              payload.upi_id ?? null,
+            upi_payee_name:
+              payload.upi_payee_name ?? null,
+            bank_account_name:
+              payload.bank_account_name ?? null,
+            bank_account_number:
+              payload.bank_account_number ?? null,
+            bank_ifsc:
+              payload.bank_ifsc ?? null,
+            bank_name:
+              payload.bank_name ?? null,
             is_published:
               false,
           },

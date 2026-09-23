@@ -49,8 +49,22 @@ export interface Event {
   is_deleted: boolean
   created_by: string | null
   created_at: string
+  // Waitlist + payment
+  waitlist_capacity?: number | null
+  fee?: number
+  // Payment configuration (only meaningful when fee > 0)
+  payment_method?: 'upi' | 'bank' | null
+  upi_id?: string | null
+  upi_payee_name?: string | null
+  bank_account_name?: string | null
+  bank_account_number?: string | null
+  bank_ifsc?: string | null
+  bank_name?: string | null
   certificates_released_at?: string | null
 }
+
+export type PaymentMethod = 'upi' | 'bank'
+export type PaymentStatus = 'not_required' | 'pending' | 'submitted' | 'paid' | 'rejected'
 
 export interface EventOrganizer {
   id: string
