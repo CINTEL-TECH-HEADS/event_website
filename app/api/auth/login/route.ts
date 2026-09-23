@@ -52,13 +52,10 @@ export async function POST(req: NextRequest) {
       await supabase.auth.signInWithPassword({ email, password })
 
     if (!signInData?.user) {
-      // Account exists but the email hasn't been verified
+      // Account exists but the email hasn't been verified. Outbound email is
+      // disabled and the login page has no verify step, so an admin must confirm it.
       if (isEmailNotConfirmed(signInError)) {
-        return apiSuccess({
-          needsVerification: true,
-          email,
-          message: 'Please verify your email — we sent a confirmation link to your inbox.',
-        })
+        return apiError("This account's email hasn't been verified yet. Ask a Cintel admin to verify it, then sign in again.", 403)
       }
       return apiError('Invalid email or password. Participants: use Continue with Google instead.', 401)
     }
