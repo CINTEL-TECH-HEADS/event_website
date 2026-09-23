@@ -210,15 +210,17 @@ portal; organizers run events from a dashboard; judges review participants.
   attendance check-in, organizer add/remove, certificate generate/release, export, form-fields update.
 
 ## 6. Current state (2026-09-23)
-- Branch **`feat/google-auth-profile`** — 10 feature commits + a merge of `origin/main`; the merge
-  commit is pushed; **PR #14** open to `main`. Tree clean. `tsc` 0 errors.
-- `main` = PRs #8, #9, #11, #12 merged. PR #13 (`ER-Improvements1`) open.
+- `main` = PRs #8, #9, #11, #12, **#14** (payments, Google auth, profile identity) merged; HEAD `91cc20f`.
+  Runs locally clean (home, events, login, contact; protected routes redirect when signed out).
+- Branch **`fix/portal-greeting-name`** (PR open to `main`): portal greets by profile `full_name`
+  (was "there" for accounts with no registrations); `<body suppressHydrationWarning>` to silence
+  Grammarly-injected attribute mismatches. PR #13 (`ER-Improvements1`) open.
 - Live DB: migrations through **024** applied.
 - Auth note: §4 is partly superseded — participants now use **Google only**; organizers use
   email/password.
 
 ## 7. Future plan / open items (prioritized)
-1. **Review + merge PR #14** (`feat/google-auth-profile` → `main`; payments, Google auth, profile identity).
+1. **Merge the greeting/hydration fix PR**; end-to-end test the portal with a Google sign-in.
 2. **Duplicate migration numbers** — `019`, `020`, `021`, `022` each have two files (cert set from PR #11
    vs ours). All applied live, but renumber so a fresh replay has a deterministic order.
 3. **Google OAuth prod config** — Supabase Google provider + prod redirect URLs allowlisted.
