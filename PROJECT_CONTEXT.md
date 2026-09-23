@@ -2,7 +2,42 @@
 
 > Living document. Update this at the end of every working session: append what was
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
-> Last updated: 2026-07-16 (group-code teams: create/join + Team Finder, shared QR, per-member certs; auth-aware header; role gates; portal mapping fix).
+> Last updated: 2026-09-23 (caught up Jul 17 → Aug 27 work; merged `origin/main` into `feat/google-auth-profile`).
+
+## Catch-up log: 2026-07-17 → 2026-09-23 (reconstructed from git history)
+**Merged to `main`:** PR #8 (auth/portal/teams), PR #9 (solo/team cert templates), PR #12
+(`fix/api-authorization`: Completed Events, Contact Us, waitlist/payments, QR check-in, mobile),
+PR #11 (Shakeel: certificate template editor + canvas renderer + Supabase storage, migrations 019–022
+cert set, adds `jszip`). **Open:** PR #13 `ER-Improvements1` (site polish, splash cursor).
+
+**On `feat/google-auth-profile` (10 commits, not yet on `main`):**
+- **Payments (manual UPI/bank verification)** — migration 023: per-event switchable `payment_method`
+  + UPI/bank details; `payment_status` gains `submitted`/`rejected`; `payment_submissions` table.
+  Participant submits proof (UTR + VPA or account-holder name + screenshot); organizer approves/rejects
+  in the event **Payments** tab. Paid events issue the QR only after approval. Real gateway still deferred.
+- **Teams + payments** — leader pays a flat fee once team hits min size; roster **locks** once paid;
+  members' phone numbers shared after confirmation. Team Finder gains search/filter and invite badges.
+- **Owner resolution** — `isRegistrationOwner` matches `participant_id` or `leader_email` against all
+  of the user's emails (auth + profile) and self-heals `participant_id`.
+- **Outbound email disabled** — `lib/email/resend.ts` is a no-op stub; Notification Center inactive
+  (send/schedule → 503). All templates/call sites kept for later re-enable.
+- **Google sign-in for participants** — login page leads with Google; organizer email/password is
+  behind "Organizer sign-in". Participant-role password logins → 403. OAuth callback seeds profile,
+  links registrations by email, gates first login to onboarding.
+- **Mandatory profile identity** — migration 024: college email (`@srmist.edu.in`) + registration
+  number (`RA…`), unique across accounts (409 on dup); portal gated until filled.
+- **Pay later from portal** — "Complete payment" / "Pay again" CTAs on portal card + detail page.
+
+**Earlier (Jul 21–29, now on `main`):** named cert templates + per-attendee assignment; file/image
+uploads for custom form fields; dashboard breadcrumbs; profile networking fields (migration 019);
+waitlist capacity + fee (021) with organizer-controlled waitlist offers; contacts directory (022) +
+public `/contact`; Completed Events archive; QR "already checked in" state; mobile dashboard drawer;
+WhatsApp removed.
+
+**2026-09-23 session:** fetched origin; merged `origin/main` (PR #11 cert system) into
+`feat/google-auth-profile` — one conflict in `types/index.ts` (payment fields vs
+`certificates_released_at`, kept both); `npm install` for `jszip`; `tsc` clean. Verified live DB has
+every migration through 024 applied.
 
 ## Recent: Team-size caps + solo/team choice (2026-07-16, uncommitted — no migration)
 - **Organizer sets min/max team members** on **create** (`app/dashboard/events/new/page.tsx`) and **edit**
@@ -174,24 +209,26 @@ portal; organizers run events from a dashboard; judges review participants.
   `GET /api/audit`). Instrumented: event create/update/delete, registration cancel,
   attendance check-in, organizer add/remove, certificate generate/release, export, form-fields update.
 
-## 6. Current state (2026-07-14)
-- Branch **`fix/api-authorization`** — committed **and pushed** to origin (HEAD `8ec24e7`), tree clean.
-- **Not merged to `main`** — needs a PR (`fix/api-authorization` → `main`).
-- Typecheck: **0 errors**. DB migrations 012 & 013 **applied** to the live Supabase project.
-- Commits: gitignore/lockfile · db+types+scripts · type fixes · UI unification ·
-  auth rework · organizer-all-events+create-fix · authz+audit+session-hardening.
+## 6. Current state (2026-09-23)
+- Branch **`feat/google-auth-profile`** — 10 feature commits + a merge of `origin/main`; the merge
+  commit is **local only (not pushed)**. Tree clean. `tsc` 0 errors.
+- `main` = PRs #8, #9, #11, #12 merged. PR #13 (`ER-Improvements1`) open.
+- Live DB: migrations through **024** applied.
+- Auth note: §4 is partly superseded — participants now use **Google only**; organizers use
+  email/password.
 
 ## 7. Future plan / open items (prioritized)
-1. **Open PR** `fix/api-authorization` → `main` and merge.
-2. **Reset the test password** on `test@cinteluser.com` (a temp password was set during testing).
-3. **Finish email setup** (Gmail or Resend SMTP in Supabase + turn ON "Confirm email" +
-   allowlist redirect URLs `…/reset-password`, `…/api/auth/callback`) so verification/reset deliver.
-4. **Reclassify 4 mislabeled `organizer` profiles** (no event assignment, e.g. metta.naneesh)
-   down to `participant`: `update profiles set role='participant' where role='organizer' and id not in (select profile_id from event_organizers);`
-5. **Extend audit coverage** to the remaining writes: manual check-in, notifications
-   send/schedule, duplicate review.
-6. **Durable rate-limit store** (currently in-memory → won't work across serverless; move to Redis/Upstash).
-7. Optional: dashboard **Activity page** to browse the audit log; 2FA for organizers; email verification UX polish.
+1. **Push** `feat/google-auth-profile` and **open PR** → `main` (payments, Google auth, profile identity).
+2. **Duplicate migration numbers** — `019`, `020`, `021`, `022` each have two files (cert set from PR #11
+   vs ours). All applied live, but renumber so a fresh replay has a deterministic order.
+3. **Google OAuth prod config** — Supabase Google provider + prod redirect URLs allowlisted.
+4. **Re-enable email** when a provider is chosen (un-stub `lib/email/resend.ts`, reactivate Notification Center).
+5. **Review/merge PR #13** (`ER-Improvements1`) — check for conflicts with this branch.
+6. **Reset the test password** on `test@cinteluser.com`; **reclassify mislabeled `organizer` profiles**
+   (`update profiles set role='participant' where role='organizer' and id not in (select profile_id from event_organizers);`).
+7. **Durable rate-limit store** (in-memory today → Redis/Upstash); extend audit coverage
+   (manual check-in, payment approve/reject, duplicate review).
+8. Real payment gateway (currently manual proof + organizer verification).
 
 ## 8. Operational caveats
 - Rate limiter is **in-memory** (`lib/rate-limit`) — dev-only semantics on multi-instance.
