@@ -9,6 +9,7 @@ import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
+import { isRegistrationOwner, linkParticipantIfUnset } from '@/lib/registrations/access'
 import { uploadQrToStorage, getQrSignedUrl } from '@/lib/qr/generate'
 import { generateGoogleCalendarLink } from '@/lib/calendar/gcal-link'
 import { sendConfirmationEmail } from '@/lib/email/send'
@@ -32,7 +33,8 @@ export async function POST(
       .eq('id', id)
       .maybeSingle()
     if (!reg) return apiError('Registration not found', 404)
-    if (reg.participant_id !== user.id) return apiError('Forbidden', 403)
+    if (!(await isRegistrationOwner(admin, reg, user))) return apiError('Forbidden', 403)
+    await linkParticipantIfUnset(admin, reg, user.id)
     if (reg.offer_status !== 'offered') return apiError('No active offer for this registration')
 
     if (action === 'decline') {

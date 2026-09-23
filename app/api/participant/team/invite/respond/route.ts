@@ -8,7 +8,7 @@ import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
-import { isTeamCreator } from '@/lib/registrations/access'
+import { isTeamCreator, isTeamLocked } from '@/lib/registrations/access'
 import { mergeSeekerIntoTeam } from '@/lib/registrations/merge-into-team'
 
 export async function POST(req: NextRequest) {
@@ -44,6 +44,11 @@ export async function POST(req: NextRequest) {
         .update({ status: 'declined', responded_at: new Date().toISOString() })
         .eq('id', invite_id)
       return apiSuccess({ message: 'Declined' })
+    }
+
+    // A paid team locks its roster — no further merges once verified.
+    if (await isTeamLocked(admin, invite.team_registration_id)) {
+      return apiError('This team is locked after payment')
     }
 
     // Accept → merge the seeker into the team.

@@ -17,6 +17,15 @@ export const eventBaseSchema = z.object({
   waitlist_capacity: z.number().int().min(0).nullable().optional(),
   // Fee in rupees (0 = free).
   fee: z.number().int().min(0).optional(),
+  // Payment configuration — a single active method with its details. Only used
+  // when fee > 0; details are validated in the UI/route so switching is easy.
+  payment_method: z.enum(['upi', 'bank']).nullable().optional(),
+  upi_id: z.string().trim().max(100).nullable().optional(),
+  upi_payee_name: z.string().trim().max(100).nullable().optional(),
+  bank_account_name: z.string().trim().max(100).nullable().optional(),
+  bank_account_number: z.string().trim().max(40).nullable().optional(),
+  bank_ifsc: z.string().trim().max(20).nullable().optional(),
+  bank_name: z.string().trim().max(100).nullable().optional(),
 })
 
 export const createEventSchema = eventBaseSchema.refine(d => new Date(d.ends_at) > new Date(d.starts_at), {

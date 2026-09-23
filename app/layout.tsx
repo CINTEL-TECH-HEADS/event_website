@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning className={`${outfit.variable} ${bungee.variable} ${spaceMono.variable}`}>
-      <body className="font-outfit bg-background text-foreground antialiased selection:bg-warning selection:text-foreground">
+      <body className="font-outfit bg-background text-foreground antialiased selection:bg-warning selection:text-foreground" suppressHydrationWarning>
         <Script id="theme-init" strategy="beforeInteractive">
           {`
 try {

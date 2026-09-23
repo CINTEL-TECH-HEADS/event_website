@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient, createSessionClient } from '@/lib/supabase/server'
+import { isRegistrationOwner, linkParticipantIfUnset } from '@/lib/registrations/access'
 
 export async function GET(
   req: NextRequest,
@@ -24,7 +25,8 @@ export async function GET(
         members:team_members(*),
         answers:registration_answers(*, form_fields(label, field_type)),
         attendance(id, checked_in_at, method),
-        certificates(id, certificate_url, generated_at, team_member_id)
+        certificates(id, certificate_url, generated_at, team_member_id),
+        payment_submissions(id, method, transaction_id, payer_upi_id, payee_name, amount, screenshot_path, status, note, created_at)
       `)
       .eq('id', id)
       .maybeSingle()
@@ -37,11 +39,14 @@ export async function GET(
     const myMember = reg.members?.find(
       (m: any) => m.participant_id === user.id || m.email?.toLowerCase() === lowerEmail
     )
-    const isOwner =
-      reg.participant_id === user.id || reg.leader_email?.toLowerCase() === lowerEmail
+    const isOwner = await isRegistrationOwner(admin, reg, user)
     const isLeader = isOwner || !!myMember?.is_leader
 
     if (!isOwner && !myMember) return apiError('Forbidden', 403)
+
+    // Self-heal the account link so owner-only actions (payment, offer) resolve
+    // by participant_id going forward.
+    if (isOwner) await linkParticipantIfUnset(admin, reg, user.id)
 
     // Get fresh QR signed URL
     let qr_code_url = reg.qr_code_url
@@ -51,6 +56,27 @@ export async function GET(
         .from('qrcodes')
         .createSignedUrl(reg.qr_code_url, 60 * 60 * 24)
       qr_code_url = signedUrl?.signedUrl ?? reg.qr_code_url
+    }
+
+    // Team contacts: once the team is confirmed (free) or paid, share each
+    // member's phone (from their participant profile) so members can reach each
+    // other. Kept hidden before confirmation to avoid leaking contact details.
+    const contactsUnlocked =
+      reg.status === 'confirmed' &&
+      (reg.payment_status === 'paid' || reg.payment_status === 'not_required')
+    if (contactsUnlocked && Array.isArray(reg.members) && reg.members.length > 0) {
+      const ids = reg.members.map((m: any) => m.participant_id).filter(Boolean)
+      if (ids.length > 0) {
+        const { data: profiles } = await admin
+          .from('participant_profiles')
+          .select('id, phone')
+          .in('id', ids)
+        const phoneById = new Map((profiles ?? []).map((p: any) => [p.id, p.phone]))
+        reg.members = reg.members.map((m: any) => ({
+          ...m,
+          phone: m.participant_id ? phoneById.get(m.participant_id) ?? null : null,
+        }))
+      }
     }
 
     // The certificate belonging to the requesting member: for a team, the row

@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Users, UserPlus, Check, X, Clock } from 'lucide-react'
+import { ArrowLeft, Users, UserPlus, Check, X, Clock, Search } from 'lucide-react'
 
 export default function FindTeamPage() {
   const { registration_id } = useParams<{ registration_id: string }>()
@@ -19,6 +19,7 @@ export default function FindTeamPage() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy]       = useState<string | null>(null)
   const [error, setError]     = useState<string | null>(null)
+  const [search, setSearch]   = useState('')
 
   const load = useCallback(async () => {
     const { data: r } = await fetch(`/api/participant/registrations/${registration_id}`).then(x => x.json())
@@ -62,6 +63,16 @@ export default function FindTeamPage() {
   const incoming = invites.filter((i: any) => i.incoming && (i.team_registration_id === mine || i.direction === 'invite'))
   const outgoing = invites.filter((i: any) => !i.incoming && (i.team_registration_id === mine || i.direction === 'request'))
 
+  // Client-side search across teams (name + member first names) and seekers
+  // (name + skills + interests + department + year).
+  const q = search.trim().toLowerCase()
+  const matchTeam = (t: any) =>
+    !q || [t.team_name, ...(t.members ?? [])].filter(Boolean).join(' ').toLowerCase().includes(q)
+  const matchSeeker = (s: any) =>
+    !q || [s.name, s.skills, s.interests, s.department, s.year_of_study].filter(Boolean).join(' ').toLowerCase().includes(q)
+  const filteredTeams = teams.filter(matchTeam)
+  const filteredSeekers = seekers.filter(matchSeeker)
+
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
       <Link href={`/participant/portal/events/${registration_id}`} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground transition-colors mb-6">
@@ -76,6 +87,18 @@ export default function FindTeamPage() {
       </div>
 
       {error && <p className="mb-4 rounded-xl border-2 border-border bg-danger/15 px-4 py-2 text-sm font-medium text-danger">{error}</p>}
+
+      {!isFull && (
+        <div className="relative mb-6">
+          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-foreground-soft" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name, skill, department or year…"
+            className="app-input w-full !pl-9 text-sm"
+          />
+        </div>
+      )}
 
       {isFull && (
         <div className="mb-6 rounded-xl border-2 border-border bg-success/15 px-4 py-3 text-sm font-medium text-foreground">
@@ -112,18 +135,23 @@ export default function FindTeamPage() {
           {/* Teams you can request to join */}
           <section className="mb-8">
             <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-brand mb-3">Teams looking for members</h2>
-            {teams.length === 0 ? (
-              <p className="rounded-2xl border-2 border-border bg-panel-muted px-4 py-5 text-center text-sm font-medium text-foreground-soft">No open teams right now.</p>
+            {filteredTeams.length === 0 ? (
+              <p className="rounded-2xl border-2 border-border bg-panel-muted px-4 py-5 text-center text-sm font-medium text-foreground-soft">
+                {teams.length === 0 ? 'No open teams right now.' : 'No teams match your search.'}
+              </p>
             ) : (
               <div className="space-y-2">
-                {teams.map((t: any) => (
-                  <div key={t.registration_id} className="flex items-center justify-between rounded-2xl border-2 border-border bg-panel px-4 py-3 shadow-sm">
-                    <div>
+                {filteredTeams.map((t: any) => (
+                  <div key={t.registration_id} className="flex items-start justify-between gap-3 rounded-2xl border-2 border-border bg-panel px-4 py-3 shadow-sm">
+                    <div className="min-w-0">
                       <p className="text-sm font-semibold text-foreground">{t.team_name ?? 'Team'}</p>
-                      <p className="text-xs font-medium text-foreground-soft flex items-center gap-1"><Users size={11}/>{t.size}{t.max_team_size ? `/${t.max_team_size}` : ''}</p>
+                      <p className="text-xs font-medium text-foreground-soft flex items-center gap-1"><Users size={11}/>{t.size}{t.max_team_size ? `/${t.max_team_size}` : ''} members</p>
+                      {t.members?.length > 0 && (
+                        <p className="mt-1 truncate text-xs font-medium text-foreground-soft">{t.members.join(', ')}</p>
+                      )}
                     </div>
                     <button onClick={() => act('req'+t.registration_id, '/api/participant/team/request', { team_registration_id: t.registration_id })} disabled={busy==='req'+t.registration_id}
-                      className="app-button-secondary !px-3 !py-1.5 !text-xs disabled:opacity-50">Request</button>
+                      className="app-button-secondary shrink-0 !px-3 !py-1.5 !text-xs disabled:opacity-50">Request</button>
                   </div>
                 ))}
               </div>
@@ -133,11 +161,13 @@ export default function FindTeamPage() {
           {/* Individuals looking — you can invite */}
           <section className="mb-8">
             <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-brand mb-3">Participants looking for a team</h2>
-            {seekers.length === 0 ? (
-              <p className="rounded-2xl border-2 border-border bg-panel-muted px-4 py-5 text-center text-sm font-medium text-foreground-soft">No one looking right now.</p>
+            {filteredSeekers.length === 0 ? (
+              <p className="rounded-2xl border-2 border-border bg-panel-muted px-4 py-5 text-center text-sm font-medium text-foreground-soft">
+                {seekers.length === 0 ? 'No one looking right now.' : 'No participants match your search.'}
+              </p>
             ) : (
               <div className="space-y-3">
-                {seekers.map((s: any) => (
+                {filteredSeekers.map((s: any) => (
                   <div key={s.registration_id} className="rounded-2xl border-2 border-border bg-panel px-4 py-3 shadow-sm">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
