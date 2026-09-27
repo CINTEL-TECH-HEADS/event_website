@@ -5,15 +5,14 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { isPast, isRegistrationOpen, formatShortDate } from '@/lib/utils'
 import {
-  LogOut, Sun, Moon, Sunset, Calendar,
+  Sun, Moon, Sunset, Calendar, MapPin, QrCode,
   Users, Copy, Check, ChevronRight, AlertTriangle,
   Zap, IndianRupee, Clock,
 } from 'lucide-react'
 import { PortalTabs, type PortalTab } from '@/components/participant/PortalTabs'
 import { PastEventCard } from '@/components/participant/PastEventCard'
 import { ProfileTab } from '@/components/participant/ProfileTab'
-import { RockShape } from '@/components/brand/RockShape'
-import { Sparkle } from '@/components/brand/Starburst'
+import { EVENT_TYPE_LABELS, REGISTRATION_MODE_LABELS } from '@/lib/club'
 
 function firstName(full: string) {
   return full.trim().split(/\s+/)[0] ?? ''
@@ -125,10 +124,7 @@ export default function PortalPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center py-32">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-4 border-border border-t-brand rounded-full animate-spin" />
-        <p className="text-xs font-bold text-brand/70 tracking-widest uppercase">Loading...</p>
-      </div>
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-border border-t-brand" />
     </div>
   )
 
@@ -139,17 +135,17 @@ export default function PortalPage() {
   // First sign-in gate: participants must record their college email + registration
   // number before using the portal.
   if (!profileComplete) return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="font-display text-2xl uppercase leading-tight tracking-tight text-foreground">Welcome — complete your details</h1>
-        <p className="mt-1 text-sm font-medium text-foreground-soft">
-          Before you register for events, add your <strong className="text-foreground">college email</strong> and
-          <strong className="text-foreground"> registration number</strong>. These are required and unique to your account.
-        </p>
-      </div>
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+      <p className="font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">One-time setup</p>
+      <h1 className="mt-2 font-display text-3xl uppercase leading-tight tracking-tight text-foreground">Complete your details</h1>
+      <p className="mt-2 mb-6 max-w-xl text-sm font-medium leading-6 text-foreground-soft">
+        Add your <strong className="text-foreground">college email</strong> and{' '}
+        <strong className="text-foreground">registration number</strong> before registering for events. Both are
+        required and unique to your account.
+      </p>
       <ProfileTab required onSaved={(p) => { if (p?.college_email && p?.register_number) setProfileComplete(true) }} />
-      <div className="mt-6 text-center">
-        <button onClick={handleLogout} className="text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground">Sign out</button>
+      <div className="mt-6">
+        <button onClick={handleLogout} className="font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground">Sign out</button>
       </div>
     </div>
   )
@@ -164,54 +160,59 @@ export default function PortalPage() {
     e => !registeredIds.includes(e.id) && isRegistrationOpen(e)
   )
   const greeting          = getGreeting(profileName || regName || 'there')
+  const incomingInvites   = invites.filter((i: any) => i.incoming)
+  const offers            = registrations.filter((r: any) => r.offer_status === 'offered')
+  const paymentsDue       = upcoming.filter(owesPayment)
+
+  const summary = [
+    { label: 'Upcoming', value: upcoming.length },
+    { label: 'Need action', value: actionRequired.length + offers.length + incomingInvites.length },
+    { label: 'Payments due', value: paymentsDue.length },
+  ]
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
 
-      {/* Greeting */}
-      <div className="relative flex items-start justify-between mb-8">
+      {/* Greeting + summary */}
+      <div className="mb-6 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            {greeting.icon}
-            <h1 className="font-display text-2xl uppercase leading-tight tracking-tight text-foreground sm:text-3xl">{greeting.text}!</h1>
-            <Sparkle className="h-3 w-3 text-primary-yellow" />
-          </div>
-          <p className="font-tech text-xs font-medium text-foreground-soft">Here's everything for your events.</p>
+          <p className="flex items-center gap-2 font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">
+            {greeting.icon} My events
+          </p>
+          <h1 className="mt-2 font-display text-3xl uppercase leading-tight tracking-tight text-foreground sm:text-4xl">{greeting.text}</h1>
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex shrink-0 items-center gap-2 rounded-full border-2 border-border px-3 py-1.5 font-tech text-[10px] font-bold uppercase tracking-wide text-foreground-soft transition duration-200 hover:text-foreground active:translate-x-[2px] active:translate-y-[2px]"
-        >
-          <LogOut size={12} />
-          Sign out
-        </button>
+        <dl className="grid grid-cols-3 divide-x-2 divide-border overflow-hidden rounded-2xl border-2 border-border bg-panel text-center shadow-sm">
+          {summary.map(({ label, value }) => (
+            <div key={label} className="px-4 py-3">
+              <dd className={`font-display text-2xl ${value > 0 && label !== 'Upcoming' ? 'text-primary-red' : 'text-foreground'}`}>{value}</dd>
+              <dt className="font-tech text-[10px] font-bold uppercase tracking-widest text-foreground-soft">{label}</dt>
+            </div>
+          ))}
+        </dl>
       </div>
 
       <PortalTabs active={tab} onChange={setTab} />
 
       {tab === 'events' && (
-      <>
+      <div className="space-y-10">
       {/* ── WAITLIST SPOT OFFERS (needs your response) ── */}
-      {registrations.filter((r: any) => r.offer_status === 'offered').length > 0 && (
-        <section className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <Zap size={13} className="text-brand" />
-            <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-brand">Spot Offered</h2>
-          </div>
+      {offers.length > 0 && (
+        <section>
+          <SectionTitle icon={<Zap size={13} className="text-brand" />} title="Spot offered" count={offers.length} />
           <div className="space-y-2">
-            {registrations.filter((r: any) => r.offer_status === 'offered').map((r: any) => {
+            {offers.map((r: any) => {
               const paid = (r.events?.fee ?? 0) > 0
               return (
-                <div key={r.id} className="flex flex-col gap-2 rounded-2xl border-2 border-border bg-panel px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                <div key={r.id} className="flex flex-col gap-3 rounded-2xl border-2 border-border bg-warning/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm font-medium text-foreground">
                     A spot opened for <strong>{r.events?.title}</strong>
                     {paid && <span className="text-brand"> · ₹{r.events.fee} on accept</span>}
                   </p>
                   <div className="flex gap-2 shrink-0">
                     <button onClick={() => respondOffer(r.id, 'accept')} disabled={respBusy === 'offer' + r.id + 'accept'}
-                      className="app-button-primary !px-3 !py-1.5 !text-xs disabled:opacity-50"><Check size={12}/>Accept{paid ? ' & Pay' : ''}</button>
+                      className="app-button-primary !px-3 !py-1.5 !text-xs disabled:opacity-50"><Check size={12}/>Accept{paid ? ' & pay' : ''}</button>
                     <button onClick={() => respondOffer(r.id, 'decline')} disabled={respBusy === 'offer' + r.id + 'decline'}
-                      className="app-button-secondary !bg-panel-muted !text-foreground !px-3 !py-1.5 !text-xs disabled:opacity-50">Decline</button>
+                      className="app-button-secondary !bg-panel !text-foreground !px-3 !py-1.5 !text-xs disabled:opacity-50">Decline</button>
                   </div>
                 </div>
               )
@@ -221,18 +222,12 @@ export default function PortalPage() {
       )}
 
       {/* ── TEAM INVITES / REQUESTS (needs your response) ── */}
-      {invites.filter((i: any) => i.incoming).length > 0 && (
-        <section className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <Users size={13} className="text-brand" />
-            <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-brand">Team Invites</h2>
-            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-border bg-brand px-1.5 text-[11px] font-bold text-white">
-              {invites.filter((i: any) => i.incoming).length}
-            </span>
-          </div>
+      {incomingInvites.length > 0 && (
+        <section>
+          <SectionTitle icon={<Users size={13} className="text-brand" />} title="Team invites" count={incomingInvites.length} />
           <div className="space-y-2">
-            {invites.filter((i: any) => i.incoming).map((i: any) => (
-              <div key={i.id} className="flex items-center justify-between rounded-2xl border-2 border-border bg-panel px-4 py-3 shadow-sm">
+            {incomingInvites.map((i: any) => (
+              <div key={i.id} className="flex flex-col gap-3 rounded-2xl border-2 border-border bg-panel px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm font-medium text-foreground">
                   {i.direction === 'invite'
                     ? <>Invite to join <strong>{i.team_name}</strong> · {i.event_title}</>
@@ -250,84 +245,55 @@ export default function PortalPage() {
         </section>
       )}
 
-      {/* ── ACTION REQUIRED ──────────────────────────── */}
+      {/* ── ACTION REQUIRED (teams below minimum size) ── */}
       {actionRequired.length > 0 && (
-        <section className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <AlertTriangle size={14} className="text-warning" />
-            <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-foreground">Action Required</h2>
-            <span className="app-badge-warning app-badge">
-              {actionRequired.length}
-            </span>
-          </div>
-
-          <div className="space-y-4">
+        <section>
+          <SectionTitle icon={<AlertTriangle size={14} className="text-warning" />} title="Team incomplete" count={actionRequired.length} />
+          <div className="grid gap-4 md:grid-cols-2">
             {actionRequired.map(r => {
               const members    = r.members ?? []
               const minSize    = r.events?.min_team_size ?? 0
               const maxSize    = r.events?.max_team_size
               const isLeader   = members.find((m: any) => m.is_leader)?.email === r.leader_email
               const needed     = Math.max(0, minSize - members.length)
+              const pending    = invites.filter((i: any) => i.incoming && i.team_registration_id === r.id).length
 
               return (
-                <div key={r.id} className="relative rounded-poster border-4 border-border bg-panel p-5 shadow-lg">
-                  <RockShape variant={2} fill="#F2C230" className="absolute -right-2 -top-2 h-9 w-9 rotate-[12deg] opacity-90" />
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-tech text-[10px] font-bold uppercase tracking-widest text-brand">{r.events?.event_type}</span>
-                        <span className="app-badge-neutral app-badge">
-                          Team
+                <div key={r.id} className="flex flex-col rounded-2xl border-2 border-border bg-panel p-5 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-tech text-[10px] font-bold uppercase tracking-widest text-brand">
+                        {EVENT_TYPE_LABELS[r.events?.event_type] ?? r.events?.event_type} · Team
+                      </p>
+                      <h3 className="mt-1 truncate font-black uppercase tracking-tight text-foreground">{r.events?.title}</h3>
+                      <p className="mt-0.5 text-xs text-foreground-soft">Team <span className="font-semibold text-foreground">{r.team_name}</span></p>
+                    </div>
+                    {isLeader && <span className="app-badge-warning app-badge shrink-0">Leader</span>}
+                  </div>
+
+                  <p className="mt-4 rounded-xl border-2 border-border bg-warning/20 px-3 py-2 text-xs font-medium text-foreground">
+                    Needs <strong>{needed} more member{needed > 1 ? 's' : ''}</strong> (minimum {minSize}). The registration is incomplete until then.
+                  </p>
+
+                  <ul className="mt-4 space-y-1.5">
+                    <li className="font-tech text-[10px] font-bold uppercase tracking-widest text-foreground-soft">
+                      Members {members.length}{maxSize ? `/${maxSize}` : ''}
+                    </li>
+                    {members.map((m: any) => (
+                      <li key={m.id} className="flex items-center gap-2 text-sm">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-border bg-panel-muted text-[10px] font-bold text-foreground">
+                          {m.full_name?.[0]?.toUpperCase()}
                         </span>
-                      </div>
-                      <h3 className="font-bold text-foreground">{r.events?.title}</h3>
-                      <p className="text-xs text-foreground-soft mt-0.5">Team: <span className="text-foreground font-semibold">{r.team_name}</span></p>
-                    </div>
-                    {isLeader && (
-                      <span className="app-badge-warning app-badge shrink-0">
-                        Leader
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Incomplete warning */}
-                  <div className="mb-4 flex items-center gap-2 rounded-xl border-2 border-border bg-warning/15 px-4 py-3">
-                    <AlertTriangle size={14} className="text-warning shrink-0" />
-                    <p className="text-xs font-medium text-foreground">
-                      Team needs <strong>{needed} more member{needed > 1 ? 's' : ''}</strong> to meet the minimum of {minSize}.
-                      Registration is incomplete until the team is full.
-                    </p>
-                  </div>
-
-                  {/* Members */}
-                  <div className="mb-4">
-                    <p className="text-xs font-bold text-foreground-soft uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                      <Users size={11} />
-                      Members ({members.length}{maxSize ? `/${maxSize}` : ''} · min {minSize})
-                    </p>
-                    <div className="space-y-2">
-                      {members.map((m: any) => (
-                        <div key={m.id} className="flex items-center gap-2 py-1.5 border-b-2 border-border last:border-0">
-                          <div className="w-7 h-7 rounded-full border-2 border-border bg-panel-muted flex items-center justify-center text-xs font-bold text-foreground shrink-0">
-                            {m.full_name?.[0]?.toUpperCase()}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate">
-                              {m.full_name}
-                              {m.is_leader && <span className="ml-1.5 text-xs text-brand">Leader</span>}
-                            </p>
-                            <p className="text-xs text-foreground-soft truncate">{m.email}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                        <span className="truncate font-semibold text-foreground">{m.full_name}</span>
+                        {m.is_leader && <span className="text-xs text-brand">Leader</span>}
+                      </li>
+                    ))}
+                  </ul>
 
                   {/* Group code — creator can share it and manage the team */}
                   {isLeader && (
-                    <div className="border-t-2 border-border pt-4 space-y-2">
-                      <p className="text-xs font-medium text-foreground-soft">Share this group code so teammates can join:</p>
+                    <div className="mt-auto space-y-2 border-t-2 border-border pt-4">
+                      <p className="text-xs font-medium text-foreground-soft">Share this team code so teammates can join:</p>
                       <div className="flex gap-2">
                         <div className="flex-1 rounded-full border-2 border-border bg-panel-muted px-4 py-2 font-mono text-sm font-bold tracking-widest text-foreground">
                           {r.group_code ?? '—'}
@@ -341,25 +307,16 @@ export default function PortalPage() {
                         </button>
                       </div>
                       <div className="flex gap-2">
-                        <Link
-                          href={`/participant/portal/events/${r.id}/team`}
-                          className="app-button-secondary flex-1 !bg-panel-muted !text-foreground"
-                        >
-                          <Users size={12} /> Manage Team
+                        <Link href={`/participant/portal/events/${r.id}/team`} className="app-button-secondary flex-1 !bg-panel-muted !text-foreground">
+                          <Users size={12} /> Manage team
                         </Link>
-                        <Link
-                          href={`/participant/portal/events/${r.id}/find`}
-                          className="app-button-primary relative flex-1"
-                        >
-                          <Users size={12} /> Find Teammates
-                          {(() => {
-                            const pending = invites.filter((i: any) => i.incoming && i.team_registration_id === r.id).length
-                            return pending > 0 ? (
-                              <span className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-border bg-brand px-1 text-[10px] font-bold text-white">
-                                {pending}
-                              </span>
-                            ) : null
-                          })()}
+                        <Link href={`/participant/portal/events/${r.id}/find`} className="app-button-primary relative flex-1">
+                          <Users size={12} /> Find teammates
+                          {pending > 0 && (
+                            <span className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-border bg-brand px-1 text-[10px] font-bold text-white">
+                              {pending}
+                            </span>
+                          )}
                         </Link>
                       </div>
                     </div>
@@ -373,60 +330,37 @@ export default function PortalPage() {
 
       {/* ── UPCOMING (complete registrations) ────────── */}
       {upcomingComplete.length > 0 && (
-        <section className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-foreground">Upcoming</h2>
-            <span className="app-badge-neutral app-badge">
-              {upcomingComplete.length}
-            </span>
-          </div>
-          <div className="space-y-3">
+        <section>
+          <SectionTitle title="Upcoming" count={upcomingComplete.length} />
+          <div className="grid gap-4 md:grid-cols-2">
             {upcomingComplete.map(r => (
-              <EventCard key={r.id} reg={r} />
+              <RegistrationCard key={r.id} reg={r} />
             ))}
           </div>
         </section>
       )}
 
-      {/* ── REGISTER NOW ─────────────────────────────── */}
+      {/* ── OPEN FOR REGISTRATION ────────────────────── */}
       {availableEvents.length > 0 && (
-        <section className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Zap size={13} className="text-brand" />
-            <h2 className="font-tech text-[11px] font-bold uppercase tracking-widest text-brand">Register Now</h2>
-            <span className="app-badge-warning app-badge">
-              {availableEvents.length}
-            </span>
-          </div>
-          <div className="space-y-3">
+        <section>
+          <SectionTitle icon={<Zap size={13} className="text-brand" />} title="Open for registration" count={availableEvents.length} />
+          <div className="grid gap-3 md:grid-cols-2">
             {availableEvents.map((e: any) => (
-              <Link key={e.id} href={`/events/${e.slug}`}>
-                <div className="app-card-hover rounded-poster border-4 border-border bg-panel p-5 shadow-md transition-all group">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-tech text-[10px] font-bold uppercase tracking-widest text-brand">{e.event_type}</span>
-                        {e.registration_mode === 'team' || e.registration_mode === 'both' ? (
-                          <span className="app-badge-neutral app-badge flex items-center gap-1">
-                            <Users size={9} /> Team
-                          </span>
-                        ) : (
-                          <span className="app-badge-neutral app-badge">
-                            Solo
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="font-bold text-foreground group-hover:text-brand transition-colors truncate">{e.title}</h3>
-                      <div className="flex items-center gap-3 mt-1.5 text-xs font-medium text-foreground-soft">
-                        <span className="flex items-center gap-1">
-                          <Calendar size={11} />
-                          {new Date(e.starts_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </span>
-                      </div>
-                    </div>
-                    <ChevronRight size={16} className="text-foreground-soft group-hover:text-brand transition-colors shrink-0 ml-3" />
-                  </div>
+              <Link
+                key={e.id}
+                href={`/events/${e.slug}`}
+                className="group flex items-center justify-between gap-3 rounded-2xl border-2 border-border bg-panel p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className="min-w-0">
+                  <p className="font-tech text-[10px] font-bold uppercase tracking-widest text-brand">
+                    {EVENT_TYPE_LABELS[e.event_type] ?? e.event_type} · {REGISTRATION_MODE_LABELS[e.registration_mode] ?? e.registration_mode}
+                  </p>
+                  <h3 className="mt-1 truncate font-black uppercase tracking-tight text-foreground group-hover:text-brand">{e.title}</h3>
+                  <p className="mt-1 flex items-center gap-1 text-xs font-medium text-foreground-soft">
+                    <Calendar size={11} /> {formatShortDate(e.starts_at)}
+                  </p>
                 </div>
+                <ChevronRight size={16} className="shrink-0 text-foreground-soft transition-colors group-hover:text-brand" />
               </Link>
             ))}
           </div>
@@ -436,24 +370,24 @@ export default function PortalPage() {
       {/* Empty (My Events) */}
       {registrations.length === 0 && availableEvents.length === 0 && (
         <div className="app-empty-state">
-          <Sparkle className="mx-auto mb-4 h-8 w-8 text-primary-yellow" />
-          <p className="text-foreground font-black uppercase text-lg">No events yet</p>
-          <p className="text-foreground-soft text-sm mt-2 font-medium">Register for an upcoming event to see it here.</p>
+          <p className="text-lg font-black uppercase text-foreground">No events yet</p>
+          <p className="mt-2 text-sm font-medium text-foreground-soft">When you register for an event it shows up here, with your QR pass.</p>
+          <Link href="/events" className="app-button-primary mt-5">Browse events</Link>
         </div>
       )}
-      </>
+      </div>
       )}
 
       {/* ── PAST EVENTS TAB ──────────────────────────── */}
       {tab === 'past' && (
         past.length > 0 ? (
-          <div className="space-y-3">
+          <div className="grid gap-4 md:grid-cols-2">
             {past.map(r => <PastEventCard key={r.id} reg={r} />)}
           </div>
         ) : (
           <div className="app-empty-state">
-            <RockShape variant={3} fill="#F2C230" className="mx-auto mb-4 h-14 w-14 rotate-[6deg]" />
-            <p className="text-foreground font-black uppercase text-lg">No past events yet</p>
+            <p className="text-lg font-black uppercase text-foreground">No past events yet</p>
+            <p className="mt-2 text-sm font-medium text-foreground-soft">Events move here once they have started. Certificates appear here when released.</p>
           </div>
         )
       )}
@@ -464,25 +398,42 @@ export default function PortalPage() {
   )
 }
 
-// ── Event Card with Solo/Team accent flourish ────────────────
-function EventCard({ reg }: { reg: any }) {
+function SectionTitle({ title, count, icon }: { title: string; count?: number; icon?: React.ReactNode }) {
+  return (
+    <div className="mb-4 flex items-center gap-2">
+      {icon}
+      <h2 className="font-display text-base uppercase tracking-tight text-foreground">{title}</h2>
+      {count !== undefined && <span className="app-badge-neutral app-badge">{count}</span>}
+    </div>
+  )
+}
+
+// Payment state — only the owner (solo owner / team leader) pays, and for a
+// team only once it has reached the minimum size.
+function owesPayment(reg: any): boolean {
+  const event        = reg.events
+  const fee          = event?.fee ?? 0
+  const isTeam       = reg.registration_type === 'team'
+  const teamComplete = !isTeam || (reg.members?.length ?? 0) >= (event?.min_team_size ?? 1)
+  return !!reg._owner && fee > 0 && reg.status === 'confirmed' && teamComplete &&
+    (reg.payment_status === 'pending' || reg.payment_status === 'rejected')
+}
+
+// ── A confirmed registration ───────────────────────────────
+function RegistrationCard({ reg }: { reg: any }) {
   const event      = reg.events
   const isTeam     = reg.registration_type === 'team'
   const attended   = Array.isArray(reg.attendance) ? reg.attendance.length > 0 : !!reg.attendance?.id
   const hasCert    = Array.isArray(reg.certificates) ? reg.certificates.length > 0 : !!reg.certificates?.id
 
-  // Payment state — only the owner (solo owner / team leader) pays, and for a
-  // team only once it has reached the minimum size.
-  const fee               = event?.fee ?? 0
-  const teamComplete      = !isTeam || (reg.members?.length ?? 0) >= (event?.min_team_size ?? 1)
-  const owesPayment       = reg._owner && fee > 0 && reg.status === 'confirmed' && teamComplete &&
-                            (reg.payment_status === 'pending' || reg.payment_status === 'rejected')
+  const fee                = event?.fee ?? 0
+  const due                = owesPayment(reg)
   const paymentUnderReview = fee > 0 && reg.payment_status === 'submitted'
 
   const statusBadge = () => {
     if (reg.status === 'waitlisted')  return <span className="app-badge-warning app-badge">Waitlisted</span>
     if (reg.status === 'cancelled')   return <span className="app-badge-danger app-badge">Cancelled</span>
-    if (owesPayment)                  return <span className="app-badge-danger app-badge">Payment due</span>
+    if (due)                          return <span className="app-badge-danger app-badge">Payment due</span>
     if (paymentUnderReview)           return <span className="app-badge-warning app-badge">Under review</span>
     if (attended && hasCert)          return <span className="app-badge-success app-badge">Certificate</span>
     if (attended)                     return <span className="app-badge-success app-badge">Attended</span>
@@ -490,61 +441,43 @@ function EventCard({ reg }: { reg: any }) {
   }
 
   return (
-    <div>
-    <Link href={`/participant/portal/events/${reg.id}`}>
-      <div className="app-card-hover relative rounded-poster border-4 border-border bg-panel p-5 shadow-md transition-all cursor-pointer group">
-        {isTeam ? (
-          <span aria-hidden className="absolute right-3 top-3 h-3 w-3 rounded-full bg-accent" />
-        ) : (
-          <Sparkle className="absolute right-2 top-2 h-4 w-4 text-primary-yellow" />
-        )}
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-tech text-[10px] font-bold uppercase tracking-widest text-brand">{event?.event_type}</span>
-              <span className="app-badge-neutral app-badge">
-                {isTeam ? <><Users size={9} /> Team</> : 'Solo'}
-              </span>
-            </div>
-            <h3 className="font-bold text-foreground group-hover:text-brand transition-colors truncate">{event?.title}</h3>
-          </div>
+    <div className="flex flex-col rounded-2xl border-2 border-border bg-panel shadow-sm">
+      <Link href={`/participant/portal/events/${reg.id}`} className="group flex-1 p-5">
+        <div className="flex items-start justify-between gap-3">
+          <p className="font-tech text-[10px] font-bold uppercase tracking-widest text-brand">
+            {EVENT_TYPE_LABELS[event?.event_type] ?? event?.event_type} · {isTeam ? 'Team' : 'Solo'}
+          </p>
           {statusBadge()}
         </div>
-        <div className="flex flex-wrap gap-3 text-xs font-medium text-foreground-soft">
+        <h3 className="mt-2 font-black uppercase leading-tight tracking-tight text-foreground transition-colors group-hover:text-brand">{event?.title}</h3>
+        <div className="mt-3 space-y-1 text-xs font-medium text-foreground-soft">
           {event?.starts_at && (
-            <span className="flex items-center gap-1">
-              <Calendar size={11} />
-              {formatShortDate(event.starts_at)}
-            </span>
+            <p className="flex items-center gap-1.5"><Calendar size={12} className="shrink-0" />{formatShortDate(event.starts_at)}</p>
           )}
           {event?.venue && (
-            <span className="flex items-center gap-1 truncate max-w-[200px]">
-              <span aria-hidden>📍</span> {event.venue}
-            </span>
+            <p className="flex items-center gap-1.5"><MapPin size={12} className="shrink-0" /><span className="truncate">{event.venue}</span></p>
           )}
           {isTeam && reg.team_name && (
-            <span className="flex items-center gap-1">
-              <Users size={11} />
-              {reg.team_name}
-            </span>
+            <p className="flex items-center gap-1.5"><Users size={12} className="shrink-0" />{reg.team_name}</p>
           )}
         </div>
-      </div>
-    </Link>
-
-    {owesPayment && (
-      <Link
-        href={`/participant/portal/events/${reg.id}/pay`}
-        className="app-button-primary mt-2 flex w-full items-center justify-center gap-2 !py-2.5 text-sm"
-      >
-        <IndianRupee size={14} /> Complete payment — ₹{fee}
       </Link>
-    )}
-    {paymentUnderReview && (
-      <p className="mt-2 flex items-center justify-center gap-1.5 text-xs font-bold text-brand">
-        <Clock size={12} /> Payment submitted — awaiting organizer verification
-      </p>
-    )}
+
+      <div className="border-t-2 border-border px-5 py-3">
+        {due ? (
+          <Link href={`/participant/portal/events/${reg.id}/pay`} className="app-button-primary w-full !py-2.5 text-sm">
+            <IndianRupee size={14} /> Complete payment — ₹{fee}
+          </Link>
+        ) : paymentUnderReview ? (
+          <p className="flex items-center gap-1.5 text-xs font-bold text-brand">
+            <Clock size={12} /> Payment submitted — awaiting organizer verification
+          </p>
+        ) : (
+          <Link href={`/participant/portal/events/${reg.id}/qr`} className="inline-flex items-center gap-1.5 font-tech text-xs font-bold uppercase tracking-widest text-brand hover:underline">
+            <QrCode size={13} /> Show QR pass
+          </Link>
+        )}
+      </div>
     </div>
   )
 }

@@ -98,12 +98,12 @@ export default function PayPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md px-4 py-10">
-      <Link href="/participant/portal" className="mb-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-foreground-soft transition hover:text-foreground">
-        <ArrowLeft size={14} /> Back to My Events
+    <div className="mx-auto max-w-xl px-4 py-10 sm:px-6">
+      <Link href="/participant/portal" className="mb-6 inline-flex items-center gap-2 font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft transition-colors hover:text-foreground">
+        <ArrowLeft size={14} /> My events
       </Link>
 
-      <div className="relative overflow-hidden rounded-poster border-4 border-border bg-panel p-6 shadow-lg">
+      <div className="relative overflow-hidden rounded-2xl border-2 border-border bg-panel p-6 shadow-sm">
         <div className="mb-1 flex items-center gap-2 font-tech text-[10px] font-bold uppercase tracking-widest text-brand">
           <IndianRupee size={14} /> Payment
         </div>

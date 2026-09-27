@@ -74,9 +74,9 @@ export default function FindTeamPage() {
   const filteredSeekers = seekers.filter(matchSeeker)
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-8">
-      <Link href={`/participant/portal/events/${registration_id}`} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground transition-colors mb-6">
-        <ArrowLeft size={14} /> Back
+    <div className="max-w-3xl mx-auto px-4 py-10 sm:px-6">
+      <Link href={`/participant/portal/events/${registration_id}`} className="mb-6 inline-flex items-center gap-2 font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft transition-colors hover:text-foreground">
+        <ArrowLeft size={14} /> Registration
       </Link>
 
       <div className="mb-6">

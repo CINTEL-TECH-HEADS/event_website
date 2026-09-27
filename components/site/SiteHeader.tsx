@@ -9,7 +9,9 @@ import { ThemeToggle } from '@/components/public/ThemeToggle'
 import { PlanetMark } from '@/components/brand/PlanetMark'
 import { cn } from '@/lib/utils'
 
-const NAV = [
+export type NavItem = { href: string; label: string }
+
+const DEFAULT_NAV: NavItem[] = [
   { href: '/', label: 'Home' },
   { href: '/events', label: 'Events' },
   { href: '/contact', label: 'Contact' },
@@ -19,7 +21,7 @@ function isActive(pathname: string, href: string) {
   return href === '/' ? pathname === '/' : pathname.startsWith(href)
 }
 
-export function SiteHeader() {
+export function SiteHeader({ nav = DEFAULT_NAV }: { nav?: NavItem[] }) {
   const pathname = usePathname() ?? '/'
   const [open, setOpen] = useState(false)
 
@@ -38,7 +40,7 @@ export function SiteHeader() {
         </Link>
 
         <nav className="ml-6 hidden items-center gap-1 md:flex" aria-label="Main">
-          {NAV.map(({ href, label }) => (
+          {nav.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
@@ -72,7 +74,7 @@ export function SiteHeader() {
 
       {open && (
         <nav id="mobile-nav" aria-label="Main" className="border-t-2 border-border bg-panel px-4 py-3 md:hidden">
-          {NAV.map(({ href, label }) => (
+          {nav.map(({ href, label }) => (
             <Link
               key={href}
               href={href}

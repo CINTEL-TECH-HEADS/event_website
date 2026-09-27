@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Download, CheckCircle2 } from 'lucide-react'
-import { Starburst } from '@/components/brand/Starburst'
 
 export default function QRPage() {
   const { registration_id } = useParams<{ registration_id: string }>()
@@ -31,19 +30,31 @@ export default function QRPage() {
       })
   }, [registration_id])
 
+  const back = (
+    <Link
+      href={`/participant/portal/events/${registration_id}`}
+      className="mb-6 inline-flex items-center gap-2 font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft transition-colors hover:text-foreground"
+    >
+      <ArrowLeft size={14} /> Registration
+    </Link>
+  )
+
   if (loading) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="w-10 h-10 border-4 border-border border-t-brand rounded-full animate-spin" />
+    <div className="flex items-center justify-center py-32">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-border border-t-brand" />
     </div>
   )
 
   if (!qrUrl) return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-8 text-center">
-      <p className="font-medium text-foreground-soft mb-2">QR code not available yet.</p>
-      <p className="text-sm font-medium text-foreground-soft mb-6">This may happen if you are on the waitlist.</p>
-      <Link href={`/participant/portal/events/${registration_id}`} className="text-sm font-bold text-brand hover:text-foreground">
-        ← Back
-      </Link>
+    <div className="mx-auto max-w-md px-4 py-12">
+      {back}
+      <div className="rounded-2xl border-2 border-border bg-panel p-6 shadow-sm">
+        <h1 className="font-display text-xl uppercase text-foreground">No pass yet</h1>
+        <p className="mt-2 text-sm font-medium leading-6 text-foreground-soft">
+          Your QR pass appears here once your registration is confirmed. If you&apos;re on the waitlist, or the
+          event has a fee that hasn&apos;t been verified yet, check back after that.
+        </p>
+      </div>
     </div>
   )
 
@@ -68,70 +79,42 @@ export default function QRPage() {
       hour: 'numeric', minute: '2-digit',
     })
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen px-8 py-12 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-border bg-success text-white mb-6">
-          <CheckCircle2 size={44} />
+      <div className="mx-auto max-w-md px-4 py-12">
+        {back}
+        <div className="rounded-2xl border-2 border-border bg-panel p-6 text-center shadow-sm">
+          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-border bg-success text-white">
+            <CheckCircle2 size={36} />
+          </span>
+          <p className="mt-4 font-tech text-xs font-bold uppercase tracking-[0.28em] text-success">Already verified</p>
+          <h1 className="mt-1 font-display text-2xl uppercase text-foreground">You&apos;re checked in</h1>
+          {eventName && <p className="mt-1 font-medium text-foreground">{eventName}</p>}
+          <p className="mt-1 text-sm font-medium text-foreground-soft">Checked in on {checkedInDisplay}</p>
+          {displayId && <p className="mt-4 font-mono text-xs text-foreground-soft">ID: {displayId}</p>}
         </div>
-        <p className="font-tech text-xs font-bold uppercase tracking-[0.28em] text-success mb-2">Already verified</p>
-        <h2 className="font-display text-2xl uppercase text-foreground mb-1">You&apos;re checked in</h2>
-        {eventName && <p className="font-medium text-foreground mb-1">{eventName}</p>}
-        <p className="text-sm font-medium text-foreground-soft mb-8">Checked in on {checkedInDisplay}</p>
-        {displayId && <p className="text-xs text-foreground-soft font-mono mb-8">ID: {displayId}</p>}
-        <Link
-          href={`/participant/portal/events/${registration_id}`}
-          className="flex items-center gap-1.5 text-sm font-bold text-foreground-soft hover:text-foreground transition-colors"
-        >
-          <ArrowLeft size={14} />
-          Back to registration
-        </Link>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-8 py-12">
-      <p className="text-sm font-medium text-foreground-soft mb-8 text-center">
-        Show this to the organiser at the entrance
-      </p>
-
-      {/* QR frame — poster space-panel with corner tick marks and a starburst accent */}
-      <div className="poster-panel relative overflow-hidden p-6 mb-6">
-        <Starburst rings color="#F2C230" className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 opacity-40" />
-        <div className="relative rounded-2xl border-4 border-[#F5F0E3] bg-white p-4">
-          <span aria-hidden className="absolute -left-1 -top-1 h-4 w-4 rounded-tl-lg border-l-4 border-t-4 border-primary-red" />
-          <span aria-hidden className="absolute -right-1 -top-1 h-4 w-4 rounded-tr-lg border-r-4 border-t-4 border-primary-red" />
-          <span aria-hidden className="absolute -left-1 -bottom-1 h-4 w-4 rounded-bl-lg border-b-4 border-l-4 border-primary-red" />
-          <span aria-hidden className="absolute -right-1 -bottom-1 h-4 w-4 rounded-br-lg border-b-4 border-r-4 border-primary-red" />
-          <img src={qrUrl} alt="Check-in QR Code" className="relative w-64 h-64" />
+    <div className="mx-auto max-w-3xl px-4 py-12">
+      {back}
+      <div className="grid overflow-hidden rounded-2xl border-2 border-border bg-panel shadow-md sm:grid-cols-[auto_1fr] lg:border-4">
+        <div className="flex items-center justify-center border-b-2 border-dashed border-border bg-[#14120F] p-6 sm:border-b-0 sm:border-r-2">
+          <div className="rounded-2xl border-4 border-[#F5F0E3] bg-white p-3">
+            <img src={qrUrl} alt="Check-in QR code" className="h-60 w-60" />
+          </div>
         </div>
-      </div>
-
-      <h2 className="font-display text-xl uppercase leading-tight tracking-tight text-foreground text-center mb-1">{eventName}</h2>
-
-      {formattedDate && (
-        <p className="text-foreground-soft text-sm font-medium text-center mb-1">{formattedDate}</p>
-      )}
-
-      {displayId && (
-        <p className="text-xs text-foreground-soft font-mono mb-8">ID: {displayId}</p>
-      )}
-
-      <div className="w-full max-w-xs flex flex-col items-center gap-4">
-        <button
-          onClick={saveQR}
-          className="app-button-secondary !bg-panel !text-foreground w-full"
-        >
-          <Download size={16} className="text-accent" />
-          Save QR to Device
-        </button>
-
-        <Link
-          href={`/participant/portal/events/${registration_id}`}
-          className="flex items-center gap-1.5 text-sm font-bold text-foreground-soft hover:text-foreground transition-colors"
-        >
-          <ArrowLeft size={14} />
-          Back to registration
-        </Link>
+        <div className="flex flex-col p-6">
+          <p className="font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">QR pass</p>
+          <h1 className="mt-2 font-display text-2xl uppercase leading-tight tracking-tight text-foreground">{eventName}</h1>
+          {formattedDate && <p className="mt-2 text-sm font-medium text-foreground-soft">{formattedDate}</p>}
+          {displayId && <p className="mt-1 font-mono text-sm font-bold text-foreground">ID: {displayId}</p>}
+          <p className="mt-4 text-sm font-medium leading-6 text-foreground-soft">Show this to the organizer at the entrance.</p>
+          <button onClick={saveQR} className="app-button-secondary mt-6 w-full sm:mt-auto sm:w-auto">
+            <Download size={16} className="text-accent" />
+            Save QR to device
+          </button>
+        </div>
       </div>
     </div>
   )

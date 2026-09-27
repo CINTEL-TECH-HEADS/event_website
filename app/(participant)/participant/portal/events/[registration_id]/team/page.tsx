@@ -78,9 +78,9 @@ export default function TeamPage() {
   const confirmed   = reg?.status === 'confirmed' && (isPaid || !isPaidEvent)
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-8">
-      <Link href={`/participant/portal/events/${registration_id}`} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground transition-colors mb-6">
-        <ArrowLeft size={14} /> Back
+    <div className="max-w-3xl mx-auto px-4 py-10 sm:px-6">
+      <Link href={`/participant/portal/events/${registration_id}`} className="mb-6 inline-flex items-center gap-2 font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft transition-colors hover:text-foreground">
+        <ArrowLeft size={14} /> Registration
       </Link>
 
       <div className="mb-6 flex items-start justify-between gap-3">
@@ -116,7 +116,7 @@ export default function TeamPage() {
       </div>
 
       {/* Group code */}
-      <div className="rounded-poster border-4 border-border bg-panel p-6 mb-4 shadow-lg">
+      <div className="rounded-2xl border-2 border-border bg-panel p-6 mb-4 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
           <KeyRound size={16} className="text-brand" />
           <h2 className="font-display text-sm uppercase tracking-wide text-foreground">Group code</h2>
@@ -150,7 +150,7 @@ export default function TeamPage() {
 
       {/* Payment (paid team events) */}
       {isPaidEvent && (
-        <div className="rounded-poster border-4 border-border bg-panel p-6 mb-4 shadow-md">
+        <div className="rounded-2xl border-2 border-border bg-panel p-6 mb-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <IndianRupee size={16} className="text-brand" />
             <h2 className="font-display text-sm uppercase tracking-wide text-foreground">Payment</h2>
@@ -189,7 +189,7 @@ export default function TeamPage() {
       )}
 
       {/* Members */}
-      <div className="rounded-poster border-4 border-border bg-panel p-6 shadow-lg">
+      <div className="rounded-2xl border-2 border-border bg-panel p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-sm uppercase tracking-wide text-foreground flex items-center gap-2">
             <Users size={16} className="text-brand" />
