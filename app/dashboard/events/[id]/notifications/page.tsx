@@ -5,21 +5,17 @@
 'use client'
 
 import { BellOff } from 'lucide-react'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 
 export default function NotificationsPage() {
   return (
     <div className="space-y-6">
-      <section className="app-panel px-6 py-7 sm:px-8">
-        <span className="app-kicker">
-          <BellOff size={14} />
-          Notifications
-        </span>
-        <h1 className="app-heading mt-5">Notification Center is inactive.</h1>
-        <p className="app-subheading mt-3 max-w-2xl">
-          Email delivery is currently disabled, so participant notifications and reminders can&apos;t be
-          sent from here right now.
-        </p>
-      </section>
+      <DashboardPageHeader
+        icon={BellOff}
+        kicker="Notifications"
+        title="Notifications are off"
+        description={'Outbound email is disabled, so notifications and reminders can’t be sent from here.'}
+      />
 
       <section className="app-panel p-8">
         <div className="app-empty-state mx-auto max-w-md p-10 text-center">

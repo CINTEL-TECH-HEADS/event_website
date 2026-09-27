@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
           ends_at: event?.ends_at,
           venue: event?.venue,
         }),
-        resendUrl: `${appUrl}/resend`,
+        portalUrl: `${appUrl}/participant/portal`,
       }).catch(() => {})
     }
 

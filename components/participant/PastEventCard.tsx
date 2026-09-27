@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Calendar, MapPin, Users, Award } from 'lucide-react'
 import { formatShortDate } from '@/lib/utils'
-import { RockShape } from '@/components/brand/RockShape'
+import { EVENT_TYPE_LABELS } from '@/lib/club'
 
 export function PastEventCard({ reg }: { reg: any }) {
   const event = reg.events
@@ -12,19 +12,16 @@ export function PastEventCard({ reg }: { reg: any }) {
     ? reg.attendance.length > 0
     : !!reg.attendance?.id
   const released = !!event?.certificates_released_at
-  const hasCert = released && (
-    Array.isArray(reg.certificates) ? reg.certificates.length > 0 : !!reg.certificates?.id ||
-    Array.isArray(reg.assignments) ? reg.assignments.length > 0 : !!reg.assignments?.id
-  )
+  const hasAny = (v: any) => (Array.isArray(v) ? v.length > 0 : !!v?.id)
+  const hasCert = released && (hasAny(reg.certificates) || hasAny(reg.assignments))
 
   return (
-    <Link href={`/participant/portal/events/${reg.id}`}>
-      <div className="app-card-hover relative overflow-hidden rounded-poster border-4 border-border bg-panel p-5 shadow-md transition">
-        <RockShape variant={3} fill="#F2C230" className="absolute -right-2 -top-2 h-8 w-8 rotate-[10deg] opacity-90" />
+    <Link href={`/participant/portal/events/${reg.id}`} className="block h-full">
+      <div className="h-full rounded-2xl border-2 border-border bg-panel p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="min-w-0">
-            <span className="font-tech text-[10px] font-bold text-brand uppercase tracking-widest">{event?.event_type}</span>
-            <h3 className="font-bold text-foreground mt-0.5 truncate">{event?.title}</h3>
+            <span className="font-tech text-[10px] font-bold text-brand uppercase tracking-widest">{EVENT_TYPE_LABELS[event?.event_type] ?? event?.event_type}</span>
+            <h3 className="mt-0.5 truncate font-black uppercase tracking-tight text-foreground">{event?.title}</h3>
           </div>
           {attended ? (
             <span className="app-badge-success app-badge shrink-0">Attended</span>

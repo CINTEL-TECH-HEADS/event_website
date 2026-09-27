@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircle2, CircleDashed, Settings2, Users } from 'lucide-react'
+import { CheckCircle2, CircleDashed, Settings2 } from 'lucide-react'
 import { FormFieldBuilder } from '@/components/dashboard/FormFieldBuilder'
 import { OrganizerManager } from '@/components/dashboard/OrganizerManager'
 import { EventWithStats } from '@/types'
-import { PosterHeading } from '@/components/brand/PosterHeading'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
+import { EVENT_TYPE_LABELS, REGISTRATION_MODE_LABELS } from '@/lib/club'
+import { isPast } from '@/lib/utils'
 
 const SUBNAV = [
   { label: 'Registrations', path: 'registrations' },
@@ -176,45 +178,39 @@ export default function EventDetailPage() {
 
   return (
     <div className="space-y-6">
-      <section className="app-panel px-6 py-7 sm:px-8">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-4">
-            <span className="app-kicker">
-              <Settings2 size={14} />
-              Event Control Center
-            </span>
-            <div>
-              <PosterHeading as="h1" fillClassName="text-primary-yellow" className="text-2xl sm:text-4xl">
-                {event.title}
-              </PosterHeading>
-              <p className="app-subheading mt-3">
-                {event.event_type} • {event.venue}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <span className={`app-badge ${event.is_published ? 'app-badge-success' : 'app-badge-neutral'}`}>
-                {event.is_published ? 'Published' : 'Draft'}
-              </span>
-              <span className="app-badge bg-brand text-white">{event.confirmed_count} confirmed</span>
-              <span className="app-badge app-badge-warning">{event.waitlist_count || 0} waitlisted</span>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-end gap-1">
+      <DashboardPageHeader
+        icon={Settings2}
+        kicker={`${EVENT_TYPE_LABELS[event.event_type ?? ''] ?? event.event_type ?? 'Event'}${event.venue ? ` · ${event.venue}` : ''}`}
+        title={event.title}
+        actions={
+          <div className="flex flex-col items-start gap-1 lg:items-end">
             <button
               onClick={togglePublish}
               disabled={saving || (!event.is_published && fieldsCount === 0)}
               className={event.is_published ? 'app-button-secondary' : 'app-button-primary'}
             >
               {event.is_published ? <CheckCircle2 size={16} /> : <CircleDashed size={16} />}
-              {event.is_published ? 'Published' : 'Publish Event'}
+              {event.is_published ? 'Published' : 'Publish event'}
             </button>
             {!event.is_published && fieldsCount === 0 && (
-              <p className="text-xs font-bold uppercase tracking-wide text-warning">Add at least one field (Form tab) to publish.</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-warning">Add at least one field (Custom fields tab) to publish.</p>
             )}
           </div>
+        }
+      >
+        <div className="mt-3 flex flex-wrap gap-2">
+          <span className={`app-badge ${event.is_published ? 'app-badge-success' : 'app-badge-neutral'}`}>
+            {event.is_published ? 'Published' : 'Draft'}
+          </span>
+          {/* GET /api/events/[id] doesn't include counts; show them only when present. */}
+          {typeof event.confirmed_count === 'number' && (
+            <span className="app-badge bg-brand text-white">{event.confirmed_count} confirmed</span>
+          )}
+          {typeof event.waitlist_count === 'number' && (
+            <span className="app-badge app-badge-warning">{event.waitlist_count} waitlisted</span>
+          )}
         </div>
-      </section>
+      </DashboardPageHeader>
 
       <section className="flex flex-wrap gap-3">
         {([
@@ -258,7 +254,7 @@ export default function EventDetailPage() {
             <div className="mb-6">
               <h2 className="text-xl font-black uppercase tracking-tight text-foreground">Event details</h2>
               <p className="mt-1 text-sm font-medium text-foreground-soft">
-                Update the core information organizers and attendees rely on.
+                Title, description, dates, capacity, fee and team size.
               </p>
             </div>
 
@@ -432,27 +428,22 @@ export default function EventDetailPage() {
             </div>
           </section>
 
-          <aside className="app-panel p-6 h-fit">
-            <div className="mb-6 flex items-center gap-3 border-b-2 border-border pb-4">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-border bg-primary-yellow text-[#121212]">
-                <Users size={16} strokeWidth={2.5} />
-              </span>
-              <div>
-                <h3 className="text-sm font-black text-foreground tracking-widest uppercase">Quick Context</h3>
-                <p className="text-[0.65rem] font-mono font-medium text-foreground-soft">Live operational readout.</p>
-              </div>
-            </div>
-            <div className="space-y-2 font-tech text-xs font-medium text-foreground-soft">
-              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3">
-                Protocol: <span className="font-bold text-accent tracking-wider">{(event.registration_mode ?? 'both').toUpperCase()}</span>
-              </div>
-              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3">
-                Capacity: <span className="font-bold text-accent tracking-wider">{event.capacity ?? 'UNRESTRICTED'}</span>
-              </div>
-              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3">
-                State: <span className="font-bold text-success tracking-wider">{event.is_published ? 'LIVE_STREAM' : 'DORMANT'}</span>
-              </div>
-            </div>
+          <aside className="h-fit rounded-2xl border-2 border-border bg-panel p-5 shadow-sm">
+            <h3 className="font-display text-sm uppercase tracking-wide text-foreground">At a glance</h3>
+            <dl className="mt-3 divide-y-2 divide-border text-sm">
+              {[
+                ['Status', event.is_published ? 'Published' : 'Draft'],
+                ['Registration', event.registration_closes_at && isPast(event.registration_closes_at) ? 'Closed' : 'Open'],
+                ['Format', REGISTRATION_MODE_LABELS[event.registration_mode ?? 'both'] ?? event.registration_mode],
+                ['Capacity', event.capacity ?? 'Unlimited'],
+                ['Fee', (event.fee ?? 0) > 0 ? `₹${event.fee}` : 'Free'],
+              ].map(([label, value]) => (
+                <div key={label as string} className="flex items-center justify-between gap-3 py-2.5">
+                  <dt className="font-tech text-[11px] font-bold uppercase tracking-widest text-foreground-soft">{label}</dt>
+                  <dd className="font-bold text-foreground">{value}</dd>
+                </div>
+              ))}
+            </dl>
           </aside>
         </div>
       )}

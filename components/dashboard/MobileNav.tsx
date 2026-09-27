@@ -31,9 +31,12 @@ export function MobileNav() {
     <div className="lg:hidden">
       {/* Top bar */}
       <div className="sticky top-0 z-40 flex items-center justify-between border-b-2 border-border bg-panel px-4 py-3">
-        <span className="flex items-center gap-2 font-display text-sm uppercase tracking-tight text-poster-outline text-primary-red">
-          <PlanetMark className="h-6 w-6 shrink-0" />
-          Cintel Admin
+        <span className="flex items-center gap-2.5">
+          <PlanetMark className="h-8 w-8 shrink-0" />
+          <span className="leading-none">
+            <span className="block font-display text-base uppercase text-primary-red text-poster-outline">Cintel</span>
+            <span className="block font-tech text-[10px] font-bold uppercase tracking-[0.25em] text-foreground-soft">Organizer</span>
+          </span>
         </span>
         <button
           type="button"

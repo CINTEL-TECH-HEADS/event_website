@@ -6,8 +6,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { EventWithFields } from '@/types'
 import { RegistrationForm } from '@/components/public/RegistrationForm'
-import { isPast } from '@/lib/utils'
-import { Sparkle } from '@/components/brand/Starburst'
+import { formatEventDate, isPast } from '@/lib/utils'
+import { PageHeader } from '@/components/site/PageHeader'
+import { REGISTRATION_MODE_LABELS } from '@/lib/club'
 
 // Instant join with a shared group code (known teammate).
 function JoinByCode() {
@@ -29,8 +30,8 @@ function JoinByCode() {
   }
 
   return (
-    <div className="space-y-3 rounded-2xl border-2 border-border bg-panel-muted p-5">
-      <p className="text-sm font-medium text-foreground-soft">Have a group code from a teammate? Enter it to join instantly.</p>
+    <div className="space-y-3 rounded-2xl border-2 border-border bg-panel p-5 shadow-sm">
+      <p className="text-sm font-medium text-foreground-soft">Enter the team code your teammate shared with you.</p>
       <div className="flex gap-2">
         <input
           value={code}
@@ -121,10 +122,7 @@ export default function RegisterPage() {
   if (loading) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4">
-        <div className="app-empty-state">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-          <p className="mt-4 text-sm font-bold uppercase tracking-wider text-foreground-soft">Loading registration form...</p>
-        </div>
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
       </div>
     )
   }
@@ -140,122 +138,156 @@ export default function RegisterPage() {
   }
 
   const closed = isPast(event.registration_closes_at)
+  const fee = event.fee ?? 0
+
+  // Effective participation: fixed for solo/team events, chosen for `both`.
+  const part =
+    event.registration_mode === 'solo' ? 'solo'
+    : event.registration_mode === 'team' ? 'team'
+    : participation
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="relative space-y-6 rounded-poster border-2 border-border bg-panel p-6 shadow-lg sm:p-8 lg:border-4">
-        <Sparkle className="absolute right-6 top-6 h-5 w-5 text-primary-yellow" />
-        <div className="space-y-3">
-          <span className="app-badge app-badge-warning">Registration</span>
-          <div className="space-y-2">
-            <h1 className="font-display text-2xl uppercase leading-[0.95] tracking-tight text-foreground sm:text-4xl">
-              Register for {event.title}
-            </h1>
-            <p className="max-w-2xl text-sm font-medium leading-relaxed text-foreground-soft sm:text-base">
-              Enter your details below. The form adjusts automatically based on this event&apos;s registration mode and custom fields.
-            </p>
-          </div>
-        </div>
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+      <PageHeader
+        back={{ href: `/events/${event.slug}`, label: 'Event details' }}
+        kicker="Register"
+        title={event.title}
+      />
 
-        {closed ? (
-          <div className="rounded-2xl border-2 border-border bg-danger px-4 py-3 text-sm font-bold text-white">
-            Registration is closed for this event.
-          </div>
-        ) : null}
+      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px] lg:items-start">
+        <div className="min-w-0 space-y-6">
+          {closed && (
+            <div className="rounded-2xl border-2 border-border bg-danger px-4 py-3 text-sm font-bold text-white">
+              Registration is closed for this event.
+            </div>
+          )}
 
-        {alreadyRegistered ? (
-          <div className="space-y-4 rounded-2xl border-2 border-border bg-panel-muted px-5 py-6 text-center">
-            <p className="text-lg font-black uppercase text-foreground">You&apos;re already registered</p>
-            <p className="text-sm font-medium text-foreground-soft">
-              You have already registered for this event. You can view your registration and QR code in
-              your portal.
-            </p>
-            <Link href="/participant/portal" className="app-button-success">
-              View in Portal
-            </Link>
-          </div>
-        ) : (() => {
-          // Effective participation: fixed for solo/team events, chosen for `both`.
-          const part =
-            event.registration_mode === 'solo' ? 'solo'
-            : event.registration_mode === 'team' ? 'team'
-            : participation
-          return (
-          <>
-            {/* `both` events: choose solo or team participation first */}
-            {event.registration_mode === 'both' && !closed && (
-              <div className="grid grid-cols-2 gap-2">
-                {([
-                  ['solo', 'Register solo'],
-                  ['team', 'Register as a team'],
-                ] as const).map(([p, label]) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setParticipation(p)}
-                    className={`rounded-xl border-2 px-3 py-3 text-sm font-bold uppercase tracking-wide transition duration-200 ${
-                      part === p
-                        ? 'border-border bg-warning text-foreground shadow-sm'
-                        : 'border-border bg-panel-muted text-foreground-soft hover:bg-panel'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Prompt to pick for `both` before showing a form */}
-            {event.registration_mode === 'both' && part === null && !closed ? (
-              <p className="rounded-2xl border-2 border-border bg-panel-muted px-4 py-4 text-sm font-medium text-foreground-soft">
-                This event allows both solo and team entries &mdash; choose how you&apos;d like to register.
+          {alreadyRegistered ? (
+            <div className="space-y-4 rounded-2xl border-2 border-border bg-panel px-5 py-8 text-center shadow-sm">
+              <p className="text-lg font-black uppercase text-foreground">You&apos;re already registered</p>
+              <p className="text-sm font-medium text-foreground-soft">
+                Your registration and QR pass are in My events.
               </p>
-            ) : part === 'team' ? (
-              <>
-                {/* Team: create a team, find a team, or join with a code */}
-                {!closed && (
-                  <div className="grid grid-cols-3 gap-2">
+              <Link href="/participant/portal" className="app-button-success">
+                Open My events
+              </Link>
+            </div>
+          ) : (
+            <>
+              {/* `both` events: choose solo or team participation first */}
+              {event.registration_mode === 'both' && !closed && (
+                <fieldset>
+                  <legend className="mb-3 font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">
+                    How are you taking part?
+                  </legend>
+                  <div className="grid gap-3 sm:grid-cols-2">
                     {([
-                      ['create', 'Create a team'],
-                      ['find', 'Find a team'],
-                      ['code', 'Join with code'],
-                    ] as const).map(([m, label]) => (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => setMode(m)}
-                        className={`rounded-xl border-2 px-3 py-3 text-sm font-bold uppercase tracking-wide transition duration-200 ${
-                          mode === m
-                            ? 'border-border bg-warning text-foreground shadow-sm'
-                            : 'border-border bg-panel-muted text-foreground-soft hover:bg-panel'
-                        }`}
-                      >
-                        {label}
-                      </button>
+                      ['solo', 'Solo', 'Register just yourself.'],
+                      ['team', 'As a team', 'Create a team, find one, or join with a code.'],
+                    ] as const).map(([p, label, hint]) => (
+                      <ChoiceCard key={p} active={part === p} onClick={() => setParticipation(p)} label={label} hint={hint} />
                     ))}
                   </div>
-                )}
+                </fieldset>
+              )}
 
-                {mode === 'code' && !closed ? (
-                  <JoinByCode />
-                ) : (
-                  <RegistrationForm
-                    event={event}
-                    disabled={closed}
-                    prefill={prefill}
-                    forceTeam
-                    seeking={mode === 'find'}
-                  />
-                )}
-              </>
-            ) : (
-              // Solo registration
-              <RegistrationForm event={event} disabled={closed} prefill={prefill} />
-            )}
-          </>
-          )
-        })()}
+              {event.registration_mode === 'both' && part === null && !closed ? null : part === 'team' ? (
+                <>
+                  {/* Team: create a team, find a team, or join with a code */}
+                  {!closed && (
+                    <fieldset>
+                      <legend className="mb-3 font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">
+                        Your team
+                      </legend>
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        {([
+                          ['create', 'Create a team', 'You become the team leader and get a code to share.'],
+                          ['find', 'Find a team', 'Register now and get matched with a team that needs members.'],
+                          ['code', 'Join with code', 'A teammate already created the team.'],
+                        ] as const).map(([m, label, hint]) => (
+                          <ChoiceCard key={m} active={mode === m} onClick={() => setMode(m)} label={label} hint={hint} />
+                        ))}
+                      </div>
+                    </fieldset>
+                  )}
+
+                  {mode === 'code' && !closed ? (
+                    <JoinByCode />
+                  ) : (
+                    <FormPanel>
+                      <RegistrationForm
+                        event={event}
+                        disabled={closed}
+                        prefill={prefill}
+                        forceTeam
+                        seeking={mode === 'find'}
+                      />
+                    </FormPanel>
+                  )}
+                </>
+              ) : (
+                // Solo registration
+                <FormPanel>
+                  <RegistrationForm event={event} disabled={closed} prefill={prefill} />
+                </FormPanel>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Event summary */}
+        <aside className="rounded-2xl border-2 border-border bg-panel-muted p-5 text-sm lg:sticky lg:top-28">
+          <p className="font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">Summary</p>
+          <dl className="mt-3 space-y-3">
+            <div>
+              <dt className="font-tech text-[10px] font-bold uppercase tracking-widest text-foreground-soft">When</dt>
+              <dd className="font-bold text-foreground">{formatEventDate(event.starts_at)}</dd>
+            </div>
+            <div>
+              <dt className="font-tech text-[10px] font-bold uppercase tracking-widest text-foreground-soft">Where</dt>
+              <dd className="font-bold text-foreground">{event.venue}</dd>
+            </div>
+            <div>
+              <dt className="font-tech text-[10px] font-bold uppercase tracking-widest text-foreground-soft">Format</dt>
+              <dd className="font-bold text-foreground">
+                {REGISTRATION_MODE_LABELS[event.registration_mode] ?? event.registration_mode}
+                {event.registration_mode !== 'solo' && (event.min_team_size || event.max_team_size)
+                  ? ` · teams of ${event.min_team_size ?? 1}–${event.max_team_size ?? 'any'}`
+                  : ''}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-tech text-[10px] font-bold uppercase tracking-widest text-foreground-soft">Fee</dt>
+              <dd className="font-bold text-foreground">{fee > 0 ? `₹${fee}` : 'Free'}</dd>
+            </div>
+          </dl>
+          {fee > 0 && (
+            <p className="mt-4 border-t-2 border-border pt-3 text-xs font-medium leading-5 text-foreground-soft">
+              After registering you pay and upload proof from My events. Your pass is issued once the payment is verified.
+            </p>
+          )}
+        </aside>
       </div>
     </div>
   )
+}
+
+function ChoiceCard({ active, onClick, label, hint }: { active: boolean; onClick: () => void; label: string; hint: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`rounded-2xl border-2 border-border p-4 text-left transition duration-200 ${
+        active ? 'bg-warning shadow-sm' : 'bg-panel hover:bg-panel-muted'
+      }`}
+    >
+      <span className="block text-sm font-black uppercase tracking-wide text-foreground">{label}</span>
+      <span className="mt-1 block text-xs font-medium leading-5 text-foreground-soft">{hint}</span>
+    </button>
+  )
+}
+
+function FormPanel({ children }: { children: React.ReactNode }) {
+  return <div className="rounded-2xl border-2 border-border bg-panel p-5 shadow-sm sm:p-6">{children}</div>
 }

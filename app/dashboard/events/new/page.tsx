@@ -1,4 +1,4 @@
-// Owner: FE2 - Create new event form with premium inputs, validation, and error handling. Also includes a sidebar with next steps after event creation.
+// Owner: FE2 - Create new event form with validation and error handling. Also includes a sidebar with next steps after event creation.
 'use client'
 
 import { motion } from 'framer-motion'
@@ -12,11 +12,10 @@ import { useRouter } from 'next/navigation'
 import {
   ArrowRight,
   CalendarPlus,
-  Sparkles,
 } from 'lucide-react'
 
 import type { CreateEventPayload } from '@/lib/validators/event'
-import { PosterHeading } from '@/components/brand/PosterHeading'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 
 export default function NewEventPage() {
   const router = useRouter()
@@ -152,28 +151,13 @@ export default function NewEventPage() {
         className="app-panel p-6 sm:p-10"
       >
 
-        <div className="mb-10 space-y-4">
-
-          <span className="app-kicker">
-            <CalendarPlus size={14} />
-            Create New Event
-          </span>
-
-          <div>
-
-            <PosterHeading as="h1" fillClassName="text-primary-yellow" className="text-2xl sm:text-4xl">
-              Build your next
-              successful event.
-            </PosterHeading>
-
-            <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-foreground-soft">
-              Add event details,
-              schedule, registrations,
-              and capacity in one place.
-            </p>
-
-          </div>
-
+        <div className="mb-8">
+          <DashboardPageHeader
+            icon={CalendarPlus}
+            kicker="New event"
+            title="Create an event"
+            description="Save it as a draft first. You can add custom fields and organizers, then publish when it’s ready."
+          />
         </div>
 
         <form
@@ -181,7 +165,7 @@ export default function NewEventPage() {
           className="grid gap-6"
         >
 
-          {/* Premium Inputs */}
+          {/* Inputs */}
 <div className="grid gap-5 sm:grid-cols-2">
 
   <LuxuryInput
@@ -448,48 +432,13 @@ export default function NewEventPage() {
       {/* Side */}
       <aside className="space-y-4">
 
-        <div className="app-panel p-8">
-
-          <div className="mb-6 flex flex-col gap-4">
-
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-border bg-[#14120F] text-white">
-              <Sparkles size={18} strokeWidth={2.5} />
-            </span>
-
-            <div>
-
-              <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
-                After Creation
-              </h2>
-
-              <p className="mt-1 text-sm font-medium text-foreground-soft">
-                Complete these next
-                steps.
-              </p>
-
-            </div>
-
-          </div>
-
-          <div className="space-y-3 text-sm">
-
-            <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3 font-medium text-foreground">
-              Configure custom
-              registration fields
-            </div>
-
-            <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3 font-medium text-foreground">
-              Assign organizers
-              and team members
-            </div>
-
-            <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3 font-medium text-foreground">
-              Publish and start
-              registrations
-            </div>
-
-          </div>
-
+        <div className="rounded-2xl border-2 border-border bg-panel p-6 shadow-sm">
+          <h2 className="font-display text-sm uppercase tracking-wide text-foreground">After you create it</h2>
+          <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm font-medium text-foreground-soft">
+            <li>Add the registration fields you need (Custom fields tab).</li>
+            <li>Give other organizers access (Access control tab).</li>
+            <li>Publish the event to open registration.</li>
+          </ol>
         </div>
 
       </aside>

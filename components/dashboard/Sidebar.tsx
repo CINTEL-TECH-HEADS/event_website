@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/public/ThemeToggle'
 import { PlanetMark } from '@/components/brand/PlanetMark'
-import { Sparkle } from '@/components/brand/Starburst'
 
 type Profile = {
   full_name?: string
@@ -56,14 +55,12 @@ export function Sidebar({
         {/* Brand */}
         <div className="relative mb-8 overflow-hidden rounded-2xl border-2 border-border bg-panel-muted p-5 lg:border-4">
 
-          <h1 className="flex items-center gap-2.5 font-display text-lg uppercase tracking-tight text-poster-outline text-primary-red">
-            <PlanetMark className="h-8 w-8 shrink-0" />
-            Cintel Admin
-            <Sparkle className="h-3 w-3 text-primary-yellow" />
-          </h1>
-
-          <p className="mt-2 font-tech text-[10px] font-bold uppercase tracking-[0.24em] text-foreground-soft">
-            Organizer Workspace
+          <p className="flex items-center gap-2.5">
+            <PlanetMark className="h-10 w-10 shrink-0" />
+            <span className="leading-none">
+              <span className="block font-display text-lg uppercase text-primary-red text-poster-outline">Cintel</span>
+              <span className="block font-tech text-[10px] font-bold uppercase tracking-[0.25em] text-foreground-soft">Organizer</span>
+            </span>
           </p>
 
           <div className="mt-5 rounded-xl border-2 border-border bg-panel p-3">
@@ -74,8 +71,7 @@ export function Sidebar({
             </p>
 
             <p className="mt-1 truncate text-xs font-medium text-foreground-soft">
-              {profile?.email ??
-                'admin@cintel.in'}
+              {profile?.email ?? ''}
             </p>
 
           </div>

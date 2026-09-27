@@ -1,18 +1,16 @@
-//FE1 event details page. This is a client component since it needs to fetch form fields for the registration form, but it receives all other event details as a prop from the server component page. The server component fetches the event with its confirmed/waitlist counts using a single optimized query, so we don't have to worry about N+1 queries here when rendering the details.
-
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { CalendarPlus, CheckCircle2, MapPin, Users } from 'lucide-react'
+import { CalendarDays, CalendarPlus, CheckCircle2, IndianRupee, MapPin, Users } from 'lucide-react'
 import type { EventWithFields } from '@/types'
 import { CountdownTimer } from '@/components/public/CountdownTimer'
+import { CapacityBadge } from '@/components/public/CapacityBadge'
+import { PageHeader } from '@/components/site/PageHeader'
 import { generateGoogleCalendarLink } from '@/lib/calendar/gcal-link'
-import { formatEventDate, isPast, spotsLeft } from '@/lib/utils'
-import { PosterHeading } from '@/components/brand/PosterHeading'
-import { Starburst, Sparkle } from '@/components/brand/Starburst'
-import { RockShape } from '@/components/brand/RockShape'
+import { formatEventDate, isPast } from '@/lib/utils'
+import { EVENT_TYPE_LABELS, REGISTRATION_MODE_LABELS } from '@/lib/club'
 
 function normalizeCount(value: unknown): number {
   if (typeof value === 'number') return value
@@ -32,9 +30,22 @@ function normalizeEvent(event: EventWithFields): EventWithFields {
   }
 }
 
+function Fact({ icon: Icon, label, children }: { icon: typeof MapPin; label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex gap-3 py-3">
+      <Icon size={18} className="mt-0.5 shrink-0 text-brand" strokeWidth={2.5} />
+      <div>
+        <dt className="font-tech text-[11px] font-bold uppercase tracking-widest text-foreground-soft">{label}</dt>
+        <dd className="mt-0.5 text-sm font-bold text-foreground">{children}</dd>
+      </div>
+    </div>
+  )
+}
+
 export default function EventPage() {
   const { slug } = useParams<{ slug: string }>()
   const [event, setEvent] = useState<EventWithFields | null>(null)
+  const [registrationId, setRegistrationId] = useState<string | null>(null)
   const [alreadyRegistered, setAlreadyRegistered] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -57,7 +68,10 @@ export default function EventPage() {
         const mine = await fetch(`/api/registrations/mine?event_id=${normalized.id}`)
           .then((r) => r.json())
           .catch(() => null)
-        if (mine?.data?.registered) setAlreadyRegistered(true)
+        if (mine?.data?.registered) {
+          setAlreadyRegistered(true)
+          setRegistrationId(mine.data.registration_id ?? null)
+        }
       } catch {
         setError('Failed to load event')
       } finally {
@@ -71,26 +85,23 @@ export default function EventPage() {
   if (loading) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-6xl items-center justify-center px-4">
-        <div className="app-empty-state">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-          <p className="mt-4 text-sm font-bold uppercase tracking-wider text-foreground-soft">Loading event details...</p>
-        </div>
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
       </div>
     )
   }
 
   if (error || !event) {
     return (
-      <div className="mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4">
-        <div className="w-full rounded-2xl border-2 border-border bg-danger p-8 text-center text-sm font-bold text-white lg:border-4">
-          {error ?? 'Event not found'}
-        </div>
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <p className="rounded-2xl border-2 border-border bg-danger p-8 text-sm font-bold text-white">{error ?? 'Event not found'}</p>
+        <Link href="/events" className="app-button-secondary mt-6">Back to all events</Link>
       </div>
     )
   }
 
   const closed = isPast(event.registration_closes_at)
-  const spots = spotsLeft(event.capacity, event.confirmed_count)
+  const fee = event.fee ?? 0
+  const hasTeams = event.registration_mode !== 'solo'
   const calLink = generateGoogleCalendarLink({
     title: event.title,
     starts_at: event.starts_at,
@@ -100,130 +111,98 @@ export default function EventPage() {
   })
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="overflow-hidden rounded-poster border-2 border-border bg-panel shadow-lg lg:border-4">
-        <div className="grid gap-px bg-border lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="poster-panel relative min-h-[360px] !rounded-none">
-            {event.banner_url ? (
-              <img
-                src={event.banner_url}
-                alt={event.title}
-                className="absolute inset-0 h-full w-full object-cover opacity-80 grayscale"
-              />
-            ) : (
-              <>
-                <div className="halftone pointer-events-none absolute inset-0 opacity-[0.15]" />
-                <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-90">
-                  <Starburst rings color="#F2C230" className="absolute -left-6 -top-6 h-28 w-28 opacity-70" />
-                  <RockShape variant={2} fill="#D6294C" className="absolute bottom-6 right-10 h-20 w-20 rotate-[14deg]" />
-                  <Sparkle className="absolute right-1/4 top-6 h-3 w-3 text-primary-yellow" />
-                </div>
-              </>
-            )}
-            <div className="absolute inset-0 bg-foreground/40" />
-            <div className="relative flex h-full flex-col justify-between p-8 text-[#F5F0E3]">
-              <div className="flex flex-wrap gap-2">
-                <span className="inline-flex w-fit rounded-full border-2 border-[#F5F0E3] bg-primary-yellow px-3 py-1 font-tech text-[11px] font-bold uppercase tracking-widest text-[#14120F]">
-                  {event.event_type}
-                </span>
-                <span className="inline-flex w-fit rounded-full border-2 border-[#F5F0E3]/60 px-3 py-1 font-tech text-[11px] font-bold uppercase tracking-widest text-[#F5F0E3]">
-                  {event.registration_mode} registration
-                </span>
-              </div>
-              <div>
-                <PosterHeading as="h1" fillClassName="text-primary-yellow" className="mt-6 text-3xl sm:text-5xl">
-                  {event.title}
-                </PosterHeading>
-                <p className="mt-4 max-w-2xl text-sm font-medium leading-relaxed text-[#F5F0E3]/90 sm:text-base">
-                  {event.description ?? 'Check the schedule, venue, capacity, and registration rules before you continue.'}
-                </p>
-              </div>
-            </div>
-          </div>
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+      <PageHeader
+        back={{ href: '/events', label: 'All events' }}
+        kicker={`${EVENT_TYPE_LABELS[event.event_type] ?? event.event_type} · ${REGISTRATION_MODE_LABELS[event.registration_mode] ?? event.registration_mode}`}
+        title={event.title}
+      />
 
-          <div className="space-y-6 bg-panel p-8">
-            <div className="grid gap-px overflow-hidden rounded-2xl border-2 border-border bg-border text-sm sm:grid-cols-2">
-              <div className="bg-panel-muted p-5">
-                <p className="font-tech text-xs font-bold uppercase tracking-widest text-brand">When</p>
-                <p className="mt-1 font-bold leading-6 text-foreground">{formatEventDate(event.starts_at)}</p>
-              </div>
-              <div className="bg-panel-muted p-5">
-                <p className="font-tech text-xs font-bold uppercase tracking-widest text-brand">Where</p>
-                <p className="mt-1 flex items-center gap-1.5 font-bold leading-6 text-foreground">
-                  <MapPin className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
-                  {event.venue}
-                </p>
-              </div>
-              <div className="bg-panel-muted p-5">
-                <p className="font-tech text-xs font-bold uppercase tracking-widest text-accent">Registration Mode</p>
-                <p className="mt-1 flex items-center gap-1.5 font-bold capitalize text-foreground">
-                  <Users className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
-                  {event.registration_mode}
-                </p>
-              </div>
-              <div className="bg-panel-muted p-5">
-                <p className="font-tech text-xs font-bold uppercase tracking-widest text-accent">Capacity</p>
-                <p className="mt-1 font-bold text-foreground">
-                  {spots === null ? 'Unlimited seats' : `${spots} spots left`}
-                </p>
-              </div>
-            </div>
+      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
+        <div className="min-w-0 space-y-8">
+          {event.banner_url && (
+            <img
+              src={event.banner_url}
+              alt=""
+              className="aspect-[16/8] w-full rounded-2xl border-2 border-border object-cover shadow-sm"
+            />
+          )}
 
+          <section>
+            <h2 className="font-display text-lg uppercase tracking-tight text-foreground">About</h2>
+            <p className="mt-3 whitespace-pre-line text-base font-medium leading-7 text-foreground-soft">
+              {event.description?.trim() || 'Details for this event will be added by the organizers.'}
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display text-lg uppercase tracking-tight text-foreground">Details</h2>
+            <dl className="mt-2 grid divide-y-2 divide-border border-y-2 border-border sm:grid-cols-2 sm:divide-y-0">
+              <Fact icon={CalendarDays} label="Starts">{formatEventDate(event.starts_at)}</Fact>
+              {event.ends_at && <Fact icon={CalendarDays} label="Ends">{formatEventDate(event.ends_at)}</Fact>}
+              <Fact icon={MapPin} label="Venue">{event.venue}</Fact>
+              <Fact icon={Users} label="Format">
+                {REGISTRATION_MODE_LABELS[event.registration_mode] ?? event.registration_mode}
+                {hasTeams && (event.min_team_size || event.max_team_size)
+                  ? ` · teams of ${event.min_team_size ?? 1}–${event.max_team_size ?? 'any'}`
+                  : ''}
+              </Fact>
+              <Fact icon={IndianRupee} label="Fee">{fee > 0 ? `₹${fee}${hasTeams ? ' per registration' : ''}` : 'Free'}</Fact>
+              <Fact icon={CalendarDays} label="Registration closes">{formatEventDate(event.registration_closes_at)}</Fact>
+            </dl>
+          </section>
+        </div>
+
+        {/* Registration card */}
+        <aside className="rounded-2xl border-2 border-border bg-panel p-5 shadow-md lg:sticky lg:top-28 lg:border-4">
+          <p className="font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">Registration</p>
+
+          <div className="mt-4 space-y-3">
             {closed ? (
-              <div className="rounded-xl border-2 border-border bg-danger px-4 py-3 text-sm font-bold text-white">
-                Registration is closed.
-              </div>
+              <p className="rounded-xl border-2 border-border bg-danger px-4 py-3 text-sm font-bold text-white">Registration is closed.</p>
             ) : (
               <CountdownTimer closesAt={event.registration_closes_at} />
             )}
-
-            {event.registration_mode !== 'solo' && (event.min_team_size || event.max_team_size) ? (
-              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3 text-sm font-bold text-foreground">
-                Team size: {event.min_team_size ?? 1} to {event.max_team_size ?? 'any'} members.
-              </div>
-            ) : null}
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              {alreadyRegistered ? (
-                <Link
-                  href="/participant/portal"
-                  className="app-button-success flex-1"
-                >
-                  <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
-                  Already Registered &mdash; View in Portal
-                </Link>
-              ) : (
-                <Link
-                  href={`/events/${event.slug}/register`}
-                  aria-disabled={closed}
-                  className={
-                    closed
-                      ? 'pointer-events-none flex-1 rounded-full border-2 border-border bg-panel-muted px-5 py-3 text-center text-sm font-bold uppercase tracking-wider text-foreground-soft'
-                      : 'app-button-primary flex-1'
-                  }
-                >
-                  {closed ? 'Registration Closed' : 'Register Now'}
-                </Link>
-              )}
-              <a
-                href={calLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-border bg-panel px-5 py-3 font-tech text-sm font-bold uppercase tracking-wider text-accent shadow-sm transition duration-200 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-              >
-                <CalendarPlus className="h-4 w-4" strokeWidth={2.5} />
-                Add to Calendar
-              </a>
-            </div>
-
-            <div className="rounded-2xl border-2 border-border bg-panel-muted p-5 text-sm">
-              <p className="font-display text-sm uppercase tracking-tight text-foreground">Before you register</p>
-              <p className="mt-2 font-medium leading-6 text-foreground-soft">
-                Review the deadline, confirm the event format, and keep your confirmation QR ready after registration for a smoother check-in.
-              </p>
+            <div className="flex flex-wrap gap-2">
+              <span className="app-badge app-badge-neutral">{fee > 0 ? `₹${fee}` : 'Free'}</span>
+              {!closed && <CapacityBadge event={event} />}
             </div>
           </div>
-        </div>
+
+          <div className="mt-5 flex flex-col gap-3">
+            {alreadyRegistered ? (
+              <Link
+                href={registrationId ? `/participant/portal/events/${registrationId}` : '/participant/portal'}
+                className="app-button-success w-full"
+              >
+                <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
+                You&apos;re registered · open in My events
+              </Link>
+            ) : (
+              <Link
+                href={`/events/${event.slug}/register`}
+                aria-disabled={closed}
+                className={
+                  closed
+                    ? 'pointer-events-none w-full rounded-full border-2 border-border bg-panel-muted px-5 py-3 text-center text-sm font-bold uppercase tracking-wider text-foreground-soft'
+                    : 'app-button-primary w-full'
+                }
+              >
+                {closed ? 'Registration closed' : 'Register'}
+              </Link>
+            )}
+            <a href={calLink} target="_blank" rel="noopener noreferrer" className="app-button-secondary w-full">
+              <CalendarPlus className="h-4 w-4" strokeWidth={2.5} />
+              Add to Google Calendar
+            </a>
+          </div>
+
+          {!closed && !alreadyRegistered && (
+            <p className="mt-4 text-xs font-medium leading-5 text-foreground-soft">
+              You&apos;ll sign in with Google before registering.
+            </p>
+          )}
+        </aside>
       </div>
     </div>
   )

@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react'
 import {
   Activity,
   Users,
-  CheckCircle2,
 } from 'lucide-react'
 
 import { createBrowserClient } from '@/lib/supabase/client'
@@ -26,6 +25,9 @@ export function LiveStatsCounter({
   const [loading, setLoading] =
     useState(true)
 
+  // Confirmed registrations — the denominator for the progress bar.
+  const [confirmed, setConfirmed] = useState(0)
+
   // Authoritative count from the API (admin-side, avoids RLS on a direct select).
   useEffect(() => {
     let mounted = true
@@ -38,6 +40,7 @@ export function LiveStatsCounter({
           return !!a?.id
         }).length
         setCheckedIn(count)
+        setConfirmed((data ?? []).filter((r: any) => r.status === 'confirmed').length)
         setLoading(false)
       })
       .catch(() => mounted && setLoading(false))
@@ -82,7 +85,7 @@ export function LiveStatsCounter({
         <div>
 
           <p className="font-tech text-xs font-bold uppercase tracking-[0.2em] text-foreground-soft">
-            Live Check-Ins
+            Checked in
           </p>
 
           <p className="mt-3 font-display text-4xl tracking-tight text-foreground sm:text-5xl">
@@ -97,45 +100,24 @@ export function LiveStatsCounter({
 
       </div>
 
-      {/* Progress */}
-      <div className="mt-5 h-2 overflow-hidden rounded-full border-2 border-border bg-panel-muted">
-
-        <div
-          className="h-full bg-accent transition-all duration-500 ease-out"
-          style={{
-            width: `${Math.min(
-              checkedIn * 8,
-              100
-            )}%`,
-          }}
-        />
-
-      </div>
-
-      {/* Bottom */}
-      <div className="mt-5 flex items-center gap-2 text-sm font-medium text-foreground-soft">
-
-        <Activity
-          size={15}
-          className="text-success"
-        />
-
-        Updates instantly as
-        participants check in.
-
-      </div>
-
-      {checkedIn > 0 && (
-        <div className="app-badge app-badge-success mt-4">
-
-          <CheckCircle2
-            size={14}
-          />
-
-          Event activity detected
-
-        </div>
+      {confirmed > 0 && (
+        <>
+          <p className="mt-1 text-sm font-medium text-foreground-soft">
+            of {confirmed} confirmed ({Math.round((Math.min(checkedIn, confirmed) / confirmed) * 100)}%)
+          </p>
+          <div className="mt-4 h-2 overflow-hidden rounded-full border-2 border-border bg-panel-muted">
+            <div
+              className="h-full bg-accent transition-all duration-500 ease-out"
+              style={{ width: `${Math.min((checkedIn / confirmed) * 100, 100)}%` }}
+            />
+          </div>
+        </>
       )}
+
+      <p className="mt-4 flex items-center gap-2 text-xs font-medium text-foreground-soft">
+        <Activity size={14} className="text-success" />
+        Updates as participants check in.
+      </p>
 
     </div>
   )

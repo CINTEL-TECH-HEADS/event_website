@@ -236,7 +236,7 @@ export default async function VerifyPage({
             </p>
 
             <p className="mt-4 text-sm leading-relaxed text-foreground-soft">
-              The verification system is currently experiencing temporary connection issues.
+              We couldn’t load this certificate right now. Please try again in a moment.
               <br />
               Please refresh or check back in a few moments.
             </p>

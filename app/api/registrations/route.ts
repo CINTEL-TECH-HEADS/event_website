@@ -253,7 +253,7 @@ export async function POST(req: NextRequest) {
         displayId:   display_id,
         qrCodeUrl:   qrSignedUrl,
         calendarUrl,
-        resendUrl:   `${appUrl}/resend`,
+        portalUrl:   `${appUrl}/participant/portal`,
       }),
     ])
   } else if (status === 'waitlisted') {

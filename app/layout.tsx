@@ -22,8 +22,9 @@ const spaceMono = Space_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Cintel — Events',
-  description: 'Premium student events and registration platform',
+  title: 'CINTEL Events',
+  description:
+    'Register for events run by the CINTEL Student Association, Department of Computational Intelligence, SRM IST Kattankulathur.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

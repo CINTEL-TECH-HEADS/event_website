@@ -99,7 +99,7 @@ export async function POST(
         calendarUrl: generateGoogleCalendarLink({
           title: event?.title, starts_at: event?.starts_at, ends_at: event?.ends_at, venue: event?.venue,
         }),
-        resendUrl: `${appUrl}/resend`,
+        portalUrl: `${appUrl}/participant/portal`,
       }).catch(() => {})
     }
 

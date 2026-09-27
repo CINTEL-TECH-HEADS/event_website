@@ -4,6 +4,7 @@ import { Fragment, useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Search, Shield } from 'lucide-react'
 import { RegistrationWithDetails } from '@/types'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 
 export default function JudgeParticipantsPage() {
   const { event_id } = useParams<{ event_id: string }>()
@@ -40,17 +41,12 @@ export default function JudgeParticipantsPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-      <section className="app-panel px-6 py-7 sm:px-8">
-        <span className="app-kicker">
-          <Shield size={14} />
-          Judge View
-        </span>
-        <h1 className="app-heading mt-4 uppercase tracking-tighter">Participant information in read-only mode.</h1>
-        <p className="app-subheading mt-3 max-w-2xl">
-          Search participants and expand entries for team and answer details. No edits are
-          available from this view.
-        </p>
-      </section>
+      <DashboardPageHeader
+        icon={Shield}
+        kicker="Judge view"
+        title="Participants"
+        description={'Search participants and expand an entry to see team members and answers. This view is read-only.'}
+      />
 
       <section className="app-panel p-4">
         <label className="relative block">
@@ -174,9 +170,6 @@ export default function JudgeParticipantsPage() {
         </div>
       </section>
 
-      <div className="app-alert-info">
-        Judge access is intentionally read-only. No action buttons are available here.
-      </div>
     </div>
   )
 }

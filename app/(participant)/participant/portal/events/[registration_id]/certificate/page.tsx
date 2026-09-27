@@ -167,32 +167,32 @@ export default function ParticipantCertificatePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-3xl mx-auto px-4 py-10 sm:px-6">
       {/* Back button */}
       <div className="mb-6">
         <Link
           href={`/participant/portal/events/${registration_id}`}
-          className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-2 font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft transition-colors hover:text-foreground"
         >
-          <ArrowLeft size={14} /> Back to Event Details
+          <ArrowLeft size={14} /> Registration
         </Link>
       </div>
 
       {state === 'loading' && (
-        <div className="rounded-poster border-4 border-border bg-panel p-12 text-center space-y-4 shadow-lg">
+        <div className="rounded-2xl border-2 border-border bg-panel p-12 text-center space-y-4 shadow-sm">
           <div className="w-12 h-12 border-4 border-border border-t-brand rounded-full animate-spin mx-auto" />
           <p className="font-tech text-xs font-bold uppercase tracking-wide text-foreground">Checking certificate release status...</p>
         </div>
       )}
 
       {state === 'unreleased' && (
-        <div className="rounded-poster border-4 border-border bg-panel p-10 text-center space-y-4 shadow-lg">
+        <div className="rounded-2xl border-2 border-border bg-panel p-10 text-center space-y-4 shadow-sm">
           <div className="w-16 h-16 border-2 border-border bg-warning/15 flex items-center justify-center mx-auto rounded-full">
             <Clock className="w-8 h-8 text-warning" />
           </div>
-          <h1 className="font-display text-xl uppercase text-foreground">Certificates Have Not Been Released Yet</h1>
+          <h1 className="font-display text-xl uppercase text-foreground">Certificates not released yet</h1>
           <p className="text-sm font-medium text-foreground-soft max-w-md mx-auto leading-relaxed">
-            The event organizer has not published certificates for this event yet. Please check back later after the organizer posts them!
+            The organizers haven’t released certificates for this event yet. They will appear here once they do.
           </p>
           {certData?.eventName && (
             <p className="text-xs font-mono font-bold text-foreground-soft mt-2">Event: {certData.eventName}</p>
@@ -201,7 +201,7 @@ export default function ParticipantCertificatePage() {
       )}
 
       {state === 'not_eligible' && (
-        <div className="rounded-poster border-4 border-border bg-panel p-10 text-center space-y-4 shadow-lg">
+        <div className="rounded-2xl border-2 border-border bg-panel p-10 text-center space-y-4 shadow-sm">
           <div className="w-16 h-16 border-2 border-border bg-panel-muted flex items-center justify-center mx-auto rounded-full">
             <X className="w-8 h-8 text-foreground-soft" />
           </div>
@@ -213,7 +213,7 @@ export default function ParticipantCertificatePage() {
       )}
 
       {state === 'error' && (
-        <div className="rounded-poster border-4 border-border bg-panel p-10 text-center space-y-4 shadow-lg">
+        <div className="rounded-2xl border-2 border-border bg-panel p-10 text-center space-y-4 shadow-sm">
           <div className="w-16 h-16 border-2 border-border bg-danger/15 flex items-center justify-center mx-auto rounded-full">
             <X className="w-8 h-8 text-danger" />
           </div>
@@ -227,7 +227,7 @@ export default function ParticipantCertificatePage() {
       {state === 'ready' && certData && (
         <div className="space-y-6">
           {/* Header Card */}
-          <div className="rounded-poster border-4 border-border bg-panel p-6 space-y-3 shadow-lg">
+          <div className="rounded-2xl border-2 border-border bg-panel p-6 space-y-3 shadow-sm">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <span className="app-badge-success app-badge">
                 <ShieldCheck size={14} />
@@ -246,7 +246,7 @@ export default function ParticipantCertificatePage() {
           </div>
 
           {/* Certificate Canvas / Image Preview */}
-          <div className="rounded-poster border-4 border-border bg-panel p-4 text-center space-y-4 shadow-lg">
+          <div className="rounded-2xl border-2 border-border bg-panel p-4 text-center space-y-4 shadow-sm">
             <div className="flex items-center justify-between text-xs font-medium text-foreground-soft px-2">
               <span className="inline-flex items-center gap-1 font-bold uppercase tracking-wide text-foreground">
                 <Eye size={14} /> Certificate Preview
@@ -258,7 +258,7 @@ export default function ParticipantCertificatePage() {
               {rendering ? (
                 <div className="flex flex-col items-center gap-2 text-foreground-soft py-12">
                   <Loader2 size={24} className="animate-spin text-brand" />
-                  <span className="font-tech text-[10px] font-bold uppercase tracking-wide">Rendering Certificate Canvas...</span>
+                  <span className="font-tech text-[10px] font-bold uppercase tracking-wide">Preparing your certificate…</span>
                 </div>
               ) : certPreviewBlobUrl ? (
                 <img

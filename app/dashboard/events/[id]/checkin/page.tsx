@@ -6,12 +6,12 @@ import { useParams } from 'next/navigation'
 import {
   QrCode,
   Zap,
-  ShieldCheck,
 } from 'lucide-react'
 
 import { createBrowserClient } from '@/lib/supabase/client'
 import { CheckInPanel } from '@/components/dashboard/CheckInPanel'
 import { LiveStatsCounter } from '@/components/dashboard/LiveStatsCounter'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 
 export default function CheckInPage() {
   const { id } =
@@ -44,7 +44,7 @@ export default function CheckInPage() {
   if (!organizerId) {
     return (
       <div className="text-sm font-medium text-foreground-soft">
-        Loading check-in console...
+        Loading…
       </div>
     )
   }
@@ -53,27 +53,12 @@ export default function CheckInPage() {
     <div className="space-y-6">
 
       {/* Hero */}
-      <section className="app-panel px-6 py-7 sm:px-8">
-
-        <span className="app-kicker">
-          <QrCode size={14} />
-          Event Day Check-In
-        </span>
-
-        <h1 className="app-heading mt-5">
-          Fast, accurate,
-          and smooth entry
-          management.
-        </h1>
-
-        <p className="app-subheading mt-3 max-w-2xl">
-          Scan participant QR codes,
-          confirm attendance instantly,
-          and monitor live event flow
-          without slowing the queue.
-        </p>
-
-      </section>
+      <DashboardPageHeader
+        icon={QrCode}
+        kicker="Check-in"
+        title="Event-day check-in"
+        description={'Scan a participant’s QR pass or search by name to mark them present.'}
+      />
 
       {/* Body */}
       <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
@@ -97,73 +82,14 @@ export default function CheckInPage() {
             refreshSignal={refreshSignal}
           />
 
-          {/* Tips */}
-          <div className="app-panel p-6">
-
-            <div className="mb-4 flex items-center gap-3">
-
-              <span className="rounded-xl border-2 border-border bg-panel-muted p-3 text-brand">
-                <Zap size={18} />
-              </span>
-
-              <div>
-
-                <h2 className="text-lg font-black uppercase tracking-tight text-foreground">
-                  Operator Tips
-                </h2>
-
-                <p className="text-xs font-bold uppercase tracking-widest text-foreground-soft">
-                  Keep lines moving efficiently
-                </p>
-
-              </div>
-
-            </div>
-
-            <div className="space-y-3 text-sm font-medium text-foreground-soft">
-
-              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3">
-                Scan only one QR code at a time.
-              </div>
-
-              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3">
-                Green means success.
-                Red indicates duplicate
-                or invalid entry.
-              </div>
-
-              <div className="rounded-xl border-2 border-border bg-panel-muted px-4 py-3">
-                Hold device steady
-                for faster detection.
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* Security */}
-          <div className="app-panel p-6">
-
-            <div className="flex items-center gap-3">
-
-              <span className="rounded-xl border-2 border-border bg-panel-muted p-3 text-accent">
-                <ShieldCheck size={18} />
-              </span>
-
-              <div>
-
-                <h3 className="text-sm font-black uppercase tracking-tight text-foreground">
-                  Secure Validation
-                </h3>
-
-                <p className="text-sm font-medium text-foreground-soft">
-                  Every scan is verified instantly.
-                </p>
-
-              </div>
-
-            </div>
-
+          <div className="rounded-2xl border-2 border-border bg-panel p-5 shadow-sm">
+            <h2 className="flex items-center gap-2 font-display text-sm uppercase tracking-wide text-foreground">
+              <Zap size={16} className="text-brand" /> Scanning tips
+            </h2>
+            <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm font-medium text-foreground-soft">
+              <li>Scan one QR pass at a time and hold the device steady.</li>
+              <li>Green means checked in. Red means already checked in or not a valid pass.</li>
+            </ul>
           </div>
 
         </aside>

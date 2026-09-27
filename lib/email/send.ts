@@ -54,7 +54,7 @@ interface SendConfirmationParams {
   displayId: string
   qrCodeUrl: string
   calendarUrl: string
-  resendUrl: string
+  portalUrl: string
 }
 
 export async function sendConfirmationEmail(params: SendConfirmationParams) {
