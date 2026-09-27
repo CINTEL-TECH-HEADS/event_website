@@ -2,7 +2,29 @@
 
 > Living document. Update this at the end of every working session: append what was
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
-> Last updated: 2026-09-23 (caught up Jul 17 → Aug 27 work; merged `origin/main` into `feat/google-auth-profile`).
+> Last updated: 2026-09-27 (new page layouts across the site; Resend Pass + public Certificate removed).
+
+## This repo (CINTEL-TECH-HEADS/event_website)
+Private copy of cintel-event-registration with jayashriiSH's retro redesign (cream/crimson/gold,
+Bungee/Space Mono/Outfit, `components/brand/*`). Our backend was merged in via PR #1 (2026-09-23).
+Site/UI work happens here; the original repo is not updated from this one unless asked.
+
+## 2026-09-27: new layouts on every page (branch `feat/new-layout`)
+- **Club content** lives in `lib/club.ts` (department, SRM IST Kattankulathur, association email,
+  Instagram/LinkedIn/GitHub, flagship events CTF / Game Jam / CINTEL Connect / Learn. Leap. Lead. with
+  photos in `public/club/`, from the 2026–27 recruitment site). Filler copy removed site-wide.
+- **Shared shell**: `components/site/SiteHeader` (mobile menu; nav configurable), `SiteFooter`,
+  `PageHeader`; dashboard pages use `components/dashboard/DashboardPageHeader`.
+- **Home**: hero + live "Next up" card, open events, how registration works, what we run, past events.
+  Events, event detail (sticky registration card, fee shown), register, confirmation, contact, join,
+  login/reset, participant portal and all organizer pages relaid out; fetches/handlers unchanged.
+- **Removed**: `/resend`, `/certificate`, `/api/resend-confirmation`, `/api/certificates/download`.
+  Certificates are only in each participant's portal. Email links point to `/participant/portal`.
+- **Fixes**: reset-password no longer claims a code was sent; participant header logo path
+  (`/Logo.png` 404 on Linux); PastEventCard certificate check; fake check-in progress bar.
+- Unused brand pieces left in place: `PixelTrail`, `ShipShape`, `PosterBadge`.
+- Verified: tsc + `next build`; public pages, auth, organizer pages (throwaway organizer) and the
+  participant gate/portal (throwaway participant) in the browser; test accounts deleted.
 
 ## Catch-up log: 2026-07-17 → 2026-09-23 (reconstructed from git history)
 **Merged to `main`:** PR #8 (auth/portal/teams), PR #9 (solo/team cert templates), PR #12
