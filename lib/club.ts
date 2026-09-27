@@ -93,6 +93,38 @@ export const ARCHIVE_2025_26: ArchivedEvent[] = [
   },
 ]
 
+// Events held so far in 2026–27.
+export const ARCHIVE_2026_27: ArchivedEvent[] = [
+  {
+    title: 'CTF 2026',
+    year: '2026',
+    kind: 'Security',
+    type: 'hackathon',
+    text: 'Capture the flag: teams solve security challenges against the clock.',
+    facts: [],
+    photo: '/club/ctf-2026.jpg',
+    alt: 'A full lecture hall of students on laptops during CTF 2026',
+  },
+  {
+    title: 'Game Jam 2026',
+    year: '2026',
+    kind: 'Games',
+    type: 'fest',
+    text: 'Teams build a game in a fixed window, then pitch it to the judges.',
+    facts: [],
+    photo: '/club/game-jam-2026.jpg',
+    alt: 'A team walking a judge through their game at Game Jam 2026',
+  },
+]
+
+// Past events by academic year, newest first.
+export const ARCHIVE_PERIODS: { period: string; events: ArchivedEvent[] }[] = [
+  { period: '2026–27', events: ARCHIVE_2026_27 },
+  { period: '2025–26', events: ARCHIVE_2025_26 },
+]
+
+export const ARCHIVE_ALL: ArchivedEvent[] = ARCHIVE_PERIODS.flatMap((p) => p.events)
+
 // Everything the association runs, for the "What we run" sphere.
 export const FLAGSHIP_EVENTS: ClubEvent[] = [
   ...ARCHIVE_2025_26,

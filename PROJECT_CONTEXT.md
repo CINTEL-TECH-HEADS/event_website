@@ -11,6 +11,8 @@ Built on jayashriiSH's `feat/landing-redesign`; PR goes into that branch.
   "Past events" + `/events#past` show it (`ArchiveCard`); sphere and "Pick your lane" = those six +
   Game Jam + Learn. Leap. Lead. CSR and CINTEL Connect dropped. Report figures that contradicted each
   other, winner names and stock photos were left out.
+- **2026–27 so far**: CTF 2026 and Game Jam 2026 (`ARCHIVE_2026_27`, photos from the user); past events
+  are grouped by academic year via `ARCHIVE_PERIODS` (newest first).
 - **Other colleges**: migration `025_external_participants.sql` (**applied to the live DB**):
   `participant_profiles.affiliation` ('srm'|'external', existing SRM profiles backfilled),
   `participant_profiles.college_name`, `events.open_to_external` (default false). Setup asks SRM vs

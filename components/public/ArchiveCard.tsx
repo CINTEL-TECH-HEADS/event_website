@@ -14,13 +14,15 @@ export function ArchiveCard({ event }: { event: ArchivedEvent }) {
       <div className="flex flex-1 flex-col gap-2 p-5">
         <h3 className="font-display text-xl uppercase leading-tight text-foreground">{event.title}</h3>
         <p className="text-[15px] leading-[1.55] text-foreground-soft">{event.text}</p>
-        <ul className="mt-auto flex flex-wrap gap-2 pt-2">
-          {event.facts.map((f) => (
-            <li key={f} className="rounded-full border-2 border-border px-3 py-1 font-tech text-[11px] font-bold uppercase tracking-[0.12em] text-foreground">
-              {f}
-            </li>
-          ))}
-        </ul>
+        {event.facts.length > 0 && (
+          <ul className="mt-auto flex flex-wrap gap-2 pt-2">
+            {event.facts.map((f) => (
+              <li key={f} className="rounded-full border-2 border-border px-3 py-1 font-tech text-[11px] font-bold uppercase tracking-[0.12em] text-foreground">
+                {f}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </article>
   )

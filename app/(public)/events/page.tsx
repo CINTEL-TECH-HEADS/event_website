@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { EventGrid } from '@/components/public/EventGrid'
 import { PageHeader } from '@/components/site/PageHeader'
 import { isRegistrationOpen } from '@/lib/utils'
-import { ARCHIVE_2025_26, CLUB, EVENT_TYPE_LABELS } from '@/lib/club'
+import { ARCHIVE_ALL, ARCHIVE_PERIODS, CLUB, EVENT_TYPE_LABELS } from '@/lib/club'
 import { ArchiveCard } from '@/components/public/ArchiveCard'
 import { normalizeEvent, type PublicEvent } from '@/lib/public-events'
 
@@ -39,9 +39,12 @@ export default function EventsPage() {
   const completedEvents = events
     .filter((e) => !isRegistrationOpen(e))
     .sort((a, b) => +new Date(b.starts_at) - +new Date(a.starts_at))
-  // The 2025–26 archive honours ?type= too, when that type occurs in it.
-  const archiveFiltered = !!typeParam && ARCHIVE_2025_26.some((e) => e.type === typeParam)
-  const archive = archiveFiltered ? ARCHIVE_2025_26.filter((e) => e.type === typeParam) : ARCHIVE_2025_26
+  // The archive honours ?type= too, when that type occurs in it.
+  const archiveFiltered = !!typeParam && ARCHIVE_ALL.some((e) => e.type === typeParam)
+  const periods = ARCHIVE_PERIODS.map((p) => ({
+    ...p,
+    events: archiveFiltered ? p.events.filter((e) => e.type === typeParam) : p.events,
+  })).filter((p) => p.events.length > 0)
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
@@ -80,17 +83,21 @@ export default function EventsPage() {
           </div>
         )}
 
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-          <h3 className="font-display text-lg uppercase tracking-tight text-foreground">2025–26</h3>
-          {archiveFiltered && (
-            <a href="/events#past" className="font-tech text-xs font-bold uppercase tracking-widest text-brand hover:underline">
-              Showing {EVENT_TYPE_LABELS[typeParam!] ?? typeParam} events · show all
-            </a>
-          )}
-        </div>
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {archive.map((e) => (
-            <ArchiveCard key={e.title} event={e} />
+        {archiveFiltered && (
+          <a href="/events#past" className="mb-6 inline-block font-tech text-xs font-bold uppercase tracking-widest text-brand hover:underline">
+            Showing {EVENT_TYPE_LABELS[typeParam!] ?? typeParam} events · show all
+          </a>
+        )}
+        <div className="space-y-12">
+          {periods.map((p) => (
+            <div key={p.period}>
+              <h3 className="mb-5 font-display text-lg uppercase tracking-tight text-foreground">{p.period}</h3>
+              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {p.events.map((e) => (
+                  <ArchiveCard key={e.title} event={e} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </section>
