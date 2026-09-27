@@ -20,6 +20,9 @@ Built on jayashriiSH's `feat/landing-redesign`; PR goes into that branch.
   `lib/participants/identity.ts`. Other-college students only see/register for events with
   "Open to students from other colleges" ticked (list filtered; detail 404; register/join/offer 403;
   Team Finder empty).
+- **Team pools**: SRM IST and other-college students never share a team. A team belongs to its creator's
+  pool (`poolOf`/`getPools` in `lib/participants/identity.ts`); Team Finder lists, invites, join requests,
+  join-by-code and the accept/merge step all enforce it.
 - **Security fix**: OAuth callback `?next=` open redirect (now same-site paths only).
 - **Test events**: all 18 events in the live DB were test data → **soft-deleted** (`is_deleted = true`).
   Backup + a dry-run-tested permanent-delete script were given to the user to run themselves.

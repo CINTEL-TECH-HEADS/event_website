@@ -7,6 +7,7 @@ import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
 import { isTeamCreator } from '@/lib/registrations/access'
+import { poolOf, teamPoolMessage } from '@/lib/participants/identity'
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     const { data: team } = await admin
       .from('registrations')
-      .select('id, event_id, is_open, status, members:team_members(id), events(max_team_size)')
+      .select('id, event_id, participant_id, is_open, status, members:team_members(id), events(max_team_size)')
       .eq('id', team_registration_id)
       .maybeSingle()
     if (!team) return apiError('Team not found', 404)
@@ -46,6 +47,12 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
     if (!seekerReg || (seekerReg.members as any[]).length !== 1) {
       return apiError('That participant is not available to invite')
+    }
+
+    // SRM IST and other-college students never share a team.
+    const teamPool = await poolOf(admin, team.participant_id)
+    if ((await poolOf(admin, seeker_participant_id)) !== teamPool) {
+      return apiError(teamPoolMessage(teamPool), 403)
     }
 
     const { error } = await admin.from('team_invites').insert({

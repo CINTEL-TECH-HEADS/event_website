@@ -6,6 +6,7 @@ import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
+import { poolOf, teamPoolMessage } from '@/lib/participants/identity'
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,6 +41,12 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
     if (!seekerReg || (seekerReg.members as any[]).length !== 1) {
       return apiError('Register with "Find a team" first, then request to join a team')
+    }
+
+    // SRM IST and other-college students never share a team.
+    const teamPool = await poolOf(admin, team.participant_id)
+    if ((await poolOf(admin, user.id)) !== teamPool) {
+      return apiError(teamPoolMessage(teamPool), 403)
     }
 
     const { error } = await admin.from('team_invites').insert({

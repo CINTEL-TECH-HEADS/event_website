@@ -6,6 +6,7 @@
 // authoritative point), and the seeker's other pending matches are cancelled.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { poolOf, teamPoolMessage } from '@/lib/participants/identity'
 
 export async function mergeSeekerIntoTeam(
   admin: SupabaseClient,
@@ -16,12 +17,16 @@ export async function mergeSeekerIntoTeam(
   // Load the target team + event capacity.
   const { data: team } = await admin
     .from('registrations')
-    .select('id, event_id, team_name, is_open, status, registration_type, members:team_members(id), events(max_team_size)')
+    .select('id, event_id, participant_id, team_name, is_open, status, registration_type, members:team_members(id), events(max_team_size)')
     .eq('id', teamRegId)
     .maybeSingle()
 
   if (!team || team.registration_type !== 'team') return { error: 'Team not found' }
   if (team.status !== 'confirmed') return { error: 'This team is no longer active' }
+
+  // SRM IST and other-college students never share a team.
+  const teamPool = await poolOf(admin, team.participant_id)
+  if ((await poolOf(admin, seekerParticipantId)) !== teamPool) return { error: teamPoolMessage(teamPool) }
 
   const maxSize = (team.events as any)?.max_team_size ?? null
   const size = (team.members as any[])?.length ?? 0

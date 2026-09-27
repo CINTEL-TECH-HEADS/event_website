@@ -6,7 +6,7 @@ import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
-import { canAccessEvent, isExternalParticipant } from '@/lib/participants/identity'
+import { canAccessEvent, getPools, isExternalParticipant, poolOf } from '@/lib/participants/identity'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,12 +39,17 @@ export async function GET(
       .eq('is_open', true)
       .order('registered_at', { ascending: false })
 
+    // Only teams from the viewer's pool (SRM IST or other colleges).
+    const viewerPool = await poolOf(admin, user?.id)
+    const pools = await getPools(admin, (teams ?? []).map((t: any) => t.participant_id))
+
     const maxSize = event?.max_team_size ?? null
     // Show only the first name in the preview to keep it low-PII.
     const firstName = (full: string) => (full ?? '').trim().split(/\s+/)[0] || full
     const open = (teams ?? [])
       // Exclude the caller's own registration and any paid/locked teams.
       .filter((t: any) => (!user || t.participant_id !== user.id) && t.payment_status !== 'paid')
+      .filter((t: any) => (pools.get(t.participant_id) ?? 'srm') === viewerPool)
       .map((t: any) => ({
         registration_id: t.id,
         team_name: t.team_name,

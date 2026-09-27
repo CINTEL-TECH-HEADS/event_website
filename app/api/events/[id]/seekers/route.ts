@@ -7,7 +7,7 @@ import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
-import { canAccessEvent, isExternalParticipant } from '@/lib/participants/identity'
+import { canAccessEvent, getPools, isExternalParticipant, poolOf } from '@/lib/participants/identity'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,8 +44,13 @@ export async function GET(
       .filter((r: any) => (r.members?.length ?? 0) === 1)
       .filter((r: any) => !user || r.participant_id !== user.id)
 
+    // Only seekers from the viewer's pool (SRM IST or other colleges).
+    const viewerPool = await poolOf(admin, user?.id)
+    const pools = await getPools(admin, openSolo.map((r: any) => r.participant_id))
+    const samePool = openSolo.filter((r: any) => (pools.get(r.participant_id) ?? 'srm') === viewerPool)
+
     // Attach each seeker's networking profile.
-    const ids = openSolo.map((r: any) => r.participant_id).filter(Boolean)
+    const ids = samePool.map((r: any) => r.participant_id).filter(Boolean)
     const { data: profiles } = ids.length
       ? await admin
           .from('participant_profiles')
@@ -54,7 +59,7 @@ export async function GET(
       : { data: [] as any[] }
     const byId = new Map((profiles ?? []).map((p: any) => [p.id, p]))
 
-    const seekers = openSolo.map((r: any) => {
+    const seekers = samePool.map((r: any) => {
       const p = byId.get(r.participant_id) ?? {}
       return {
         registration_id: r.id,

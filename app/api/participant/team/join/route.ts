@@ -8,7 +8,7 @@ import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
 import { findUserRegistration } from '@/lib/registrations/is-registered'
-import { canAccessEvent, isExternalParticipant, SRM_ONLY_MESSAGE } from '@/lib/participants/identity'
+import { canAccessEvent, isExternalParticipant, poolOf, SRM_ONLY_MESSAGE, teamPoolMessage } from '@/lib/participants/identity'
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     // Resolve the team registration by group code or id.
     let query = admin
       .from('registrations')
-      .select('id, event_id, team_name, status, is_open, registration_type, payment_status, events(title, max_team_size, registration_closes_at, open_to_external)')
+      .select('id, event_id, participant_id, team_name, status, is_open, registration_type, payment_status, events(title, max_team_size, registration_closes_at, open_to_external)')
     query = rawCode
       ? query.eq('group_code', rawCode.toUpperCase().trim())
       : query.eq('id', registrationId!)
@@ -44,6 +44,11 @@ export async function POST(req: NextRequest) {
     }
     if (!canAccessEvent(await isExternalParticipant(admin, user.id), event ?? {})) {
       return apiError(SRM_ONLY_MESSAGE, 403)
+    }
+    // SRM IST and other-college students never share a team.
+    const teamPool = await poolOf(admin, team.participant_id)
+    if ((await poolOf(admin, user.id)) !== teamPool) {
+      return apiError(teamPoolMessage(teamPool), 403)
     }
 
     // Already registered for this event (own reg or another team)?
