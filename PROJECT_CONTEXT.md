@@ -2,7 +2,25 @@
 
 > Living document. Update this at the end of every working session: append what was
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
-> Last updated: 2026-09-27 (new page layouts across the site; Resend Pass + public Certificate removed).
+> Last updated: 2026-09-28 (report content, other-college students, test events removed).
+
+## 2026-09-28: annual-report content, other-college students (branch `feat/landing-content`)
+Built on jayashriiSH's `feat/landing-redesign`; PR goes into that branch.
+- **Content**: `ARCHIVE_2025_26` in `lib/club.ts` (DIGITHON 3.0, CTF 2025, IDEATHON 2.0, PyQuest 2025,
+  BugBusters 2025, Sportiva 2026) with photos from the Annual Report 2025–26 in `public/club/`. Home
+  "Past events" + `/events#past` show it (`ArchiveCard`); sphere and "Pick your lane" = those six +
+  Game Jam + Learn. Leap. Lead. CSR and CINTEL Connect dropped. Report figures that contradicted each
+  other, winner names and stock photos were left out.
+- **Other colleges**: migration `025_external_participants.sql` (**applied to the live DB**):
+  `participant_profiles.affiliation` ('srm'|'external', existing SRM profiles backfilled),
+  `participant_profiles.college_name`, `events.open_to_external` (default false). Setup asks SRM vs
+  other college; other-college students give college name + phone. Rules in
+  `lib/participants/identity.ts`. Other-college students only see/register for events with
+  "Open to students from other colleges" ticked (list filtered; detail 404; register/join/offer 403;
+  Team Finder empty).
+- **Security fix**: OAuth callback `?next=` open redirect (now same-site paths only).
+- **Test events**: all 18 events in the live DB were test data → **soft-deleted** (`is_deleted = true`).
+  Backup + a dry-run-tested permanent-delete script were given to the user to run themselves.
 
 ## This repo (CINTEL-TECH-HEADS/event_website)
 Private copy of cintel-event-registration with jayashriiSH's retro redesign (cream/crimson/gold,

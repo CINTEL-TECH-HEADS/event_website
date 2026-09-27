@@ -105,6 +105,7 @@ export async function GET(
                 starts_at,
                 ends_at,
                 is_published,
+                is_deleted,
                 registrations(count)
               )
             `)
@@ -121,7 +122,7 @@ export async function GET(
         const events =
           data?.flatMap(
             (item: any) =>
-              item.events ? [{
+              item.events && !item.events.is_deleted ? [{
                 ...item.events,
                 confirmed_count:
                   item.events
