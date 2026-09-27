@@ -2,38 +2,35 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import type { Event } from '@/types'
+import { ArrowRight, CalendarDays, MapPin } from 'lucide-react'
 import { EventGrid } from '@/components/public/EventGrid'
 import { EventCard } from '@/components/public/EventCard'
-import { isRegistrationOpen } from '@/lib/utils'
+import { CountdownTimer } from '@/components/public/CountdownTimer'
 import { PosterHeading } from '@/components/brand/PosterHeading'
-import { Starburst, Sparkle } from '@/components/brand/Starburst'
-import { RockShape } from '@/components/brand/RockShape'
-import { ShipShape } from '@/components/brand/ShipShape'
-import PixelTrail from '@/components/brand/PixelTrail'
+import { Starburst } from '@/components/brand/Starburst'
+import { formatEventDate, isRegistrationOpen } from '@/lib/utils'
+import { CLUB, EVENT_TYPE_LABELS, FLAGSHIP_EVENTS, SOCIALS } from '@/lib/club'
+import { normalizeEvent, type PublicEvent } from '@/lib/public-events'
 
-type PublicEvent = Event & {
-  confirmed_count: number
-  waitlist_count?: number
-}
+const STEPS = [
+  { title: 'Sign in with Google', text: 'One click. No separate account or password to remember.' },
+  { title: 'Add your details once', text: 'Your college email and registration number are saved to your profile.' },
+  { title: 'Register solo or as a team', text: 'Create a team, find one that needs members, or join with a team code.' },
+  { title: 'Show your QR pass', text: 'Your pass is in My events. Paid events issue it once your payment is verified.' },
+]
 
-function normalizeConfirmedCount(value: unknown): number {
-  if (typeof value === 'number') return value
-  if (Array.isArray(value)) {
-    const first = value[0]
-    if (first && typeof first === 'object' && 'count' in first) {
-      const count = (first as { count?: unknown }).count
-      return typeof count === 'number' ? count : 0
-    }
-  }
-  return 0
-}
+const instagram = SOCIALS.find((s) => s.label === 'Instagram')!
 
-function normalizeEvent(event: PublicEvent): PublicEvent {
-  return {
-    ...event,
-    confirmed_count: normalizeConfirmedCount((event as PublicEvent & { confirmed_count: unknown }).confirmed_count),
-  }
+function SectionHeading({ kicker, title, action }: { kicker: string; title: string; action?: React.ReactNode }) {
+  return (
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <p className="font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">{kicker}</p>
+        <h2 className="mt-2 font-display text-2xl uppercase tracking-tight text-foreground sm:text-3xl">{title}</h2>
+      </div>
+      {action}
+    </div>
+  )
 }
 
 export default function HomePage() {
@@ -60,179 +57,159 @@ export default function HomePage() {
 
   const openEvents = events.filter(isRegistrationOpen)
   const completedEvents = events.filter((e) => !isRegistrationOpen(e))
+  const nextUp = [...openEvents].sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at))[0]
 
   return (
-    <div>
-      {/* HERO — the poster scene */}
-      <section className="px-3 pt-6 sm:px-6 sm:pt-10 lg:px-8">
-        <div className="poster-panel relative mx-auto max-w-6xl overflow-hidden">
-          <div className="halftone pointer-events-none absolute inset-0 z-0 opacity-[0.15]" />
+    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      {/* Hero: who we are on the left, the next open event on the right */}
+      <section className="grid gap-8 py-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12 lg:py-16">
+        <div>
+          <p className="font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">
+            {CLUB.department} · SRM IST {CLUB.campus}
+          </p>
+          <PosterHeading as="h1" fillClassName="text-primary-yellow" className="mt-4 text-5xl sm:text-7xl">
+            Cintel
+            <br />
+            Events
+          </PosterHeading>
+          <p className="mt-6 max-w-md text-base font-medium leading-7 text-foreground-soft">
+            Register for the hackathons, workshops, CTFs and talks run by the {CLUB.name}, solo or as a team.
+          </p>
+          <Link href="#upcoming" className="app-button-primary mt-8">
+            See open events <ArrowRight size={16} strokeWidth={2.5} />
+          </Link>
+        </div>
 
-          {/* interactive gooey pixel trail — follows the pointer, themed gold */}
-          <div className="absolute inset-0 z-[1]">
-            <PixelTrail
-              gridSize={46}
-              trailSize={0.12}
-              maxAge={350}
-              interpolate={6}
-              color="#F2C230"
-              gooeyFilter={{ id: 'hero-goo-filter', strength: 3 }}
-            />
-          </div>
+        <div className="poster-panel p-6 sm:p-8">
+          <div className="halftone pointer-events-none absolute inset-0 opacity-[0.12]" />
+          <Starburst rings color="#F2C230" className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 opacity-80" />
+          <p className="relative font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-primary-yellow">Next up</p>
 
-          {/* orbit rings + scattered rocks + ship, all decorative */}
-          <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden opacity-90">
-            <svg className="absolute -right-10 top-0 h-full w-2/3 opacity-40" viewBox="0 0 400 400" fill="none">
-              <ellipse cx="200" cy="200" rx="190" ry="70" stroke="#F2C230" strokeWidth="1" transform="rotate(-10 200 200)" />
-              <ellipse cx="200" cy="200" rx="150" ry="55" stroke="#F2C230" strokeWidth="1" transform="rotate(-10 200 200)" />
-            </svg>
-            <RockShape variant={1} className="absolute -left-6 top-8 h-16 w-16 rotate-[-8deg] opacity-95 sm:h-24 sm:w-24" />
-            <RockShape variant={2} className="absolute right-6 top-4 h-12 w-12 rotate-[16deg] opacity-90 sm:h-16 sm:w-16" />
-            <RockShape variant={3} className="absolute bottom-6 left-10 hidden h-14 w-14 rotate-[24deg] opacity-90 sm:block" />
-            <RockShape variant={1} className="absolute -bottom-4 right-16 h-20 w-20 rotate-[10deg] opacity-95 sm:h-28 sm:w-28" />
-            <ShipShape className="absolute bottom-0 right-0 h-32 w-52 translate-x-6 translate-y-4 opacity-95 sm:h-44 sm:w-72 lg:h-56 lg:w-[26rem]" />
-            <Starburst rings color="#F2C230" className="absolute right-[28%] top-1/4 h-24 w-24 opacity-90 sm:h-32 sm:w-32" />
-            <Sparkle className="absolute left-1/3 top-8 h-3 w-3 text-primary-yellow" />
-            <Sparkle className="absolute right-1/4 bottom-10 h-2.5 w-2.5 text-[#F5F0E3]" />
-          </div>
-
-          <div className="relative z-20 px-5 py-10 sm:px-10 sm:py-16 lg:py-20">
-            <p className="inline-flex items-center gap-2 rounded-full border-2 border-[#F5F0E3] bg-primary-red px-4 py-1.5 font-tech text-[10px] font-bold uppercase tracking-[0.3em] text-white">
-              Cintel Student Association
-            </p>
-
-            <PosterHeading as="h1" fillClassName="text-primary-yellow" className="mt-6 max-w-3xl text-4xl sm:text-6xl lg:text-7xl">
-              Events &amp;
-              <br />
-              Registration
-            </PosterHeading>
-
-            <p className="mt-6 max-w-lg font-tech text-xs leading-relaxed text-[#F5F0E3]/80 sm:text-sm">
-              The official event portal for CINTEL Student Association at SRM. Browse upcoming workshops, hackathons, and talks, register for events, and manage your team and certificates.
-            </p>
-
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="#event-grid" className="app-button-primary">
-                Explore Events
-              </Link>
-              <Link href="/resend" className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#F5F0E3] bg-transparent px-6 py-3 font-tech text-xs font-bold uppercase tracking-wider text-[#F5F0E3] shadow-sm transition duration-200 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
-                Resend Pass
-              </Link>
-              <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#F5F0E3] bg-primary-yellow px-6 py-3 font-tech text-xs font-bold uppercase tracking-wider text-[#14120F] shadow-sm transition duration-200 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
-                Login
+          {loading ? (
+            <div className="relative mt-6 space-y-3">
+              <div className="h-8 w-3/4 animate-pulse rounded bg-[#F5F0E3]/10" />
+              <div className="h-4 w-1/2 animate-pulse rounded bg-[#F5F0E3]/10" />
+            </div>
+          ) : nextUp ? (
+            <div className="relative mt-4">
+              <span className="inline-block rounded-full border-2 border-[#F5F0E3]/40 px-3 py-1 font-tech text-[10px] font-bold uppercase tracking-widest text-[#F5F0E3]/80">
+                {EVENT_TYPE_LABELS[nextUp.event_type] ?? nextUp.event_type}
+              </span>
+              <h2 className="mt-3 font-display text-2xl uppercase leading-tight text-[#F5F0E3] sm:text-3xl">{nextUp.title}</h2>
+              <div className="mt-4 space-y-2 text-sm text-[#F5F0E3]/80">
+                <p className="flex items-center gap-2">
+                  <CalendarDays size={15} className="shrink-0 text-primary-yellow" strokeWidth={2.5} />
+                  {formatEventDate(nextUp.starts_at)}
+                </p>
+                {nextUp.venue && (
+                  <p className="flex items-center gap-2">
+                    <MapPin size={15} className="shrink-0 text-primary-yellow" strokeWidth={2.5} />
+                    {nextUp.venue}
+                  </p>
+                )}
+              </div>
+              {nextUp.registration_closes_at && (
+                <div className="mt-4 text-primary-yellow">
+                  <CountdownTimer closesAt={nextUp.registration_closes_at} compact />
+                </div>
+              )}
+              <Link href={`/events/${nextUp.slug}`} className="app-button-primary mt-6">
+                View &amp; register <ArrowRight size={16} strokeWidth={2.5} />
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* STATS — mission-log readout strip */}
-      <section className="px-3 pt-6 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl grid-cols-3 divide-x-2 divide-border overflow-hidden rounded-poster border-2 border-border bg-panel shadow-md lg:border-4">
-          <div className="px-4 py-7 text-center sm:py-9">
-            <p className="font-tech text-[9px] font-bold uppercase tracking-[0.24em] text-brand sm:text-[10px]">Published</p>
-            <p className="mt-2 font-display text-3xl text-foreground sm:text-5xl">{events.length}</p>
-          </div>
-          <div className="px-4 py-7 text-center sm:py-9">
-            <p className="font-tech text-[9px] font-bold uppercase tracking-[0.24em] text-brand sm:text-[10px]">Hands-on</p>
-            <p className="mt-2 font-display text-3xl text-foreground sm:text-5xl">
-              {events.filter(event => event.event_type === 'hackathon' || event.event_type === 'workshop').length}
-            </p>
-          </div>
-          <div className="px-4 py-7 text-center sm:py-9">
-            <p className="font-tech text-[9px] font-bold uppercase tracking-[0.24em] text-brand sm:text-[10px]">Open</p>
-            <p className="mt-2 font-display text-3xl text-foreground sm:text-5xl">
-              {events.filter(event => event.capacity === null || event.confirmed_count < event.capacity).length}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* MISSION — split panel */}
-      <section className="px-3 py-6 sm:px-6 lg:px-8 lg:py-10">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid gap-3 md:grid-cols-[0.68fr_0.32fr]">
-            <div className="app-panel-muted !rounded-poster p-6 sm:p-10">
-              <p className="font-tech text-[10px] font-bold uppercase tracking-[0.3em] text-accent">The Intellectual Core</p>
-              <p className="mt-4 max-w-2xl font-display text-xl leading-tight tracking-tight text-foreground sm:text-3xl">
-                Cultivating a strong technical culture where students don&apos;t just learn &mdash; they build, explore, and push boundaries.
+          ) : (
+            <div className="relative mt-4">
+              <h2 className="font-display text-2xl uppercase leading-tight text-[#F5F0E3]">Nothing open right now</h2>
+              <p className="mt-3 text-sm leading-6 text-[#F5F0E3]/75">
+                Follow{' '}
+                <a href={instagram.href} target="_blank" rel="noopener noreferrer" className="font-bold text-primary-yellow underline">
+                  {instagram.handle}
+                </a>{' '}
+                to hear about the next event.
               </p>
             </div>
-            <div className="poster-panel flex items-end p-6 sm:p-8">
-              <p className="relative font-tech text-xs font-bold uppercase tracking-wider text-primary-yellow">Browse. Register. Return.</p>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <div className="relative app-panel-muted p-5">
-              <RockShape variant={1} fill="#D6294C" className="absolute right-3 top-3 h-8 w-8" />
-              <p className="font-tech text-[11px] font-bold uppercase tracking-[0.22em] text-brand">Discover</p>
-              <p className="mt-3 text-sm font-medium leading-6 text-foreground-soft">Find and register for our latest technical, creative, and research-driven initiatives.</p>
-            </div>
-            <div className="relative app-panel-muted p-5">
-              <Sparkle className="absolute right-3 top-3 h-6 w-6 text-primary-yellow" />
-              <p className="font-tech text-[11px] font-bold uppercase tracking-[0.22em] text-accent">Participate</p>
-              <p className="mt-3 text-sm font-medium leading-6 text-foreground-soft">Join individual sessions or form teams for our large-scale hackathons and symposiums.</p>
-            </div>
-            <div className="relative app-panel-muted p-5">
-              <RockShape variant={2} fill="#F2C230" className="absolute right-3 top-3 h-8 w-8" />
-              <p className="font-tech text-[11px] font-bold uppercase tracking-[0.22em] text-brand">Manage</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Link href="/certificate" className="app-button-primary px-4 py-2 text-xs">
-                  Certificate
-                </Link>
-                <Link href="/resend" className="app-button-secondary px-4 py-2 text-xs">
-                  Confirmation
-                </Link>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
-      <section id="event-grid" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+      {/* Open events */}
+      <section id="upcoming" className="scroll-mt-24 border-t-2 border-border py-12 lg:border-t-4">
+        <SectionHeading
+          kicker="Registration open"
+          title="Open events"
+          action={
+            <Link href="/events" className="inline-flex items-center gap-1.5 font-tech text-xs font-bold uppercase tracking-widest text-brand hover:underline">
+              All events <ArrowRight size={14} strokeWidth={2.5} />
+            </Link>
+          }
+        />
         {loading ? (
           <div className="app-empty-state">
             <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-            <p className="mt-4 text-sm font-bold uppercase tracking-wider text-foreground-soft">Loading published events...</p>
           </div>
         ) : error ? (
-          <div className="border-2 border-border bg-danger px-8 py-6 text-center text-sm font-bold text-white lg:border-4">
-            {error}
-          </div>
-        ) : events.length === 0 ? (
+          <div className="rounded-2xl border-2 border-border bg-danger px-6 py-5 text-center text-sm font-bold text-white">{error}</div>
+        ) : openEvents.length === 0 ? (
           <div className="app-empty-state">
-            <h2 className="text-xl font-black uppercase text-foreground">No events published yet</h2>
-            <p className="mt-2 text-sm font-medium text-foreground-soft">Check back soon for the next batch of registrations.</p>
+            <p className="text-base font-black uppercase text-foreground">No events are open for registration</p>
+            <p className="mt-2 text-sm font-medium text-foreground-soft">New events are announced on {instagram.handle}.</p>
           </div>
         ) : (
-          <>
-            <EventGrid events={openEvents} />
-            <div className="mt-8 flex justify-center">
-              <Link href="/events" className="app-button-primary">
-                Show More
-              </Link>
-            </div>
-          </>
-        )}
-
-        {!loading && !error && completedEvents.length > 0 && (
-          <div className="mt-14 border-t-2 border-border pt-10 lg:border-t-4">
-            <div className="mb-6">
-              <p className="font-tech text-[11px] font-bold uppercase tracking-[0.3em] text-foreground-soft">Archive</p>
-              <h2 className="mt-2 font-display text-xl uppercase tracking-tight text-foreground sm:text-2xl">Completed Events</h2>
-              <p className="mt-1 text-sm font-medium text-foreground-soft">Registration has closed for these events.</p>
-            </div>
-            <div className="grid gap-5 opacity-70 sm:grid-cols-2 xl:grid-cols-3">
-              {completedEvents.slice(0, 6).map((event, index) => (
-                <div key={event.id} className="h-full">
-                  <EventCard event={event} accentIndex={index} />
-                </div>
-              ))}
-            </div>
-          </div>
+          <EventGrid events={openEvents} />
         )}
       </section>
+
+      {/* How registration works */}
+      <section className="border-t-2 border-border py-12 lg:border-t-4">
+        <SectionHeading kicker="How it works" title="Registering for an event" />
+        <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {STEPS.map((step, i) => (
+            <li key={step.title} className="rounded-2xl border-2 border-border bg-panel p-5 shadow-sm">
+              <span className="font-display text-3xl text-primary-red">{String(i + 1).padStart(2, '0')}</span>
+              <h3 className="mt-3 text-sm font-black uppercase tracking-tight text-foreground">{step.title}</h3>
+              <p className="mt-2 text-sm font-medium leading-6 text-foreground-soft">{step.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* Flagship events */}
+      <section className="border-t-2 border-border py-12 lg:border-t-4">
+        <SectionHeading kicker={`From ${CLUB.shortName}`} title="What we run" />
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {FLAGSHIP_EVENTS.map((e) => (
+            <figure key={e.title} className="overflow-hidden rounded-2xl border-2 border-border bg-panel shadow-sm">
+              <img src={e.photo} alt={e.alt} loading="lazy" className="aspect-[4/3] w-full border-b-2 border-border object-cover" />
+              <figcaption className="p-4">
+                <p className="font-display text-lg uppercase leading-tight text-foreground">{e.title}</p>
+                <p className="mt-2 text-sm font-medium leading-6 text-foreground-soft">{e.text}</p>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
+      {/* Past events */}
+      {!loading && !error && completedEvents.length > 0 && (
+        <section className="border-t-2 border-border py-12 lg:border-t-4">
+          <SectionHeading
+            kicker="Archive"
+            title="Past events"
+            action={
+              completedEvents.length > 3 ? (
+                <Link href="/events#past" className="inline-flex items-center gap-1.5 font-tech text-xs font-bold uppercase tracking-widest text-brand hover:underline">
+                  See all {completedEvents.length} <ArrowRight size={14} strokeWidth={2.5} />
+                </Link>
+              ) : undefined
+            }
+          />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {completedEvents.slice(0, 3).map((event) => (
+              <EventCard key={event.id} event={event} past />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

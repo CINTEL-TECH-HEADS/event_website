@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Users, KeyRound, PartyPopper } from 'lucide-react'
-import { Starburst, Sparkle } from '@/components/brand/Starburst'
-import { RockShape } from '@/components/brand/RockShape'
 
 type State = 'checking' | 'ready' | 'joining' | 'success' | 'error'
 
@@ -47,69 +45,57 @@ export default function JoinTeamPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md items-center justify-center px-4">
-      <div className="poster-panel relative w-full overflow-hidden p-8 text-center">
-        <div className="halftone pointer-events-none absolute inset-0 opacity-[0.15]" />
-        <RockShape variant={2} fill="#D6294C" className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rotate-[14deg] opacity-90" />
-        {state === 'success' ? (
-          <Starburst rings color="#F2C230" className="pointer-events-none absolute -left-10 bottom-0 h-32 w-32 opacity-80" />
-        ) : (
-          <Sparkle className="pointer-events-none absolute left-8 bottom-6 h-3 w-3 text-primary-yellow" />
-        )}
-
-        <div className="relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#F5F0E3] bg-white/10 text-primary-yellow">
-          <Users className="h-7 w-7" strokeWidth={2.5} />
-        </div>
+    <div className="mx-auto flex min-h-[70vh] max-w-lg items-center px-4 py-12">
+      <div className="w-full rounded-2xl border-2 border-border bg-panel p-6 shadow-md sm:p-8 lg:border-4">
+        <p className="font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">Team invite</p>
 
         {state === 'checking' && (
-          <p className="relative font-tech text-xs text-[#F5F0E3]/80">Checking your session…</p>
+          <div className="mt-6 h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
         )}
 
         {(state === 'ready' || state === 'joining') && (
           <>
-            <h1 className="relative font-display text-2xl uppercase leading-[0.95] tracking-tight text-poster-outline text-primary-yellow">Join a team</h1>
-            <p className="relative mt-2 font-tech text-xs leading-relaxed text-[#F5F0E3]/80">
-              You&apos;re about to join the team for this event with your account.
+            <h1 className="mt-2 font-display text-3xl uppercase leading-tight text-foreground">Join a team</h1>
+            <p className="mt-2 text-sm font-medium leading-6 text-foreground-soft">
+              You&apos;ll be added to the team that owns this code, under the Google account you&apos;re signed in with.
             </p>
-            <div className="relative mt-4 inline-flex items-center gap-2 rounded-full border-2 border-[#F5F0E3] bg-white/10 px-4 py-2 font-mono text-sm font-bold tracking-widest text-[#F5F0E3]">
-              <KeyRound size={14} className="text-primary-yellow" />
-              {code?.toUpperCase()}
+            <div className="mt-5 flex items-center gap-3 rounded-2xl border-2 border-dashed border-border bg-panel-muted px-4 py-3">
+              <KeyRound size={18} className="shrink-0 text-brand" strokeWidth={2.5} />
+              <span className="font-mono text-lg font-bold tracking-widest text-foreground">{code?.toUpperCase()}</span>
             </div>
             <button
               onClick={handleJoin}
               disabled={state === 'joining'}
-              className="app-button-primary relative mt-6 w-full disabled:opacity-50"
+              className="app-button-primary mt-6 w-full disabled:opacity-50"
             >
-              {state === 'joining' ? 'Joining…' : 'Join Team'}
+              <Users size={16} strokeWidth={2.5} />
+              {state === 'joining' ? 'Joining…' : 'Join team'}
             </button>
           </>
         )}
 
         {state === 'error' && (
           <>
-            <h1 className="relative font-display text-2xl uppercase leading-[0.95] tracking-tight text-poster-outline text-primary-yellow">Couldn&apos;t join</h1>
-            <p className="relative mt-2 text-sm font-medium text-danger">{message}</p>
-            <Link
-              href="/participant/portal"
-              className="relative mt-6 inline-block font-tech text-xs font-bold uppercase tracking-wider text-primary-yellow transition-colors duration-200 hover:text-[#F5F0E3]"
-            >
-              Go to My Events
+            <h1 className="mt-2 font-display text-3xl uppercase leading-tight text-foreground">Couldn&apos;t join</h1>
+            <p className="mt-3 rounded-xl border-2 border-border bg-danger px-4 py-3 text-sm font-bold text-white">{message}</p>
+            <Link href="/participant/portal" className="app-button-secondary mt-6 w-full">
+              Go to My events
             </Link>
           </>
         )}
 
         {state === 'success' && (
           <>
-            <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#F5F0E3] bg-primary-yellow text-[#14120F]">
-              <PartyPopper size={26} strokeWidth={2.5} />
-            </div>
-            <h1 className="relative mt-3 font-display text-2xl uppercase leading-[0.95] tracking-tight text-poster-outline text-primary-yellow">You&apos;re in!</h1>
-            <p className="relative mt-2 font-tech text-xs leading-relaxed text-[#F5F0E3]/80">{message}</p>
+            <span className="mt-4 inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-border bg-primary-yellow text-[#14120F]">
+              <PartyPopper size={24} strokeWidth={2.5} />
+            </span>
+            <h1 className="mt-3 font-display text-3xl uppercase leading-tight text-foreground">You&apos;re in</h1>
+            <p className="mt-2 text-sm font-medium leading-6 text-foreground-soft">{message}</p>
             <button
               onClick={() => router.push(regId ? `/participant/portal/events/${regId}` : '/participant/portal')}
-              className="relative mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full border-2 border-[#F5F0E3] bg-transparent px-6 py-3 font-tech text-xs font-bold uppercase tracking-wider text-[#F5F0E3] shadow-sm transition duration-200 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+              className="app-button-primary mt-6 w-full"
             >
-              View in Portal
+              Open your team
             </button>
           </>
         )}
