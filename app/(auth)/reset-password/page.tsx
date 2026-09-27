@@ -3,23 +3,23 @@
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { KeyRound, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { OtpInput, MIN_OTP } from '@/components/auth/OtpInput'
 import { PosterHeading } from '@/components/brand/PosterHeading'
-import { Sparkle } from '@/components/brand/Starburst'
 
 function ResetForm() {
   const searchParams = useSearchParams()
   const prefill = searchParams.get('email') ?? ''
   const [supabase] = useState(() => createBrowserClient())
-  const [step, setStep] = useState<'email' | 'code' | 'done'>(prefill ? 'code' : 'email')
+  // Always start on the email step: a code is only sent when they press "Send code".
+  const [step, setStep] = useState<'email' | 'code' | 'done'>('email')
   const [email, setEmail] = useState(prefill)
   const [otp, setOtp] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [info, setInfo] = useState<string | null>(prefill ? `Enter the code we sent to ${prefill}.` : null)
+  const [info, setInfo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function sendCode(target: string) {
@@ -69,21 +69,13 @@ function ResetForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 sm:p-8 text-foreground relative">
-      <div className="w-full max-w-md rounded-poster border-2 sm:border-4 border-border bg-panel shadow-lg p-8 sm:p-10 relative z-10 app-fade-in overflow-hidden">
-        {/* Poster corner accent */}
-        <div className="absolute -right-3 -top-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-yellow border-2 border-border pointer-events-none">
-          <Sparkle className="h-4 w-4 text-[#14120F]" />
-        </div>
-
-        <div className="mb-8 space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-accent text-white border-2 border-border flex items-center justify-center mb-4">
-            <KeyRound size={22} />
-          </div>
-          <PosterHeading as="h1" fillClassName="text-brand" className="text-2xl sm:text-3xl">Reset your password.</PosterHeading>
-          <p className="text-sm text-foreground-soft leading-relaxed">
+    <div className="w-full max-w-md app-fade-in">
+      <div className="rounded-2xl border-2 border-border bg-panel p-6 shadow-lg sm:p-8 lg:border-4">
+        <div className="mb-6">
+          <PosterHeading as="h1" fillClassName="text-primary-yellow" className="text-3xl">Reset password</PosterHeading>
+          <p className="mt-2 text-sm font-medium leading-6 text-foreground-soft">
             {step === 'email'
-              ? "Enter your email and we'll send you a verification code."
+              ? 'For organizer accounts. Enter your email and we’ll send a verification code.'
               : step === 'code'
               ? 'Enter the code from your email and choose a new password.'
               : 'All set.'}
@@ -175,19 +167,19 @@ function ResetForm() {
           </form>
         )}
 
-        <div className="pt-6 text-center">
-          <Link href="/login" className="font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground transition-colors">
-            ← Back to sign in
-          </Link>
-        </div>
       </div>
+      <p className="mt-5 text-center">
+        <Link href="/login" className="font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground transition-colors">
+          ← Back to sign in
+        </Link>
+      </p>
     </div>
   )
 }
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen" />}>
+    <Suspense fallback={<div className="h-40" />}>
       <ResetForm />
     </Suspense>
   )
