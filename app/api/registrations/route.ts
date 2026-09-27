@@ -9,6 +9,7 @@ import { sendConfirmationEmail, sendWaitlistEmail } from '@/lib/email/send'
 import { rateLimit } from '@/lib/rate-limit'
 import { getAuthUser } from '@/lib/auth/get-session'
 import { findUserRegistration } from '@/lib/registrations/is-registered'
+import { canAccessEvent, isExternalParticipant, SRM_ONLY_MESSAGE } from '@/lib/participants/identity'
 import { generateUniqueGroupCode } from '@/lib/registrations/group-code'
 import { isTeamNameTaken, suggestTeamName } from '@/lib/registrations/team-name'
 
@@ -55,11 +56,17 @@ export async function POST(req: NextRequest) {
   // Step 2: Load event
   const { data: event } = await supabase
     .from('events')
-    .select('id, title, venue, starts_at, ends_at, capacity, waitlist_capacity, fee, registration_closes_at, registration_mode, min_team_size, max_team_size')
+    .select('id, title, venue, starts_at, ends_at, capacity, waitlist_capacity, fee, registration_closes_at, registration_mode, min_team_size, max_team_size, open_to_external')
     .eq('id', payload.event_id)
     .eq('is_published', true)
+    .eq('is_deleted', false)
     .maybeSingle()
   if (!event) return apiError('Event not found', 404)
+
+  // Students from other colleges can only register for events open to them.
+  if (!canAccessEvent(await isExternalParticipant(supabase, user.id), event)) {
+    return apiError(SRM_ONLY_MESSAGE, 403)
+  }
 
   // Step 2b: registration_type must match what the event allows.
   if (event.registration_mode === 'solo' && payload.registration_type !== 'solo') {

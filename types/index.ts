@@ -52,6 +52,8 @@ export interface Event {
   // Waitlist + payment
   waitlist_capacity?: number | null
   fee?: number
+  // Other-college students can only see and register for events with this on.
+  open_to_external?: boolean
   // Payment configuration (only meaningful when fee > 0)
   payment_method?: 'upi' | 'bank' | null
   upi_id?: string | null
@@ -116,6 +118,8 @@ export interface ParticipantProfile {
   interests: string | null
   linkedin_url: string | null
   github_url: string | null
+  affiliation: 'srm' | 'external' | null
+  college_name: string | null
   updated_at: string
 }
 
@@ -342,6 +346,7 @@ export type EventWithStats = {
   waitlist_count?: number
   banner_url?: string | null
   fee?: number
+  open_to_external?: boolean
 }
 export type RegistrationWithDetails = {
   id: string

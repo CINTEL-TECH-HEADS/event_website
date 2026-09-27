@@ -6,6 +6,7 @@ import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
+import { canAccessEvent, isExternalParticipant } from '@/lib/participants/identity'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,9 +21,14 @@ export async function GET(
 
     const { data: event } = await admin
       .from('events')
-      .select('max_team_size')
+      .select('max_team_size, open_to_external')
       .eq('id', eventId)
       .maybeSingle()
+
+    // Students from other colleges don't see teams for SRM-only events.
+    if (event && !canAccessEvent(await isExternalParticipant(admin, user?.id), event)) {
+      return apiSuccess([])
+    }
 
     const { data: teams } = await admin
       .from('registrations')

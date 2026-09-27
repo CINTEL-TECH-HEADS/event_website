@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { CalendarDays, CalendarPlus, CheckCircle2, IndianRupee, MapPin, Users } from 'lucide-react'
+import { CalendarDays, CalendarPlus, CheckCircle2, GraduationCap, IndianRupee, MapPin, Users } from 'lucide-react'
 import type { EventWithFields } from '@/types'
 import { CountdownTimer } from '@/components/public/CountdownTimer'
 import { CapacityBadge } from '@/components/public/CapacityBadge'
@@ -148,6 +148,9 @@ export default function EventPage() {
                   : ''}
               </Fact>
               <Fact icon={IndianRupee} label="Fee">{fee > 0 ? `₹${fee}${hasTeams ? ' per registration' : ''}` : 'Free'}</Fact>
+              <Fact icon={GraduationCap} label="Who can register">
+                {event.open_to_external ? 'Students from any college' : 'SRM IST students only'}
+              </Fact>
               <Fact icon={CalendarDays} label="Registration closes">{formatEventDate(event.registration_closes_at)}</Fact>
             </dl>
           </section>

@@ -45,6 +45,7 @@ export default function EventDetailPage() {
     bank_account_number: '',
     bank_ifsc: '',
     bank_name: '',
+    open_to_external: false,
   })
 
   useEffect(() => {
@@ -78,6 +79,7 @@ export default function EventDetailPage() {
         bank_account_number: data.bank_account_number ?? '',
         bank_ifsc: data.bank_ifsc ?? '',
         bank_name: data.bank_name ?? '',
+        open_to_external: data.open_to_external === true,
       })
 
       // Fields count gates publishing.
@@ -364,6 +366,21 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
+              <div className="rounded-xl border-2 border-border bg-panel-muted p-4">
+                <label className="flex items-center gap-3 text-sm font-bold uppercase tracking-wide text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={formData.open_to_external}
+                    onChange={(e) => setFormData({ ...formData, open_to_external: e.target.checked })}
+                    className="h-4 w-4 accent-accent"
+                  />
+                  Open to students from other colleges
+                </label>
+                <p className="mt-2 text-xs font-medium text-foreground-soft">
+                  Off: only SRM IST students can see and register. On: students from other colleges can too.
+                </p>
+              </div>
+
               {Number(formData.fee) > 0 && (
                 <div className="border-t-2 border-border pt-5">
                   <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Payment method</label>
@@ -437,6 +454,7 @@ export default function EventDetailPage() {
                 ['Format', REGISTRATION_MODE_LABELS[event.registration_mode ?? 'both'] ?? event.registration_mode],
                 ['Capacity', event.capacity ?? 'Unlimited'],
                 ['Fee', (event.fee ?? 0) > 0 ? `₹${event.fee}` : 'Free'],
+                ['Open to', event.open_to_external ? 'All colleges' : 'SRM IST only'],
               ].map(([label, value]) => (
                 <div key={label as string} className="flex items-center justify-between gap-3 py-2.5">
                   <dt className="font-tech text-[11px] font-bold uppercase tracking-widest text-foreground-soft">{label}</dt>

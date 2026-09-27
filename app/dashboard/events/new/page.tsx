@@ -34,6 +34,7 @@ export default function NewEventPage() {
   const [isPaid, setIsPaid] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'bank'>('upi')
   const [hasWaitlist, setHasWaitlist] = useState(false)
+  const [openToExternal, setOpenToExternal] = useState(false)
 
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
@@ -100,6 +101,8 @@ export default function NewEventPage() {
         hasWaitlist && form.get('waitlist_capacity')
           ? Number(form.get('waitlist_capacity'))
           : null,
+
+      open_to_external: openToExternal,
     }
 
     const res = await fetch(
@@ -336,6 +339,16 @@ export default function NewEventPage() {
                 </div>
               )}
               <p className="mt-2 text-xs font-medium text-foreground-soft">Requires a capacity. When full, extra registrants join the waitlist.</p>
+            </div>
+
+            <div className="rounded-xl border-2 border-border bg-panel-muted p-4 sm:col-span-2">
+              <label className="flex items-center gap-3 text-sm font-bold uppercase tracking-wide text-foreground">
+                <input type="checkbox" checked={openToExternal} onChange={(e) => setOpenToExternal(e.target.checked)} className="h-4 w-4 accent-accent" />
+                Open to students from other colleges
+              </label>
+              <p className="mt-2 text-xs font-medium text-foreground-soft">
+                Off: only SRM IST students can see and register. On: students from other colleges can too.
+              </p>
             </div>
           </div>
 

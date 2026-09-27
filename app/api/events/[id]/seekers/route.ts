@@ -7,6 +7,7 @@ import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
+import { canAccessEvent, isExternalParticipant } from '@/lib/participants/identity'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +19,16 @@ export async function GET(
     const { id: eventId } = await params
     const user = await getAuthUser()
     const admin = createAdminClient()
+
+    // Students from other colleges don't see seekers for SRM-only events.
+    const { data: event } = await admin
+      .from('events')
+      .select('open_to_external')
+      .eq('id', eventId)
+      .maybeSingle()
+    if (event && !canAccessEvent(await isExternalParticipant(admin, user?.id), event)) {
+      return apiSuccess([])
+    }
 
     const { data: regs } = await admin
       .from('registrations')

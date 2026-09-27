@@ -7,6 +7,8 @@ import {
 import {
   createAdminClient,
 } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth/get-session'
+import { canAccessEvent, isExternalParticipant } from '@/lib/participants/identity'
 
 import { requireOrganizerRole } from '@/lib/auth/get-session'
 import { logAction } from '@/lib/audit/log'
@@ -71,6 +73,15 @@ export async function GET(
       )
 
     if (!data)
+      return apiError(
+        'Event not found',
+        404
+      )
+
+    // SRM-only events don't exist, as far as students from other colleges are
+    // concerned. (Organizers are never external, so the dashboard is unaffected.)
+    const viewer = await getAuthUser()
+    if (!canAccessEvent(await isExternalParticipant(supabase, viewer?.id), data))
       return apiError(
         'Event not found',
         404

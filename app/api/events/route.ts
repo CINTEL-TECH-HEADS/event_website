@@ -6,6 +6,11 @@ import {
   createSessionClient,
 } from '@/lib/supabase/server'
 import { logAction } from '@/lib/audit/log'
+import { getAuthUser } from '@/lib/auth/get-session'
+import { isExternalParticipant } from '@/lib/participants/identity'
+
+// The list depends on who is asking.
+export const dynamic = 'force-dynamic'
 
 export async function GET(
   req: NextRequest
@@ -169,37 +174,32 @@ export async function GET(
       return apiSuccess(data)
     }
 
-    // Public events list
-    const { data, error } =
-      await supabase
-        .from('events')
-        .select(`
-          id,
-          title,
-          slug,
-          event_type,
-          venue,
-          starts_at,
-          ends_at,
-          registration_closes_at,
-          capacity,
-          registration_mode,
-          is_published
-        `)
-        .eq(
-          'is_published',
-          true
-        )
-        .eq(
-          'is_deleted',
-          false
-        )
-        .order(
-          'starts_at',
-          {
-            ascending: true,
-          }
-        )
+    // Public events list. Students from other colleges only see events that
+    // are open to them; everyone else (including signed-out visitors) sees all.
+    const viewer = await getAuthUser()
+    const external = await isExternalParticipant(supabase, viewer?.id)
+
+    let query = supabase
+      .from('events')
+      .select(`
+        id,
+        title,
+        slug,
+        event_type,
+        venue,
+        starts_at,
+        ends_at,
+        registration_closes_at,
+        capacity,
+        registration_mode,
+        open_to_external,
+        is_published
+      `)
+      .eq('is_published', true)
+      .eq('is_deleted', false)
+    if (external) query = query.eq('open_to_external', true)
+
+    const { data, error } = await query.order('starts_at', { ascending: true })
 
     if (error)
       return apiError(
@@ -315,6 +315,8 @@ export async function POST(
               payload.waitlist_capacity ?? null,
             fee:
               payload.fee ?? 0,
+            open_to_external:
+              payload.open_to_external === true,
             payment_method:
               payload.fee > 0 ? (payload.payment_method ?? null) : null,
             upi_id:
