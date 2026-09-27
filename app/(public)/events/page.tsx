@@ -11,8 +11,12 @@ export default function EventsPage() {
   const [events, setEvents] = useState<PublicEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // Links like /events?type=hackathon (from the home page's lane folders)
+  // preselect that type filter.
+  const [typeParam, setTypeParam] = useState<string | null>(null)
 
   useEffect(() => {
+    setTypeParam(new URLSearchParams(window.location.search).get('type'))
     async function loadEvents() {
       try {
         const res = await fetch('/api/events')
@@ -60,7 +64,7 @@ export default function EventsPage() {
               Open for registration <span className="text-foreground-soft">({openEvents.length})</span>
             </h2>
             {openEvents.length > 0 ? (
-              <EventGrid events={openEvents} />
+              <EventGrid events={openEvents} initialType={typeParam} />
             ) : (
               <p className="app-empty-state text-sm font-medium text-foreground-soft">No events are open for registration right now.</p>
             )}
@@ -72,7 +76,7 @@ export default function EventsPage() {
                 Past events <span className="text-foreground-soft">({completedEvents.length})</span>
               </h2>
               <p className="mb-5 text-sm font-medium text-foreground-soft">Registration has closed for these.</p>
-              <EventGrid events={completedEvents} past />
+              <EventGrid events={completedEvents} past initialType={typeParam} />
             </section>
           )}
         </>

@@ -1,6 +1,4 @@
 import Link from 'next/link'
-import { Mail } from 'lucide-react'
-import { PlanetMark } from '@/components/brand/PlanetMark'
 import { CLUB, SOCIALS } from '@/lib/club'
 
 const LINKS = [
@@ -12,59 +10,52 @@ const LINKS = [
 
 export function SiteFooter() {
   return (
-    <footer className="relative z-10 mt-16 border-t-4 border-border bg-[#14120F] text-[#F5F0E3]">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr_1.2fr] lg:px-8">
-        <div>
-          <div className="flex items-center gap-3">
-            <PlanetMark className="h-10 w-10 shrink-0" />
-            <p className="font-display text-base uppercase leading-tight text-primary-yellow">{CLUB.name}</p>
-          </div>
-          <p className="mt-4 max-w-xs text-sm leading-6 text-[#F5F0E3]/75">
-            {CLUB.department}, {CLUB.institution}, {CLUB.campus}.
+    <footer id="contact" className="relative z-10 mt-16 bg-[#161412] text-cream">
+      <div className="mx-auto max-w-[1240px] px-4 pb-7 pt-16 sm:px-6">
+        <div className="flex flex-wrap items-center gap-[18px]">
+          <img src="/brand/cintel-mark.png" alt="" className="block h-[clamp(56px,8vw,96px)] w-auto" />
+          <p className="font-display text-[clamp(40px,8vw,104px)] leading-[0.9] text-primary-yellow">
+            {CLUB.shortName}
+            <span className="text-primary-red">.</span>
           </p>
         </div>
 
-        <div>
-          <p className="font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-primary-yellow">Site</p>
-          <ul className="mt-4 space-y-2.5 text-sm">
+        <div className="mt-10 grid gap-8 border-t-2 border-[#3a3632] pt-8 sm:grid-cols-2 lg:grid-cols-3">
+          <p className="text-[15px] leading-relaxed text-[#CFC7B8]">
+            {CLUB.name}
+            <br />
+            {CLUB.department}, {CLUB.institution}, {CLUB.campus}.
+          </p>
+
+          <div className="flex flex-col gap-2.5 text-[15px]">
+            <p className="font-tech text-[11px] font-bold uppercase tracking-[0.24em] text-primary-yellow">Site</p>
             {LINKS.map((l) => (
-              <li key={l.href}>
-                <Link href={l.href} className="text-[#F5F0E3]/80 transition-colors hover:text-primary-yellow">
-                  {l.label}
-                </Link>
-              </li>
+              <Link key={l.href} href={l.href} className="text-cream transition-colors hover:text-primary-yellow">
+                {l.label}
+              </Link>
             ))}
-          </ul>
-        </div>
+          </div>
 
-        <div>
-          <p className="font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-primary-yellow">Reach us</p>
-          <a
-            href={`mailto:${CLUB.email}`}
-            className="mt-4 flex items-start gap-2 break-all text-sm text-[#F5F0E3]/80 transition-colors hover:text-primary-yellow"
-          >
-            <Mail className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.5} />
-            {CLUB.email}
-          </a>
-          <ul className="mt-3 space-y-2.5 text-sm">
+          <div className="flex flex-col gap-2.5 text-[15px]">
+            <p className="font-tech text-[11px] font-bold uppercase tracking-[0.24em] text-primary-yellow">Reach us</p>
+            <a href={`mailto:${CLUB.email}`} className="break-all text-cream transition-colors hover:text-primary-yellow">
+              {CLUB.email}
+            </a>
             {SOCIALS.map((s) => (
-              <li key={s.label}>
-                <a
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#F5F0E3]/80 transition-colors hover:text-primary-yellow"
-                >
-                  {s.label} <span className="text-[#F5F0E3]/50">· {s.handle}</span>
-                </a>
-              </li>
+              <a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-cream transition-colors hover:text-primary-yellow"
+              >
+                {s.label} · {s.handle}
+              </a>
             ))}
-          </ul>
+          </div>
         </div>
-      </div>
 
-      <div className="border-t-2 border-[#F5F0E3]/15">
-        <p className="mx-auto max-w-6xl px-4 py-5 font-tech text-[11px] uppercase tracking-widest text-[#F5F0E3]/55 sm:px-6 lg:px-8">
+        <p className="mt-12 font-tech text-[11px] uppercase tracking-[0.2em] text-[#8F877A]">
           &copy; {new Date().getFullYear()} {CLUB.name}
         </p>
       </div>
