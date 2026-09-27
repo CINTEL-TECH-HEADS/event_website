@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { IndianRupee, Check, X, ExternalLink, Loader2 } from 'lucide-react'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 
 type Row = {
   id: string
@@ -77,19 +78,12 @@ export default function PaymentsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="app-panel px-6 py-7 sm:px-8">
-        <span className="app-kicker">
-          <IndianRupee size={14} />
-          Payments
-        </span>
-        <h1 className="app-heading mt-5">Verify payments &amp; grant passes.</h1>
-        <p className="app-subheading mt-3 max-w-2xl">
-          Participants pay via the event&apos;s configured method and submit proof. Review each transaction and
-          approve to issue the pass. {pendingReview > 0 && (
-            <span className="font-bold text-brand">{pendingReview} awaiting review.</span>
-          )}
-        </p>
-      </section>
+      <DashboardPageHeader
+        icon={IndianRupee}
+        kicker="Payments"
+        title="Verify payments"
+        description={<>Participants pay using this event&apos;s payment method and upload proof. Approving a payment issues their QR pass.{pendingReview > 0 && <span className="font-bold text-brand"> {pendingReview} awaiting review.</span>}</>}
+      />
 
       <section className="overflow-hidden rounded-2xl border-2 border-border bg-panel p-4 sm:border-4 sm:p-6">
         {loading ? (

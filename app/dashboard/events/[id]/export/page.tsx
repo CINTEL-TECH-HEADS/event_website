@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 
 import { ExportButton } from '@/components/dashboard/ExportButton'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 
 export default function ExportPage() {
   const { id } =
@@ -18,31 +19,18 @@ export default function ExportPage() {
     <div className="space-y-6">
 
       {/* Hero */}
-      <section className="app-panel  px-6 py-7  sm:px-8">
-
-        <span className="app-kicker inline-flex items-center gap-2">
-          <Download size={14} />
-          Data Export
-        </span>
-
-        <h1 className="app-heading mt-5">
-          Download clean
-          registration reports.
-        </h1>
-
-        <p className="app-subheading mt-3 max-w-2xl">
-          Export event data for
-          operations, reporting,
-          analysis, and handoffs.
-        </p>
-
-      </section>
+      <DashboardPageHeader
+        icon={Download}
+        kicker="Export"
+        title="Export registrations"
+        description={'Download this event’s registrations as CSV or Excel.'}
+      />
 
       {/* Cards */}
       <div className="grid gap-4 lg:grid-cols-2">
 
         {/* CSV */}
-        <section className="rounded-2xl border-2 border-border bg-panel p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 md:border-4">
+        <section className="rounded-2xl border-2 border-border bg-panel p-6 shadow-sm transition-all duration-300 md:border-4">
 
           <div className="mb-5 flex items-start gap-4">
 
@@ -57,9 +45,7 @@ export default function ExportPage() {
               </h2>
 
               <p className="mt-2 text-sm font-medium leading-6 text-foreground-soft">
-                Best for spreadsheets,
-                imports, and quick
-                operational sharing.
+                Plain comma-separated file. Opens in Google Sheets, Excel or Numbers.
               </p>
 
             </div>
@@ -74,7 +60,7 @@ export default function ExportPage() {
         </section>
 
         {/* Excel */}
-        <section className="rounded-2xl border-2 border-border bg-panel p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 md:border-4">
+        <section className="rounded-2xl border-2 border-border bg-panel p-6 shadow-sm transition-all duration-300 md:border-4">
 
           <div className="mb-5 flex items-start gap-4">
 
@@ -89,9 +75,7 @@ export default function ExportPage() {
               </h2>
 
               <p className="mt-2 text-sm font-medium leading-6 text-foreground-soft">
-                Ideal for richer
-                reports, filters,
-                and Excel workflows.
+                An .xlsx workbook, ready to filter and sort in Excel.
               </p>
 
             </div>
@@ -109,11 +93,7 @@ export default function ExportPage() {
 
       {/* Info */}
       <div className="app-alert-info">
-        Includes registrations,
-        team members,
-        attendance status,
-        and custom field
-        responses.
+        Both files include registrations, team members, attendance status and answers to custom fields.
       </div>
 
     </div>

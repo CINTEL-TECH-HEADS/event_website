@@ -8,6 +8,7 @@ import {
   Trash2,
   ShieldAlert,
 } from 'lucide-react'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 
 import {
   DuplicateFlag,
@@ -165,27 +166,12 @@ export default function DuplicateReviewPage() {
     <div className="space-y-6">
 
       {/* Hero */}
-      <section className="app-panel  px-6 py-7  sm:px-8">
-
-        <span className="app-kicker inline-flex items-center gap-2">
-          <ShieldAlert size={14} />
-          Duplicate Review
-        </span>
-
-        <h1 className="app-heading mt-5">
-          Keep registrations
-          clean and trusted.
-        </h1>
-
-        <p className="app-subheading mt-3 max-w-2xl">
-          Review suspicious
-          submissions, dismiss
-          false positives, or
-          remove duplicate
-          entries.
-        </p>
-
-      </section>
+      <DashboardPageHeader
+        icon={ShieldAlert}
+        kicker="Duplicates"
+        title="Possible duplicate registrations"
+        description={'Registrations flagged as likely duplicates. Dismiss false positives or remove the extra entry.'}
+      />
 
       {/* Empty */}
       {duplicates.length ===

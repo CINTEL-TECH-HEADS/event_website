@@ -21,14 +21,14 @@ export function EventTable({
       <div className="app-empty-state">
 
         <p className="text-sm font-bold uppercase tracking-wide">
-          No active events detected
+          No events yet
         </p>
 
         <Link
           href="/dashboard/events/new"
           className="mt-4 inline-flex text-sm font-bold uppercase tracking-wide text-accent transition-colors duration-200 hover:text-brand"
         >
-          Initialize first event
+          Create an event
         </Link>
 
       </div>

@@ -341,6 +341,7 @@ export type EventWithStats = {
   confirmed_count?: number
   waitlist_count?: number
   banner_url?: string | null
+  fee?: number
 }
 export type RegistrationWithDetails = {
   id: string

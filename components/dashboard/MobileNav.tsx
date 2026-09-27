@@ -33,7 +33,7 @@ export function MobileNav() {
       <div className="sticky top-0 z-40 flex items-center justify-between border-b-2 border-border bg-panel px-4 py-3">
         <span className="flex items-center gap-2 font-display text-sm uppercase tracking-tight text-poster-outline text-primary-red">
           <PlanetMark className="h-6 w-6 shrink-0" />
-          Cintel Admin
+          CINTEL Events
         </span>
         <button
           type="button"

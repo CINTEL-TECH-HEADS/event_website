@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react'
 import { Contact as ContactIcon, Plus, Trash2, Save, X, Pencil } from 'lucide-react'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 
 type Contact = {
   id: string
@@ -107,20 +108,12 @@ export default function ContactsAdminPage() {
 
   return (
     <div className="space-y-6">
-      <section className="app-panel px-6 py-7 sm:px-8">
-        <span className="app-kicker inline-flex items-center gap-2">
-          <ContactIcon size={14} />
-          Contacts
-        </span>
-        <h1 className="app-heading mt-5">Contact Us directory.</h1>
-        <p className="app-subheading mt-3 max-w-2xl">
-          These contacts appear on the public{' '}
-          <a href="/contact" target="_blank" className="text-brand hover:underline">
-            Contact Us
-          </a>{' '}
-          page. Add your team with their designation and how attendees can reach them.
-        </p>
-      </section>
+      <DashboardPageHeader
+        icon={ContactIcon}
+        kicker="Contacts"
+        title="Contact page directory"
+        description={<>These people are listed on the public <a href="/contact" target="_blank" className="text-brand hover:underline">Contact</a> page. Add organizers with their designation and how attendees can reach them.</>}
+      />
 
       {error && (
         <div className="rounded-xl border-2 border-l-8 border-border border-l-brand bg-brand-soft px-5 py-4 text-sm font-medium text-foreground">

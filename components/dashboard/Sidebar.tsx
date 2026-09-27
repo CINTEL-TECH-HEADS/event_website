@@ -58,12 +58,12 @@ export function Sidebar({
 
           <h1 className="flex items-center gap-2.5 font-display text-lg uppercase tracking-tight text-poster-outline text-primary-red">
             <PlanetMark className="h-8 w-8 shrink-0" />
-            Cintel Admin
+            CINTEL Events
             <Sparkle className="h-3 w-3 text-primary-yellow" />
           </h1>
 
           <p className="mt-2 font-tech text-[10px] font-bold uppercase tracking-[0.24em] text-foreground-soft">
-            Organizer Workspace
+            Organizer dashboard
           </p>
 
           <div className="mt-5 rounded-xl border-2 border-border bg-panel p-3">
@@ -74,8 +74,7 @@ export function Sidebar({
             </p>
 
             <p className="mt-1 truncate text-xs font-medium text-foreground-soft">
-              {profile?.email ??
-                'admin@cintel.in'}
+              {profile?.email ?? ''}
             </p>
 
           </div>

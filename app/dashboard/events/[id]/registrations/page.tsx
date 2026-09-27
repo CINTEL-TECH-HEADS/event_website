@@ -16,6 +16,7 @@ import { RegistrationTable } from '@/components/dashboard/RegistrationTable'
 import QRScanner from '@/components/dashboard/QRScanner'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { parseUuidFromQr } from '@/lib/qr/parse'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 
 export default function RegistrationsPage() {
   const { id } =
@@ -131,49 +132,21 @@ export default function RegistrationsPage() {
   return (
     <div className="space-y-6">
 
-      {/* Hero */}
-      <section className="app-panel px-6 py-7 sm:px-8">
-
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-          <div>
-
-            <span className="app-kicker">
-              <ClipboardList size={14} />
-              Registration Management
-            </span>
-
-            <h1 className="app-heading mt-5">
-              Manage attendees
-              with clarity.
-            </h1>
-
-            <p className="app-subheading mt-3 max-w-2xl">
-              Review registrations,
-              verify participants,
-              monitor waitlists,
-              and manage event access.
-            </p>
-
-          </div>
-
+      <DashboardPageHeader
+        icon={ClipboardList}
+        kicker="Registrations"
+        title="Registrations"
+        description="Everyone registered for this event, including the waitlist. Expand a row to see answers and team members."
+        actions={
           <button
-            onClick={() =>
-              setShowScanner(
-                !showScanner
-              )
-            }
+            onClick={() => setShowScanner(!showScanner)}
             className="app-button-primary inline-flex items-center justify-center gap-2 px-5 py-3 text-sm"
           >
             <ScanLine size={16} />
-            {showScanner
-              ? 'Close Scanner'
-              : 'Open Scanner'}
+            {showScanner ? 'Close scanner' : 'Open scanner'}
           </button>
-
-        </div>
-
-      </section>
+        }
+      />
 
       {/* Scanner */}
       {showScanner && (

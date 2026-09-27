@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Award, Check, Loader2, Mail, Trash2, Upload } from 'lucide-react'
+import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 
 type Template = { id: string; name: string; is_default: boolean }
 type Attendee = {
@@ -123,16 +124,12 @@ export default function CertificatesPage() {
 
   return (
     <div className="space-y-6">
-      <section className="app-panel px-6 py-7 sm:px-8">
-        <span className="app-kicker">
-          <Award size={14} /> Certificates
-        </span>
-        <h1 className="mt-5 app-heading text-3xl sm:text-4xl">Templates, assign, generate, release.</h1>
-        <p className="app-subheading mt-3 max-w-2xl">
-          Upload named templates (e.g. Winner, Participant), assign attendees, then generate and email.
-          Unassigned attendees use the default template.
-        </p>
-      </section>
+      <DashboardPageHeader
+        icon={Award}
+        kicker="Certificates"
+        title="Certificates"
+        description={'Upload templates (e.g. Winner, Participant) and assign attendees to them. Attendees without an assignment get the default template.'}
+      />
 
       {/* Templates */}
       <section className="app-panel-muted p-6">
