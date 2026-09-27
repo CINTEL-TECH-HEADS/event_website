@@ -17,7 +17,7 @@ interface ConfirmationEmailProps {
   displayId: string        // e.g. 'A3F2K9M1'
   qrCodeUrl: string        // public URL or base64
   calendarUrl: string        // Google Calendar deep link
-  resendUrl: string        // link to /resend page
+  portalUrl: string        // link to the participant portal (My events)
 }
 
 export function ConfirmationEmail({
@@ -29,7 +29,7 @@ export function ConfirmationEmail({
   displayId,
   qrCodeUrl,
   calendarUrl,
-  resendUrl,
+  portalUrl,
 }: ConfirmationEmailProps) {
   const formattedDate = new Date(startsAt).toLocaleString('en-IN', {
     weekday: 'long',
@@ -88,8 +88,8 @@ export function ConfirmationEmail({
           <Hr style={hr} />
 
           <Text style={footer}>
-            Didn't receive your QR or registered with a different email?{' '}
-            <a href={resendUrl} style={link}>Resend confirmation</a>
+            Your registration and QR pass are always available in{' '}
+            <a href={portalUrl} style={link}>My events</a>.
           </Text>
 
           <Text style={footer}>

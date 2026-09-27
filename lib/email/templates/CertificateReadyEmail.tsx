@@ -1,6 +1,6 @@
 // lib/email/templates/CertificateReadyEmail.tsx
 // Sent after BE4 generates and releases certificates.
-// Contains a download button linking to /certificate page.
+// Contains a download button linking to the signed certificate file.
 
 import {
   Body, Button, Container, Head, Heading,
