@@ -90,7 +90,7 @@ export default function PaymentsPage() {
           <div className="flex items-center justify-center py-16 text-foreground-soft"><Loader2 className="h-6 w-6 animate-spin" /></div>
         ) : rows.length === 0 ? (
           <div className="app-empty-state p-10 text-center text-sm text-foreground-soft">
-            No payments yet. Registrations for this paid event will appear here.
+            No payment submissions yet. Only events with a fee collect payments.
           </div>
         ) : (
           <div className="overflow-x-auto">

@@ -202,8 +202,13 @@ export default function EventDetailPage() {
           <span className={`app-badge ${event.is_published ? 'app-badge-success' : 'app-badge-neutral'}`}>
             {event.is_published ? 'Published' : 'Draft'}
           </span>
-          <span className="app-badge bg-brand text-white">{event.confirmed_count} confirmed</span>
-          <span className="app-badge app-badge-warning">{event.waitlist_count || 0} waitlisted</span>
+          {/* GET /api/events/[id] doesn't include counts; show them only when present. */}
+          {typeof event.confirmed_count === 'number' && (
+            <span className="app-badge bg-brand text-white">{event.confirmed_count} confirmed</span>
+          )}
+          {typeof event.waitlist_count === 'number' && (
+            <span className="app-badge app-badge-warning">{event.waitlist_count} waitlisted</span>
+          )}
         </div>
       </DashboardPageHeader>
 

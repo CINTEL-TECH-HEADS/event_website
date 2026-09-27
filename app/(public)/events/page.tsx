@@ -30,7 +30,10 @@ export default function EventsPage() {
   }, [])
 
   const openEvents = events.filter(isRegistrationOpen)
-  const completedEvents = events.filter((e) => !isRegistrationOpen(e))
+  // Most recent first.
+  const completedEvents = events
+    .filter((e) => !isRegistrationOpen(e))
+    .sort((a, b) => +new Date(b.starts_at) - +new Date(a.starts_at))
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">

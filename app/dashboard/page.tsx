@@ -87,7 +87,7 @@ export default function DashboardPage() {
   const stats = [
     { label: 'Events', value: events.length },
     { label: 'Published', value: events.filter((event) => event.is_published).length },
-    { label: 'Confirmed registrations', value: events.reduce((sum, event) => sum + event.confirmed_count, 0) },
+    { label: 'Confirmed', value: events.reduce((sum, event) => sum + event.confirmed_count, 0) },
   ]
 
   return (

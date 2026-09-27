@@ -165,7 +165,7 @@ export default function EventPage() {
             )}
             <div className="flex flex-wrap gap-2">
               <span className="app-badge app-badge-neutral">{fee > 0 ? `₹${fee}` : 'Free'}</span>
-              <CapacityBadge event={event} />
+              {!closed && <CapacityBadge event={event} />}
             </div>
           </div>
 

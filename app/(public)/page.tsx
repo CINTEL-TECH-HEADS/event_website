@@ -56,7 +56,10 @@ export default function HomePage() {
   }, [])
 
   const openEvents = events.filter(isRegistrationOpen)
-  const completedEvents = events.filter((e) => !isRegistrationOpen(e))
+  // Most recent first.
+  const completedEvents = events
+    .filter((e) => !isRegistrationOpen(e))
+    .sort((a, b) => +new Date(b.starts_at) - +new Date(a.starts_at))
   const nextUp = [...openEvents].sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at))[0]
 
   return (

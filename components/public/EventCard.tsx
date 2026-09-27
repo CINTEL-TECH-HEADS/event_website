@@ -32,9 +32,11 @@ export function EventCard({ event, past = false }: { event: PublicEvent; past?: 
             <span className="relative font-display text-3xl uppercase text-primary-yellow/90">{typeLabel}</span>
           </div>
         )}
-        <span className="absolute left-3 top-3 rounded-full border-2 border-border bg-panel px-3 py-1 font-tech text-[10px] font-bold uppercase tracking-widest text-foreground">
-          {typeLabel}
-        </span>
+        {event.banner_url && (
+          <span className="absolute left-3 top-3 rounded-full border-2 border-border bg-panel px-3 py-1 font-tech text-[10px] font-bold uppercase tracking-widest text-foreground">
+            {typeLabel}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-4">
