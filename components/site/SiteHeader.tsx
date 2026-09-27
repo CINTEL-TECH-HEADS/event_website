@@ -58,7 +58,10 @@ export function SiteHeader({ nav = DEFAULT_NAV }: { nav?: NavItem[] }) {
 
         <div className="ml-auto flex items-center gap-2">
           <AuthNav />
-          <ThemeToggle />
+          {/* On the narrowest phones the toggle moves into the menu so the bar fits. */}
+          <div className="hidden sm:block">
+            <ThemeToggle />
+          </div>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
@@ -86,6 +89,10 @@ export function SiteHeader({ nav = DEFAULT_NAV }: { nav?: NavItem[] }) {
               {label}
             </Link>
           ))}
+          <div className="mt-2 flex items-center justify-between border-t-2 border-border px-3 pt-3 sm:hidden">
+            <span className="font-tech text-sm font-bold uppercase tracking-widest text-foreground-soft">Theme</span>
+            <ThemeToggle />
+          </div>
         </nav>
       )}
     </header>
