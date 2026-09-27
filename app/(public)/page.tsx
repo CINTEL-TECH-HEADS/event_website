@@ -7,7 +7,8 @@ import { EventTicket } from '@/components/public/EventTicket'
 import ScrambledText from '@/components/reactbits/ScrambledText'
 import FolderFloat from '@/components/reactbits/FolderFloat'
 import { WhatWeRunMenu } from '@/components/public/WhatWeRunMenu'
-import { CLUB, SOCIALS } from '@/lib/club'
+import { ARCHIVE_2025_26, CLUB, SOCIALS } from '@/lib/club'
+import { ArchiveCard } from '@/components/public/ArchiveCard'
 import { countdownParts, useNow, usePublicEvents } from '@/lib/use-public-events'
 import { cn } from '@/lib/utils'
 
@@ -18,42 +19,38 @@ const LANES = [
   {
     glyph: '</>',
     title: 'Build',
-    text: 'Hackathons, CTFs, game jams.',
+    text: 'DIGITHON, CTF, PyQuest, BugBusters, Game Jam.',
     colors: { folderColor: '#2A2622', frontColor: '#161412', labelColor: '#F5F0E3' },
     items: [
-      { label: 'Hackathons', value: 'hackathon' },
-      { label: 'CTFs', value: 'hackathon' },
-      { label: 'Game jams', value: 'fest' },
+      { label: 'DIGITHON', value: 'hackathon' },
+      { label: 'CTF', value: 'hackathon' },
+      { label: 'PyQuest', value: 'hackathon' },
+      { label: 'BugBusters', value: 'hackathon' },
+      { label: 'Game Jam', value: 'fest' },
     ],
   },
   {
     glyph: '?!',
     title: 'Think',
-    text: 'Ideathons and pitch rounds.',
+    text: 'IDEATHON: pitch an idea to faculty and industry judges.',
     colors: { folderColor: '#C99A12', frontColor: '#F2C230', labelColor: '#161412' },
-    items: [
-      { label: 'Ideathons', value: 'hackathon' },
-      { label: 'Pitch rounds', value: 'hackathon' },
-    ],
+    items: [{ label: 'IDEATHON', value: 'hackathon' }],
   },
   {
     glyph: '●',
     title: 'Play',
-    text: 'Sportiva, the association’s sports meet.',
+    text: 'Sportiva, the department’s sports fest.',
     colors: { folderColor: '#A8183A', frontColor: '#D6294C', labelColor: '#FFFFFF' },
-    items: [
-      { label: 'Sportiva', value: 'fest' },
-      { label: 'Stage nights', value: 'fest' },
-    ],
+    items: [{ label: 'Sportiva', value: 'fest' }],
   },
   {
     glyph: '“”',
     title: 'Learn',
-    text: 'Talks, sessions and workshops.',
+    text: 'Learn. Leap. Lead., talks and workshops.',
     colors: { folderColor: '#CFC3A8', frontColor: '#EAE1CF', labelColor: '#161412' },
     items: [
+      { label: 'Learn. Leap. Lead.', value: 'talk' },
       { label: 'Talks', value: 'talk' },
-      { label: 'Seminars', value: 'seminar' },
       { label: 'Workshops', value: 'workshop' },
     ],
   },
@@ -61,17 +58,17 @@ const LANES = [
 
 const STEPS = [
   { title: 'Sign in with Google', text: 'One click. No separate account or password to remember.' },
-  { title: 'Add your details once', text: 'College email and registration number are saved to your profile.' },
+  { title: 'Add your details once', text: 'Your college details are saved to your profile after the first time.' },
   { title: 'Solo or as a team', text: 'Create a team, find one that needs members, or join with a code.' },
   { title: 'Show your QR pass', text: 'Find it in My events. Paid events issue it once payment is verified.' },
 ]
 
 const FAQS = [
-  ['Who can register?', 'Students of SRM IST can register for any event. Some events are open to other colleges too; the event page says so.'],
+  ['Who can register?', 'SRM IST students can register for any event. Students from other colleges can register for events marked Open to all colleges.'],
   ['Do I need a team?', 'Only for team events. You can create a team, join one with a code, or find a team that needs members.'],
   ['Are events free?', 'Most are. For paid events, your pass is issued once the payment is verified.'],
   ['Where is my pass?', 'In My events. Show the QR code at the venue.'],
-  ['Can I cancel?', 'Yes, from My events, up to the registration deadline.'],
+  ['Can I cancel?', 'Ask the organizers through the Contact page; they can cancel a registration from the dashboard.'],
 ] as const
 
 const TICKER_A = ['IDEATHONS', 'SPORTIVA', 'HACKATHONS', 'TALKS', 'GAME JAMS', 'WORKSHOPS']
@@ -254,8 +251,9 @@ export default function HomePage() {
   useReveal([loading])
 
   const countdown = nextUp ? countdownParts(nextUp.starts_at, now) : null
+  const hosted = completedEvents.length + ARCHIVE_2025_26.length
   const statList = [
-    { n: completedEvents.length, suffix: completedEvents.length >= 10 ? '+' : '', label: 'EVENTS HOSTED' },
+    { n: hosted, suffix: hosted >= 10 ? '+' : '', label: 'EVENTS HOSTED' },
     { n: openEvents.length, suffix: '', label: 'OPEN NOW' },
     { n: LANES.length, suffix: '', label: 'KINDS OF EVENTS' },
   ]
@@ -449,21 +447,26 @@ export default function HomePage() {
           </div>
         )}
 
-        {!loading && !error && completedEvents.length > 0 && (
+        {!loading && !error && (
           <div className="mt-16">
             <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-              <p className="font-display text-2xl uppercase">Already happened</p>
-              {completedEvents.length > 3 && (
-                <Link href="/events#past" className="font-tech text-xs font-bold tracking-[0.18em] text-primary-red hover:text-foreground">
-                  SEE ALL {completedEvents.length} →
-                </Link>
-              )}
+              <p className="font-display text-2xl uppercase">Past events</p>
+              <Link href="/events#past" className="font-tech text-xs font-bold tracking-[0.18em] text-primary-red hover:text-foreground">
+                SEE ALL {hosted} →
+              </Link>
             </div>
-            <div data-reveal-kids="up" className={TICKET_GRID}>
-              {completedEvents.slice(0, 3).map((e, i) => (
-                <div key={e.id} className="w-full max-w-[460px]">
-                  <EventTicket event={e} now={now} index={i} past />
-                </div>
+            {completedEvents.length > 0 && (
+              <div data-reveal-kids="up" className={cn(TICKET_GRID, 'mb-12')}>
+                {completedEvents.slice(0, 3).map((e, i) => (
+                  <div key={e.id} className="w-full max-w-[460px]">
+                    <EventTicket event={e} now={now} index={i} past />
+                  </div>
+                ))}
+              </div>
+            )}
+            <div data-reveal-kids="up" className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-8">
+              {ARCHIVE_2025_26.slice(0, completedEvents.length > 0 ? 3 : 6).map((e) => (
+                <ArchiveCard key={e.title} event={e} />
               ))}
             </div>
           </div>
