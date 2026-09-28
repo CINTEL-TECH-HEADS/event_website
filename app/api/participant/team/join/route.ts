@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     if (!canAccessEvent(await isExternalParticipant(admin, user.id), event ?? {})) {
       return apiError(SRM_ONLY_MESSAGE, 403)
     }
-    // SRM IST and other-college students never share a team.
+    // SRM KTR and other-college students never share a team.
     const teamPool = await poolOf(admin, team.participant_id)
     if ((await poolOf(admin, user.id)) !== teamPool) {
       return apiError(teamPoolMessage(teamPool), 403)

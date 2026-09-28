@@ -31,7 +31,7 @@ const profileSchema = z.object({
   interests: nullableText,
   linkedin_url: nullableStr,
   github_url: nullableStr,
-  // 'srm' (SRM IST student) or 'external' (student from another college)
+  // 'srm' (SRM KTR student) or 'external' (student from another college)
   affiliation: z.enum(['srm', 'external']).optional().nullable(),
   college_name: nullableStr,
 })

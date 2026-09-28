@@ -149,7 +149,7 @@ export default function EventPage() {
               </Fact>
               <Fact icon={IndianRupee} label="Fee">{fee > 0 ? `₹${fee}${hasTeams ? ' per registration' : ''}` : 'Free'}</Fact>
               <Fact icon={GraduationCap} label="Who can register">
-                {event.open_to_external ? 'Students from any college' : 'SRM IST students only'}
+                {event.open_to_external ? 'Students from any college' : 'SRM KTR students only'}
               </Fact>
               <Fact icon={CalendarDays} label="Registration closes">{formatEventDate(event.registration_closes_at)}</Fact>
             </dl>

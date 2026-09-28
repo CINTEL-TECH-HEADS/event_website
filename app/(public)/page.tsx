@@ -67,7 +67,7 @@ const STEPS = [
 ]
 
 const FAQS = [
-  ['Who can register for an event?', 'Eligibility depends on the event. Some events are open to SRMIST students, while others may allow students from other colleges to participate.'],
+  ['Who can register for an event?', 'Eligibility depends on the event. Some events are open to SRM KTR students, while others may allow students from other colleges to participate.'],
   ['Can I register as a team?', 'Yes, if the event supports team participation. Create or join a team using the team code.'],
   ['Where can I find my event pass?', 'Your event pass and QR code will be available under My Events after successful registration.'],
   ['Can I register for multiple events?', 'Yes, you can register for multiple events as long as their schedules do not overlap and you meet the eligibility requirements.'],

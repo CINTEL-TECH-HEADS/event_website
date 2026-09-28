@@ -348,7 +348,7 @@ export default function NewEventPage() {
                 Open to students from other colleges
               </label>
               <p className="mt-2 text-xs font-medium text-foreground-soft">
-                Off: only SRM IST students can see and register. On: students from other colleges can too.
+                Off: only SRM KTR students can see and register. On: students from other colleges can too.
               </p>
             </div>
           </div>

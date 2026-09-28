@@ -109,14 +109,14 @@ export default function PortalPage() {
     <div className="flex items-center justify-center py-32"><p className="font-bold text-danger">{error}</p></div>
   )
 
-  // First sign-in gate: participants record who they are (SRM IST student, or
+  // First sign-in gate: participants record who they are (SRM KTR student, or
   // a student from another college) before using the portal.
   if (!profileComplete) return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <p className="font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">One-time setup</p>
       <h1 className="mt-2 font-display text-3xl uppercase leading-tight tracking-tight text-foreground">Complete your details</h1>
       <p className="mt-2 mb-6 max-w-xl text-sm font-medium leading-6 text-foreground-soft">
-        Tell us whether you study at SRM IST or another college. SRM students add their registration number and
+        Tell us whether you study at SRM KTR or another college. SRM students add their registration number and
         college email; students from other colleges add their college name and phone.
       </p>
       <ProfileTab required onSaved={(_p, complete) => { if (complete) setProfileComplete(true) }} />

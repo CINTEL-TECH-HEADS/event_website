@@ -13,7 +13,7 @@ type FormProfile = Omit<ParticipantProfile, 'id' | 'updated_at' | 'affiliation'>
 }
 type Field = { key: keyof FormProfile; label: string; placeholder?: string; required?: boolean; hint?: string }
 
-// SRM IST students identify with their registration number and @srmist.edu.in
+// SRM KTR students identify with their registration number and @srmist.edu.in
 // email; students from other colleges with their college name and phone.
 const SRM_FIELDS: Field[] = [
   { key: 'full_name', label: 'Full Name' },
@@ -43,7 +43,7 @@ const empty: FormProfile = {
 }
 
 const AFFILIATIONS = [
-  ['srm', 'SRM IST student', 'Register number and @srmist.edu.in email'],
+  ['srm', 'SRM KTR student', 'Register number and @srmist.edu.in email'],
   ['external', 'From another college', 'College name and phone'],
 ] as const
 
@@ -90,7 +90,7 @@ export function ProfileTab({
 
   function validate(): string | null {
     if (required && !form.affiliation) {
-      return 'Choose whether you are an SRM IST student or from another college.'
+      return 'Choose whether you are an SRM KTR student or from another college.'
     }
     if (external) {
       if (required && (!(form.college_name ?? '').trim() || !(form.phone ?? '').trim())) {
@@ -161,7 +161,7 @@ export function ProfileTab({
         )}
       </div>
 
-      {/* SRM IST student, or from another college */}
+      {/* SRM KTR student, or from another college */}
       {editing ? (
         <fieldset className="mb-6">
           <legend className={labelCls}>
@@ -187,7 +187,7 @@ export function ProfileTab({
       ) : (
         form.affiliation && (
           <p className="mb-6 text-sm font-bold text-foreground">
-            {external ? `Student from ${form.college_name || 'another college'}` : 'SRM IST student'}
+            {external ? `Student from ${form.college_name || 'another college'}` : 'SRM KTR student'}
           </p>
         )
       )}

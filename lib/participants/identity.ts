@@ -1,7 +1,7 @@
 // lib/participants/identity.ts
 //
 // Who a participant is, for the first-time setup gate and for which events
-// they can see. SRM IST students give a registration number and their
+// they can see. SRM KTR students give a registration number and their
 // @srmist.edu.in email; students from other colleges give their college name
 // and a phone number instead, and can only see and register for events marked
 // open_to_external. Organizers are never "external".
@@ -40,9 +40,9 @@ export function canAccessEvent(external: boolean, event: { open_to_external?: bo
   return !external || event.open_to_external === true
 }
 
-export const SRM_ONLY_MESSAGE = 'This event is open to SRM IST students only.'
+export const SRM_ONLY_MESSAGE = 'This event is open to SRM KTR students only.'
 
-// Teams never mix SRM IST students with students from other colleges. A team
+// Teams never mix SRM KTR students with students from other colleges. A team
 // belongs to its creator's pool; anyone without an 'external' profile (including
 // older rows with no participant) counts as SRM.
 export type TeamPool = Affiliation
@@ -66,5 +66,5 @@ export async function poolOf(admin: SupabaseClient, userId: string | null | unde
 export function teamPoolMessage(teamPool: TeamPool): string {
   return teamPool === 'external'
     ? 'This team is for students from other colleges.'
-    : 'This team is for SRM IST students.'
+    : 'This team is for SRM KTR students.'
 }

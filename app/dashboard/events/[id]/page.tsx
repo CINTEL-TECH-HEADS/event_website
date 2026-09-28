@@ -407,7 +407,7 @@ export default function EventDetailPage() {
                   Open to students from other colleges
                 </label>
                 <p className="mt-2 text-xs font-medium text-foreground-soft">
-                  Off: only SRM IST students can see and register. On: students from other colleges can too.
+                  Off: only SRM KTR students can see and register. On: students from other colleges can too.
                 </p>
               </div>
 
@@ -484,7 +484,7 @@ export default function EventDetailPage() {
                 ['Format', REGISTRATION_MODE_LABELS[event.registration_mode ?? 'both'] ?? event.registration_mode],
                 ['Capacity', event.capacity ?? 'Unlimited'],
                 ['Fee', (event.fee ?? 0) > 0 ? `₹${event.fee}` : 'Free'],
-                ['Open to', event.open_to_external ? 'All colleges' : 'SRM IST only'],
+                ['Open to', event.open_to_external ? 'All colleges' : 'SRM KTR only'],
               ].map(([label, value]) => (
                 <div key={label as string} className="flex items-center justify-between gap-3 py-2.5">
                   <dt className="font-tech text-[11px] font-bold uppercase tracking-widest text-foreground-soft">{label}</dt>
