@@ -451,7 +451,7 @@ export default function NewEventPage() {
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm font-medium text-foreground-soft">
             <li>Add the registration fields you need (Custom fields tab). Events open to other colleges get a second form for those students.</li>
             <li>Give other organizers access (Access control tab).</li>
-            <li>Publish the event to open registration.</li>
+            <li>Publish the event to open registration. After that, the registration form and who can register can&apos;t be changed.</li>
           </ol>
         </div>
 

@@ -17,7 +17,12 @@
 - **Exports**: other-college columns are prefixed with `Other college:`.
 - **Wording**: every mention of SRM students says "SRM KTR". "SRM Institute of Science and Technology" and the "SRM IST Kattankulathur" location line are unchanged.
 - **Verified end to end** with throwaway accounts, all deleted afterwards. See the PR #5 test plan.
-- **Known bug, not fixed**: the form-fields save route deletes all fields and then re-inserts them. Once answers exist, the delete fails, because `registration_answers.field_id` has no cascade. The error is ignored, so every field is **duplicated**.
+- **Form lock** (`lib/events/form-lock.ts`): the registration form and "open to other colleges" can't change while the event is published, or at all once anyone has registered.
+  - Unpublishing an event nobody has registered for unlocks it again.
+  - Enforced in `POST /api/events/[id]/form-fields` (409) and in `PATCH /api/events/[id]` when `open_to_external` changes (409).
+  - `GET` and `PATCH /api/events/[id]` return `form_lock` (`'published' | 'registrations' | null`).
+  - The builder turns read-only and shows why. Publishing asks for confirmation first.
+  - This fixes the old duplicate-fields bug: the save deleted every field and re-inserted it, and once answers existed the delete failed silently, so every field was duplicated. The save route now also checks the delete error, and the builder no longer blanks the list when a save is refused.
 
 ## 2026-09-29: Team Finder / matchmaking removed
 Teams now form only by **Create a team** (get a group code) and **Join with code**.

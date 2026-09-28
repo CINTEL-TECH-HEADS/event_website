@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ChevronUp,
   Edit2,
+  Lock,
   PlusCircle,
   Trash2,
 } from 'lucide-react'
@@ -47,6 +48,8 @@ interface Props {
   eventId: string
   // When the event is open to other colleges, it has two forms.
   openToExternal?: boolean
+  // Set once the event is published or has registrations: the form is read-only.
+  lock?: 'published' | 'registrations' | null
 }
 
 interface FieldEditing
@@ -69,7 +72,9 @@ const FIELD_TYPES: FieldType[] = [
 export function FormFieldBuilder({
   eventId,
   openToExternal = false,
+  lock = null,
 }: Props) {
+  const locked = lock !== null
   // All fields of both forms; saving always sends the full list.
   const [fields, setFields] =
     useState<FormField[]>([])
@@ -194,8 +199,14 @@ export function FormFieldBuilder({
       }
     )
 
-    const { data } =
-      await res.json()
+    const { data, error } =
+      await res.json().catch(() => ({ data: null, error: null }))
+
+    // Keep what's on screen if the save was refused (e.g. the form is locked).
+    if (!res.ok) {
+      alert(error ?? 'Could not save the form. Try again.')
+      return
+    }
 
     setFields(data ?? [])
   }
@@ -399,7 +410,8 @@ export function FormFieldBuilder({
 
           </div>
 
-          {!editingId &&
+          {!locked &&
+            !editingId &&
             !showAddForm && (
               <button
                 onClick={
@@ -415,6 +427,21 @@ export function FormFieldBuilder({
             )}
 
         </div>
+
+        {locked ? (
+          <div className="mb-5 flex items-start gap-3 rounded-xl border-2 border-border bg-warning-soft p-4">
+            <Lock size={16} className="mt-0.5 shrink-0 text-foreground" />
+            <p className="text-sm font-bold text-foreground">
+              {lock === 'published'
+                ? 'This form is locked because the event is published. Unpublish it to make changes, as long as nobody has registered yet.'
+                : 'This form is locked because people have already registered. Their answers depend on these fields.'}
+            </p>
+          </div>
+        ) : (
+          <p className="mb-5 text-xs font-bold uppercase tracking-wide text-foreground-soft">
+            Finish the form before publishing. It can&apos;t be changed after that.
+          </p>
+        )}
 
         {openToExternal && (
           <div className="mb-5 flex flex-wrap items-center gap-2" role="tablist" aria-label="Registration forms">
@@ -435,7 +462,7 @@ export function FormFieldBuilder({
                 {label} <span className="ml-1 opacity-70">{count}</span>
               </button>
             ))}
-            {active === 'external' && srmCount > 0 && (
+            {!locked && active === 'external' && srmCount > 0 && (
               <button
                 type="button"
                 disabled={saving}
@@ -455,7 +482,7 @@ export function FormFieldBuilder({
           const available = STANDARD_FIELDS.filter(
             (sf) => !usedKeys.has(sf.key) && (active === 'srm' || EXTERNAL_KEYS.has(sf.key))
           )
-          if (available.length === 0) return null
+          if (locked || available.length === 0) return null
           return (
             <div className="mb-5 rounded-xl border-2 border-border bg-warning-soft p-4">
               <p className="mb-3 font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">
@@ -532,6 +559,7 @@ export function FormFieldBuilder({
 
                   </div>
 
+                  {!locked && (
                   <div className="flex items-center gap-2">
 
                     <button
@@ -545,6 +573,7 @@ export function FormFieldBuilder({
                         index ===
                         0
                       }
+                      aria-label="Move up"
                       className="app-button-secondary px-3 py-3"
                     >
                       <ChevronUp size={16} />
@@ -562,6 +591,7 @@ export function FormFieldBuilder({
                         visible.length -
                           1
                       }
+                      aria-label="Move down"
                       className="app-button-secondary px-3 py-3"
                     >
                       <ChevronDown size={16} />
@@ -573,6 +603,7 @@ export function FormFieldBuilder({
                           field
                         )
                       }
+                      aria-label="Edit field"
                       className="app-button-secondary px-3 py-3"
                     >
                       <Edit2 size={16} />
@@ -584,12 +615,14 @@ export function FormFieldBuilder({
                           field.id
                         )
                       }
+                      aria-label="Delete field"
                       className="app-button-danger px-3 py-3"
                     >
                       <Trash2 size={16} />
                     </button>
 
                   </div>
+                  )}
 
                 </div>
               )
@@ -601,7 +634,8 @@ export function FormFieldBuilder({
       </section>
 
       {/* Form */}
-      {(editingId ||
+      {!locked &&
+        (editingId ||
         showAddForm) && (
         <section className="app-panel p-5 sm:p-6">
 

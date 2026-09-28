@@ -144,12 +144,13 @@ export default function EventDetailPage() {
         }),
       })
 
+      const json = await res.json().catch(() => null)
       if (!res.ok) {
-        throw new Error('Failed to save event')
+        // Surface the server's reason (e.g. who can register is locked).
+        alert(json?.error ?? 'Failed to save event')
+        return
       }
-
-      const { data } = await res.json()
-      setEvent(data)
+      setEvent(json.data)
     } catch (error) {
       console.error('Failed to save event:', error)
       alert('Failed to save event')
@@ -160,6 +161,15 @@ export default function EventDetailPage() {
 
   const togglePublish = async () => {
     if (!event) {
+      return
+    }
+
+    if (
+      !event.is_published &&
+      !window.confirm(
+        `Publish "${event.title}"?\n\nCheck the registration form${event.open_to_external ? 's' : ''} and who can register first. They can't be changed after publishing.`
+      )
+    ) {
       return
     }
 
@@ -193,6 +203,10 @@ export default function EventDetailPage() {
   if (!event) {
     return <div className="text-sm font-bold uppercase tracking-wide text-brand">Event not found</div>
   }
+
+  // The form and who can register are fixed once the event is published or
+  // anyone has registered (see lib/events/form-lock.ts).
+  const formLock = event.form_lock ?? (event.is_published ? 'published' : null)
 
   // Publishing needs a form: at least one custom field, and for events open to
   // other colleges at least one in each form.
@@ -401,13 +415,16 @@ export default function EventDetailPage() {
                   <input
                     type="checkbox"
                     checked={formData.open_to_external}
+                    disabled={!!formLock}
                     onChange={(e) => setFormData({ ...formData, open_to_external: e.target.checked })}
-                    className="h-4 w-4 accent-accent"
+                    className="h-4 w-4 accent-accent disabled:opacity-60"
                   />
                   Open to students from other colleges
                 </label>
                 <p className="mt-2 text-xs font-medium text-foreground-soft">
                   Off: only SRM KTR students can see and register. On: students from other colleges can too.
+                  {formLock === 'published' && ' Locked while the event is published.'}
+                  {formLock === 'registrations' && ' Locked because people have already registered.'}
                 </p>
               </div>
 
@@ -496,7 +513,9 @@ export default function EventDetailPage() {
         </div>
       )}
 
-      {tab === 'form' && <FormFieldBuilder eventId={id} openToExternal={event.open_to_external === true} />}
+      {tab === 'form' && (
+        <FormFieldBuilder eventId={id} openToExternal={event.open_to_external === true} lock={formLock} />
+      )}
       {tab === 'organizers' && <OrganizerManager eventId={id} />}
     </div>
   )

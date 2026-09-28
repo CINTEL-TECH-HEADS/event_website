@@ -351,6 +351,9 @@ export type EventWithStats = {
   banner_url?: string | null
   fee?: number
   open_to_external?: boolean
+  // Returned by GET/PATCH /api/events/[id]: why the registration form (and
+  // open_to_external) can no longer change, or null while it can.
+  form_lock?: 'published' | 'registrations' | null
 }
 export type RegistrationWithDetails = {
   id: string
