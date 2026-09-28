@@ -4,6 +4,23 @@
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
 > Last updated: 2026-09-28 (report content, other-college students, test events removed).
 
+## 2026-09-29: Team Finder / matchmaking removed
+Teams now form only by **Create a team** (get a group code) and **Join with code**.
+- **Removed**: register-page "Find a team" (open team-of-one seekers), the matchmaking page
+  `.../events/[registration_id]/find`, portal-home team invites/requests (accept/decline) and the
+  "Find teammates" button, `GET /api/events/[id]/seekers`, `GET /api/events/[id]/teams`,
+  `POST /api/participant/team/invite | invite/respond | request`, `GET /api/participant/team/invites`,
+  `lib/registrations/merge-into-team.ts`, the `seeking` registration flag, and the profile's
+  "Networking (Find Teammates)" fields (skills/interests/LinkedIn/GitHub stay in the DB, unused).
+- **Join** (`POST /api/participant/team/join`) is code-only now; joining by `registration_id` is gone.
+- **Kept**: `registrations.is_open` — the creator's open/closed toggle now means "the code still lets
+  people join" (join-by-code already checked it).
+- **DB**: migration `026_drop_team_invites.sql` (**applied to the live DB**) dropped `team_invites`
+  (it was empty, nothing referenced it; re-run 017 to restore). Any existing seeker registrations remain
+  as one-person teams.
+- **Migrations from Claude Code**: `scripts/db.mjs` (`query` / `dry-run` / `apply`, one transaction per
+  file) using `SUPABASE_DB_URL` (session pooler) in `.env.local`.
+
 ## 2026-09-28: annual-report content, other-college students (branch `feat/landing-content`)
 Built on jayashriiSH's `feat/landing-redesign`; PR goes into that branch.
 - **Content**: `ARCHIVE_2025_26` in `lib/club.ts` (DIGITHON 3.0, CTF 2025, IDEATHON 2.0, PyQuest 2025,

@@ -62,7 +62,7 @@ const LANES = [
 const STEPS = [
   { icon: UserRound, title: 'Sign in with Google', text: 'One click. No separate account or password to remember.' },
   { icon: FileText, title: 'Add your details once', text: 'Your college details are saved to your profile after the first time.' },
-  { icon: Users, title: 'Solo or as a team', text: 'Create a team, find one that needs members, or join with a code.' },
+  { icon: Users, title: 'Solo or as a team', text: 'Create a team and share its code, or join one with a teammate’s code.' },
   { icon: QrCode, title: 'Show your QR pass', text: 'Find it in My events. Paid events issue it once payment is verified.' },
 ]
 

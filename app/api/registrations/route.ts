@@ -11,7 +11,7 @@ import { getAuthUser } from '@/lib/auth/get-session'
 import { findUserRegistration } from '@/lib/registrations/is-registered'
 import { canAccessEvent, isExternalParticipant, SRM_ONLY_MESSAGE } from '@/lib/participants/identity'
 import { generateUniqueGroupCode } from '@/lib/registrations/group-code'
-import { isTeamNameTaken, suggestTeamName } from '@/lib/registrations/team-name'
+import { isTeamNameTaken } from '@/lib/registrations/team-name'
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
@@ -159,19 +159,14 @@ export async function POST(req: NextRequest) {
   const requiresPayment =
     isPaid && status === 'confirmed' && payload.registration_type === 'solo'
 
-  // Step 6b: Resolve the team name — unique per event. A seeker's auto-name is
-  // uniquified silently; an explicit team name that's taken is rejected.
+  // Step 6b: Resolve the team name — unique per event; a taken name is rejected.
   let teamName: string | null = null
   if (payload.registration_type === 'team') {
     const rawName = ((payload as any).team_name ?? '').trim()
-    if ((payload as any).seeking) {
-      teamName = await suggestTeamName(supabase, event.id, rawName || `${leaderName}'s team`)
-    } else {
-      if (await isTeamNameTaken(supabase, event.id, rawName)) {
-        return apiError('That team name is already taken for this event. Please pick another.')
-      }
-      teamName = rawName
+    if (await isTeamNameTaken(supabase, event.id, rawName)) {
+      return apiError('That team name is already taken for this event. Please pick another.')
     }
+    teamName = rawName
   }
 
   // Step 7: Generate IDs (+ a shareable group code for teams)

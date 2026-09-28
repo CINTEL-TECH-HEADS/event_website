@@ -35,14 +35,6 @@ const EXTERNAL_FIELDS: Field[] = [
 const COLLEGE_EMAIL_RE = /@srmist\.edu\.in$/i
 const REGISTER_NUMBER_RE = /^RA\d+$/i
 
-// Networking fields shown in Find Teammates.
-const NETWORK_FIELDS: { key: keyof FormProfile; label: string; placeholder?: string }[] = [
-  { key: 'skills', label: 'Skills', placeholder: 'e.g. AI/ML, Web Dev, UI/UX' },
-  { key: 'interests', label: 'Interests', placeholder: 'e.g. Hackathons, Robotics' },
-  { key: 'linkedin_url', label: 'LinkedIn (optional)', placeholder: 'https://linkedin.com/in/…' },
-  { key: 'github_url', label: 'GitHub (optional)', placeholder: 'https://github.com/…' },
-]
-
 const empty: FormProfile = {
   affiliation: '', college_name: '',
   full_name: '', register_number: '', phone: '', college_email: '',
@@ -251,28 +243,6 @@ export function ProfileTab({
                 </div>
               </>
             )}
-          </div>
-
-          {/* Networking — shown to teams in Find Teammates */}
-          <div className="mt-6 border-t-2 border-border pt-6">
-            <p className="mb-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent">
-              <span aria-hidden className="h-2 w-2 rotate-45 bg-accent" />
-              Networking (Find Teammates)
-            </p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {NETWORK_FIELDS.map(({ key, label, placeholder }) => (
-                <div key={key}>
-                  <label className={labelCls}>{label}</label>
-                  <input
-                    value={(form[key] as string) ?? ''}
-                    onChange={(e) => set(key, e.target.value)}
-                    disabled={!editing}
-                    placeholder={editing ? placeholder ?? '—' : ''}
-                    className={inputCls}
-                  />
-                </div>
-              ))}
-            </div>
           </div>
         </>
       )}

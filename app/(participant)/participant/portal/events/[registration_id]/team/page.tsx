@@ -122,7 +122,7 @@ export default function TeamPage() {
           <h2 className="font-display text-sm uppercase tracking-wide text-foreground">Group code</h2>
         </div>
         <p className="text-sm font-medium text-foreground-soft mb-4">
-          Share this code. Teammates sign in and enter it (or find your team in the Team Finder) to join.
+          Share this code. Teammates sign in and enter it to join.
         </p>
         <div className="flex gap-2">
           <div className="flex-1 rounded-full border-2 border-border bg-panel-muted px-4 py-3 font-mono text-lg font-bold tracking-widest text-foreground">
@@ -137,14 +137,14 @@ export default function TeamPage() {
           </button>
         </div>
 
-        {/* Open / closed for the finder */}
+        {/* Open / closed: whether the code still lets people join */}
         <button
           disabled={busy || locked}
           onClick={() => patchTeam({ is_open: !reg.is_open })}
           className="mt-4 inline-flex items-center gap-2 rounded-full border-2 border-border px-4 py-2 text-sm font-bold uppercase tracking-wide text-foreground transition duration-200 hover:bg-panel-muted disabled:opacity-50"
         >
           {reg?.is_open ? <Unlock size={14} className="text-success" /> : <Lock size={14} className="text-foreground-soft" />}
-          {reg?.is_open ? 'Open — visible in Team Finder' : 'Closed — hidden from Team Finder'}
+          {reg?.is_open ? 'Open — the code lets teammates join' : 'Closed — the code no longer works'}
         </button>
       </div>
 

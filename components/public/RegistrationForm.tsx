@@ -47,15 +47,11 @@ export function RegistrationForm({
   event,
   disabled = false,
   prefill = null,
-  seeking = false,
   forceTeam = false,
 }: {
   event: EventWithFields
   disabled?: boolean
   prefill?: Record<string, any> | null
-  // "Find a team" mode: register as an open team-of-one (auto-named) and go to
-  // the matchmaking view instead of the team management page.
-  seeking?: boolean
   // Force a team submission even on a `both` event (the "Create a team" choice).
   forceTeam?: boolean
 }) {
@@ -97,7 +93,7 @@ export function RegistrationForm({
   const registrationType = watch('registration_type')
 
   const teamMode =
-    seeking || forceTeam || event.registration_mode === 'team' || registrationType === 'team'
+    forceTeam || event.registration_mode === 'team' || registrationType === 'team'
 
   // Live team-name availability (unique per event) for the create flow.
   const teamName = watch('team_name')
@@ -107,7 +103,7 @@ export function RegistrationForm({
   }>({ status: 'idle' })
 
   useEffect(() => {
-    if (seeking || !teamMode) return
+    if (!teamMode) return
     const name = (teamName ?? '').trim()
     if (name.length < 2) {
       setNameCheck({ status: 'idle' })
@@ -129,7 +125,7 @@ export function RegistrationForm({
       }
     }, 400)
     return () => clearTimeout(t)
-  }, [teamName, teamMode, seeking, event.id])
+  }, [teamName, teamMode, event.id])
 
   // Map a field_key to its answer value (for deriving the leader identity).
   function answerForKey(
@@ -168,14 +164,11 @@ export function RegistrationForm({
       leader_phone: leaderPhone.trim(),
       register_number: registerNumber.trim(),
       // Group-code model: creating a team registers just the creator; teammates
-      // join later. "Find a team" auto-names an open team-of-one seeker.
+      // join later with the code.
       ...(teamMode
         ? {
-            team_name: seeking
-              ? `${(leaderName || 'My').trim()}'s team`
-              : (values.team_name?.trim() ?? ''),
+            team_name: values.team_name?.trim() ?? '',
             members: [],
-            seeking,
           }
         : {}),
       answers: buildAnswers(registrationFields, values.answers),
@@ -218,9 +211,7 @@ export function RegistrationForm({
 
       router.push(
         teamMode
-          ? seeking
-            ? `/participant/portal/events/${data.registration_id}/find`
-            : `/participant/portal/events/${data.registration_id}/team`
+          ? `/participant/portal/events/${data.registration_id}/team`
           : `/confirmation/${data.registration_id}`
       )
     } catch {
@@ -256,14 +247,7 @@ export function RegistrationForm({
         <div className="rounded-poster border-2 border-border bg-panel-muted p-5">
           <h2 className="font-display text-base uppercase tracking-tight text-foreground">Team Details</h2>
 
-          {seeking ? (
-            <p className="mt-4 rounded-xl border-2 border-border border-l-8 border-l-warning bg-warning-soft px-4 py-3 text-sm font-medium text-foreground">
-              You&apos;ll be added to this event as <strong>looking for a team</strong>. Teams short of
-              members can invite you, and you can request to join open teams — a team forms once one side
-              accepts.
-            </p>
-          ) : (
-            <>
+          <>
               <label className="mt-4 block">
                 <span className="mb-2 block font-tech text-xs font-bold uppercase tracking-wide text-foreground-soft">Team name</span>
                 <input
@@ -301,11 +285,9 @@ export function RegistrationForm({
 
               <p className="mt-4 rounded-xl border-2 border-border border-l-8 border-l-warning bg-warning-soft px-4 py-3 text-sm font-medium text-foreground">
                 You&apos;ll create the team now and get a shareable <strong>group code</strong>. Teammates
-                sign in and enter the code (or request to join from the Team Finder) — no need to add them
-                here.
+                sign in and enter the code — no need to add them here.
               </p>
-            </>
-          )}
+          </>
         </div>
       ) : null}
 

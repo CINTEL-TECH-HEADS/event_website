@@ -25,7 +25,7 @@ const profileSchema = z.object({
   batch: nullableStr,
   section: nullableStr,
   fa_name: nullableStr,
-  // Networking fields (Find Teammates)
+  // Networking fields (no longer shown in the UI; kept so saved values survive)
   department: nullableStr,
   skills: nullableText,
   interests: nullableText,
