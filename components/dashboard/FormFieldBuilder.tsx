@@ -13,6 +13,7 @@ import {
 import {
   FieldAppliesTo,
   FieldType,
+  FormAudience,
   FormField,
   ProfileFieldKey,
 } from '@/types'
@@ -36,8 +37,16 @@ const STANDARD_FIELDS: {
   { key: 'fa_name', label: 'Faculty Advisor', field_type: 'text', options: null },
 ]
 
+// Standard fields that make sense for students from other colleges (no SRM
+// registration number, SRM email, batch, section or faculty advisor).
+const EXTERNAL_KEYS = new Set<ProfileFieldKey>(['full_name', 'phone', 'personal_email', 'year_of_study'])
+
+const audienceOf = (f: { audience?: FormAudience }): FormAudience => f.audience ?? 'srm'
+
 interface Props {
   eventId: string
+  // When the event is open to other colleges, it has two forms.
+  openToExternal?: boolean
 }
 
 interface FieldEditing
@@ -59,9 +68,23 @@ const FIELD_TYPES: FieldType[] = [
 
 export function FormFieldBuilder({
   eventId,
+  openToExternal = false,
 }: Props) {
+  // All fields of both forms; saving always sends the full list.
   const [fields, setFields] =
     useState<FormField[]>([])
+
+  const [form, setForm] = useState<FormAudience>('srm')
+  const active: FormAudience = openToExternal ? form : 'srm'
+  const visible = fields.filter((f) => audienceOf(f) === active)
+  const srmCount = fields.filter((f) => audienceOf(f) === 'srm').length
+  const externalCount = fields.length - srmCount
+
+  // Rebuild the full list after changing the active form: SRM fields first.
+  const withActive = (nextVisible: FormField[]) => {
+    const others = fields.filter((f) => audienceOf(f) !== active)
+    return active === 'srm' ? [...nextVisible, ...others] : [...others, ...nextVisible]
+  }
 
   const [loading, setLoading] =
     useState(true)
@@ -204,8 +227,8 @@ export function FormFieldBuilder({
                     }
                   : field
             )
-          : [
-              ...fields,
+          : withActive([
+              ...visible,
               {
                 id: `temp-${Date.now()}`,
                 event_id:
@@ -226,8 +249,9 @@ export function FormFieldBuilder({
                   fields.length,
                 field_key:
                   editForm.field_key ?? null,
+                audience: active,
               },
-            ]
+            ])
 
       await saveFields(
         nextFields
@@ -274,7 +298,7 @@ export function FormFieldBuilder({
       | 'down'
   ) {
     const nextFields = [
-      ...fields,
+      ...visible,
     ]
 
     const nextIndex =
@@ -297,10 +321,10 @@ export function FormFieldBuilder({
       nextFields[index],
     ]
 
-    setFields(nextFields)
+    setFields(withActive(nextFields))
 
     await saveFields(
-      nextFields
+      withActive(nextFields)
     )
   }
 
@@ -309,8 +333,8 @@ export function FormFieldBuilder({
   ) {
     setSaving(true)
     try {
-      await saveFields([
-        ...fields,
+      await saveFields(withActive([
+        ...visible,
         {
           id: `temp-${Date.now()}`,
           event_id: eventId,
@@ -320,10 +344,26 @@ export function FormFieldBuilder({
           validation: null,
           is_required: false,
           applies_to: 'registration',
-          sort_order: fields.length,
+          sort_order: visible.length,
           field_key: sf.key,
+          audience: active,
         },
-      ])
+      ]))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function copyFromSrmForm() {
+    const copies = fields
+      .filter((f) => audienceOf(f) === 'srm')
+      .filter((f) => !f.field_key || EXTERNAL_KEYS.has(f.field_key))
+      .filter((f) => !f.field_key || !visible.some((v) => v.field_key === f.field_key))
+      .map((f, i) => ({ ...f, id: `temp-${Date.now()}-${i}`, audience: 'external' as const }))
+    if (copies.length === 0) return
+    setSaving(true)
+    try {
+      await saveFields(withActive([...visible, ...copies]))
     } finally {
       setSaving(false)
     }
@@ -352,9 +392,9 @@ export function FormFieldBuilder({
             </h2>
 
             <p className="mt-1 text-sm font-medium text-foreground-soft">
-              Add extra questions
-              for registrations
-              and members.
+              {openToExternal
+                ? 'This event is open to other colleges, so it has two forms: one for SRM KTR students and one for students from other colleges.'
+                : 'Add extra questions for registrations and members.'}
             </p>
 
           </div>
@@ -376,12 +416,44 @@ export function FormFieldBuilder({
 
         </div>
 
+        {openToExternal && (
+          <div className="mb-5 flex flex-wrap items-center gap-2" role="tablist" aria-label="Registration forms">
+            {([
+              ['srm', 'SRM KTR students', srmCount],
+              ['external', 'Other-college students', externalCount],
+            ] as const).map(([value, label, count]) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={active === value}
+                onClick={() => { setForm(value); setEditingId(null); setShowAddForm(false) }}
+                className={`rounded-full border-2 border-border px-4 py-2 font-tech text-xs font-bold uppercase tracking-widest transition-colors duration-200 ${
+                  active === value ? 'bg-accent text-white shadow-sm' : 'bg-panel-muted text-foreground-soft hover:text-foreground'
+                }`}
+              >
+                {label} <span className="ml-1 opacity-70">{count}</span>
+              </button>
+            ))}
+            {active === 'external' && srmCount > 0 && (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={copyFromSrmForm}
+                className="ml-auto inline-flex items-center gap-1.5 font-tech text-xs font-bold uppercase tracking-widest text-brand hover:underline disabled:opacity-50"
+              >
+                <PlusCircle size={13} /> Copy from SRM form
+              </button>
+            )}
+          </div>
+        )}
+
         {(() => {
           const usedKeys = new Set(
-            fields.map((f) => f.field_key).filter(Boolean)
+            visible.map((f) => f.field_key).filter(Boolean)
           )
           const available = STANDARD_FIELDS.filter(
-            (sf) => !usedKeys.has(sf.key)
+            (sf) => !usedKeys.has(sf.key) && (active === 'srm' || EXTERNAL_KEYS.has(sf.key))
           )
           if (available.length === 0) return null
           return (
@@ -406,16 +478,17 @@ export function FormFieldBuilder({
           )
         })()}
 
-        {fields.length ===
+        {visible.length ===
         0 ? (
           <div className="app-empty-state">
-            No custom fields
-            yet.
+            {active === 'external'
+              ? 'No fields in the other-college form yet.'
+              : 'No custom fields yet.'}
           </div>
         ) : (
           <div className="space-y-3">
 
-            {fields.map(
+            {visible.map(
               (
                 field,
                 index
@@ -486,7 +559,7 @@ export function FormFieldBuilder({
                       }
                       disabled={
                         index ===
-                        fields.length -
+                        visible.length -
                           1
                       }
                       className="app-button-secondary px-3 py-3"

@@ -122,14 +122,32 @@ export async function PATCH(
     const supabase =
       createAdminClient()
 
-    // Gate publishing: an event must have at least one configured field.
-    if (body.is_published === true) {
-      const { count } = await supabase
+    // Gate publishing: an event must have a registration form. Events open to
+    // other colleges have two forms (SRM KTR / other colleges) and need a field
+    // in each. Checked when publishing, and when a published event is opened up.
+    const { data: current } = await supabase
+      .from('events')
+      .select('is_published, open_to_external')
+      .eq('id', id)
+      .maybeSingle()
+    const willBeOpen = body.open_to_external ?? current?.open_to_external ?? false
+    const publishing = body.is_published === true
+    const openingPublished = !!current?.is_published && willBeOpen && !current?.open_to_external
+    if (publishing || openingPublished) {
+      const { data: fields } = await supabase
         .from('form_fields')
-        .select('id', { count: 'exact', head: true })
+        .select('audience')
         .eq('event_id', id)
-      if ((count ?? 0) === 0) {
+      const external = (fields ?? []).filter((f: any) => f.audience === 'external').length
+      const srm = (fields ?? []).length - external
+      if (srm + external === 0) {
         return apiError('Add at least one registration field before publishing this event.', 400)
+      }
+      if (willBeOpen && srm === 0) {
+        return apiError('Add at least one field to the SRM KTR form before publishing this event.', 400)
+      }
+      if (willBeOpen && external === 0) {
+        return apiError('Add at least one field to the other-college form before publishing this event.', 400)
       }
     }
 

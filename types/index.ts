@@ -100,7 +100,11 @@ export interface FormField {
   applies_to: FieldAppliesTo
   sort_order: number
   field_key: ProfileFieldKey | null
+  // Which form the field is on: SRM KTR students, or students from other colleges.
+  audience?: FormAudience
 }
+
+export type FormAudience = 'srm' | 'external'
 
 export interface ParticipantProfile {
   id: string

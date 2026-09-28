@@ -130,8 +130,9 @@ export default function NewEventPage() {
       return
     }
 
+    // Events open to other colleges have two registration forms to set up next.
     router.push(
-      `/dashboard/events/${data.id}`
+      `/dashboard/events/${data.id}${openToExternal ? '?tab=form' : ''}`
     )
   }
 
@@ -448,7 +449,7 @@ export default function NewEventPage() {
         <div className="rounded-2xl border-2 border-border bg-panel p-6 shadow-sm">
           <h2 className="font-display text-sm uppercase tracking-wide text-foreground">After you create it</h2>
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm font-medium text-foreground-soft">
-            <li>Add the registration fields you need (Custom fields tab).</li>
+            <li>Add the registration fields you need (Custom fields tab). Events open to other colleges get a second form for those students.</li>
             <li>Give other organizers access (Access control tab).</li>
             <li>Publish the event to open registration.</li>
           </ol>

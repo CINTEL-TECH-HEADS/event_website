@@ -61,9 +61,17 @@ export function RegistrationForm({
 
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const registrationFields = event.form_fields.filter(
+  // Events open to other colleges have a separate form for those students. Fall
+  // back to the SRM form if an older event has no other-college fields yet.
+  const audience = prefill?.affiliation === 'external' ? 'external' : 'srm'
+  const allRegistrationFields = event.form_fields.filter(
     (field) => field.applies_to === 'registration'
   )
+  const audienceFields = allRegistrationFields.filter((f) => (f.audience ?? 'srm') === audience)
+  const registrationFields =
+    audience === 'external' && audienceFields.length === 0
+      ? allRegistrationFields.filter((f) => (f.audience ?? 'srm') === 'srm')
+      : audienceFields
 
   // Pre-fill fields that map to a profile key (field_key) from the profile.
   const prefillAnswers: Record<string, string> = {}
