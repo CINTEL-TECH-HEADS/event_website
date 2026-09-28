@@ -43,7 +43,10 @@
     --shadow-lg: 8px 8px 0px 0px #14120F;
   }
 
-  :root[data-theme='dark'] {
+  /* .landing-night: the home page is one night-time pixel level in both
+     themes, so it takes the dark tokens whatever the toggle says */
+  :root[data-theme='dark'],
+  .landing-night {
     --background: 11 11 10;
     --background-soft: 24 22 19;
 
@@ -581,7 +584,15 @@ input:-webkit-autofill:focus {
     text-shadow: 6px 6px 0 #161412;
   }
 
-  .landing-dots { background-image: radial-gradient(#2c2925 1px, transparent 1px); background-size: 14px 14px; }
+  .landing-night {
+    background-color: #080a14;
+    background-image:
+      linear-gradient(rgba(160, 176, 220, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(160, 176, 220, 0.035) 1px, transparent 1px);
+    background-size: 48px 48px;
+    color: rgb(var(--foreground));
+  }
+    .landing-dots { background-image: radial-gradient(#2c2925 1px, transparent 1px); background-size: 14px 14px; }
   .landing-tick { display: inline-block; animation: landingTick .35s ease-out; }
   .landing-blink { animation: landingBlink 1.4s infinite; }
   .landing-ping { animation: landingPing 1.6s ease-out infinite; }

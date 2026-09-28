@@ -3,9 +3,12 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { CalendarDays, FileText, QrCode, UserRound, Users } from 'lucide-react'
+import { PixelCloud, PixelCoin, PixelFlag, PixelGround, PixelNightBackdrop, PixelQBlock, PixelRunner, PixelTraverse, PixelTree } from '@/components/public/PixelSprites'
 import { EventTicket } from '@/components/public/EventTicket'
 import ScrambledText from '@/components/reactbits/ScrambledText'
 import FolderFloat from '@/components/reactbits/FolderFloat'
+import { CrtBackground } from '@/components/threeui/crt/CrtBackground'
 import { WhatWeRunMenu } from '@/components/public/WhatWeRunMenu'
 import { ARCHIVE_ALL, CLUB, SOCIALS } from '@/lib/club'
 import { ArchiveCard } from '@/components/public/ArchiveCard'
@@ -57,22 +60,22 @@ const LANES = [
 ]
 
 const STEPS = [
-  { title: 'Sign in with Google', text: 'One click. No separate account or password to remember.' },
-  { title: 'Add your details once', text: 'Your college details are saved to your profile after the first time.' },
-  { title: 'Solo or as a team', text: 'Create a team, find one that needs members, or join with a code.' },
-  { title: 'Show your QR pass', text: 'Find it in My events. Paid events issue it once payment is verified.' },
+  { icon: UserRound, title: 'Sign in with Google', text: 'One click. No separate account or password to remember.' },
+  { icon: FileText, title: 'Add your details once', text: 'Your college details are saved to your profile after the first time.' },
+  { icon: Users, title: 'Solo or as a team', text: 'Create a team, find one that needs members, or join with a code.' },
+  { icon: QrCode, title: 'Show your QR pass', text: 'Find it in My events. Paid events issue it once payment is verified.' },
 ]
 
 const FAQS = [
-  ['Who can register?', 'SRM IST students can register for any event. Students from other colleges can register for events marked Open to all colleges.'],
-  ['Do I need a team?', 'Only for team events. You can create a team, join one with a code, or find a team that needs members.'],
-  ['Are events free?', 'Most are. For paid events, your pass is issued once the payment is verified.'],
-  ['Where is my pass?', 'In My events. Show the QR code at the venue.'],
-  ['Can I cancel?', 'Ask the organizers through the Contact page; they can cancel a registration from the dashboard.'],
+  ['Who can register for an event?', 'Eligibility depends on the event. Some events are open to SRMIST students, while others may allow students from other colleges to participate.'],
+  ['Can I register as a team?', 'Yes, if the event supports team participation. Create or join a team using the team code.'],
+  ['Where can I find my event pass?', 'Your event pass and QR code will be available under My Events after successful registration.'],
+  ['Can I register for multiple events?', 'Yes, you can register for multiple events as long as their schedules do not overlap and you meet the eligibility requirements.'],
+  ['What happens after I register?', 'Your registration will appear in My Events, where you can view event details, updates, and your event pass.'],
+  ['How do I get help with registration?', 'Use the Contact section to reach the CINTEL team.'],
 ] as const
 
 const TICKER_A = ['IDEATHONS', 'SPORTIVA', 'HACKATHONS', 'TALKS', 'GAME JAMS', 'WORKSHOPS']
-const TICKER_B = ['REGISTER ONCE', 'SHOW YOUR QR', 'SOLO OR TEAM', 'SEE YOU THERE']
 
 const TICKET_GRID = 'grid grid-cols-[repeat(auto-fill,minmax(min(100%,460px),1fr))] justify-items-center gap-x-8 gap-y-12'
 
@@ -235,6 +238,7 @@ function H2({ children, className }: { children: React.ReactNode; className?: st
   return (
     <h2 data-reveal="wipe" className={cn('mt-2 font-display text-[clamp(34px,5vw,56px)] font-normal leading-none', className)}>
       {children}
+      <span aria-hidden className="ml-[0.12em] inline-block h-[0.22em] w-[0.22em] bg-primary-red" />
     </h2>
   )
 }
@@ -259,37 +263,46 @@ export default function HomePage() {
   ]
 
   return (
-    <div className="-mb-16 overflow-x-clip">
-      {/* Hero */}
-      <section className="relative mx-auto max-w-[1240px] px-4 pb-12 pt-14 sm:px-6">
-        <div className="relative flex flex-wrap items-center gap-2.5 font-tech text-[11px] font-bold uppercase tracking-[0.22em] text-primary-red">
-          <span>
-            {CLUB.name} · SRM IST {CLUB.campus}
-          </span>
-        </div>
-
-        <div className="relative mt-5 grid items-center gap-10 lg:grid-cols-2">
+    <div className="landing-night relative isolate -mb-16 overflow-x-clip">
+      <PixelNightBackdrop />
+      {/* Hero: a pixel-art night level (the CRT renderer's `cintel` screen) runs
+          behind the copy. The scene is pinned to the bottom at its own 384:176 so
+          the ground always shows, and above it the wrapper continues the dark
+          sky. The ground and platforms are the bottom 48 of 176 rows (12.5% of
+          the scene's width), so the section's bottom padding keeps copy off them. */}
+      <div className="relative isolate overflow-hidden bg-[#080a14]">
+      <div aria-hidden className="absolute bottom-0 left-1/2 -z-10 aspect-[384/176] w-[max(100%,760px)] -translate-x-1/2">
+        <CrtBackground variant="cintel" speed={1.0} motion={1.0} hue={0} saturation={1.0} brightness={1.0} opacity={1.0} />
+      </div>
+      <section className="relative mx-auto max-w-[1240px] px-4 pb-[calc(max(100vw,760px)*0.125+40px)] pt-12 sm:px-6 lg:pt-16">
+        <div className="relative grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:justify-between lg:pr-[8vw]">
           <div>
-            <h1 className="m-0 font-display text-[clamp(60px,10vw,148px)] font-normal leading-[0.88] text-foreground">
+            <div className="flex flex-wrap items-center gap-4 font-tech text-[11px] font-bold uppercase tracking-[0.22em] text-cream">
+              <span className="h-[3px] w-10 bg-primary-red" />
+              <span>
+                {CLUB.name} · SRM IST {CLUB.campus}
+              </span>
+            </div>
+            <h1 className="m-0 mt-5 font-display text-[clamp(60px,10vw,148px)] font-normal leading-[0.88] text-cream lg:text-[clamp(88px,9vw,148px)]">
               <span data-reveal="left" className="block">BE</span>
               <span data-reveal="right" className="landing-outline block text-primary-yellow">
                 THERE<span className="text-primary-red [-webkit-text-stroke:0] [text-shadow:none]">.</span>
               </span>
             </h1>
-            <p data-reveal="up" className="mt-7 max-w-[520px] text-xl leading-normal text-foreground [text-wrap:pretty]">
+            <p data-reveal="up" className="mt-7 max-w-[520px] text-xl leading-normal text-cream [text-wrap:pretty]">
               One place for everything {CLUB.shortName} runs, from builds and ideathons to Sportiva and talks. Sign in once,
               register in a couple of taps.
             </p>
             <div data-reveal="up" className="mt-7 flex flex-wrap gap-3">
               <a
                 href="#events"
-                className="inline-flex items-center gap-2.5 rounded-full border-[3px] border-border bg-primary-red px-[26px] py-[15px] font-bold tracking-[0.06em] text-white transition-[transform,box-shadow] duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:[box-shadow:6px_6px_0_rgb(var(--border))] [box-shadow:4px_4px_0_rgb(var(--border))]"
+                className="inline-flex items-center gap-2.5 rounded-full border-[3px] border-cream bg-primary-red px-[26px] py-[15px] font-bold tracking-[0.06em] text-white transition-[transform,box-shadow] duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:[box-shadow:6px_6px_0_rgb(var(--border))] [box-shadow:4px_4px_0_rgb(var(--border))]"
               >
                 SEE UPCOMING →
               </a>
               <a
                 href="#how"
-                className="inline-flex items-center rounded-full border-[3px] border-border bg-panel px-[26px] py-[15px] font-bold tracking-[0.06em] text-foreground transition-colors hover:bg-primary-yellow hover:text-[#161412]"
+                className="inline-flex items-center rounded-full border-[3px] border-cream bg-transparent px-[26px] py-[15px] font-bold tracking-[0.06em] text-cream transition-colors hover:bg-primary-yellow hover:text-[#161412]"
               >
                 HOW IT WORKS
               </a>
@@ -298,21 +311,16 @@ export default function HomePage() {
 
           {/* Next up card */}
           <div data-reveal="right" className="relative">
-            <div className="absolute -top-[34px] right-[-10px] z-[2]">
+            <div className="absolute -top-[30px] right-[-18px] z-[2]">
               <div
-                className="landing-wob relative grid h-[104px] w-[104px] place-items-center rounded-full border-[3px] border-[#161412] bg-primary-yellow text-[#161412]"
+                className="landing-wob grid h-[88px] w-[88px] place-items-center rounded-full border-[3px] border-[#161412] bg-primary-yellow text-[#161412]"
                 style={hardShadow(4, '#161412')}
               >
-                <div className="landing-spin absolute inset-2 rounded-full border-[2.5px] border-dashed border-[#161412]" />
-                <div className="text-center font-display text-[13px] leading-[1.05]">
-                  {nextUp ? 'REG' : 'SOON'}
-                  <br />
-                  {nextUp ? 'OPEN' : '✦'}
-                </div>
+                <CalendarDays className="h-9 w-9" strokeWidth={2.25} aria-hidden />
               </div>
             </div>
 
-            <div className="landing-dots relative overflow-hidden rounded-3xl border-[3px] border-[#161412] bg-[#161412] text-cream" style={hardShadow(8, '#D6294C')}>
+            <div className="landing-dots relative overflow-hidden rounded-3xl border-[3px] border-primary-yellow bg-[#161412] text-cream" style={hardShadow(8, '#D6294C')}>
               <div className="flex flex-col gap-3 px-7 pb-[22px] pt-7">
                 <div className="flex items-center gap-2 font-tech text-[11px] font-bold tracking-[0.24em] text-primary-yellow">
                   <span className="landing-blink h-2 w-2 rounded-full bg-primary-yellow" />
@@ -379,19 +387,18 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      </div>
 
       {/* Tickers */}
-      <div className="mx-[-10px] mt-9 flex flex-col">
+      <div className="mx-[-10px] -mt-3 flex flex-col">
         <div className="relative z-[2] -rotate-[1.2deg] overflow-hidden border-y-[3px] border-[#161412] bg-primary-yellow">
           <Marquee words={TICKER_A} sep="✦" color="#161412" sepColor="#D6294C" seconds={30} />
-        </div>
-        <div className="-mt-2.5 rotate-1 overflow-hidden border-b-[3px] border-[#161412] bg-[#161412]">
-          <Marquee words={TICKER_B} sep="●" color="#F5F0E3" sepColor="#F2C230" seconds={39} reverse />
         </div>
       </div>
 
       {/* Upcoming events: tear-off tickets */}
-      <section id="events" className="mx-auto max-w-[1240px] scroll-mt-32 px-4 pb-6 pt-[88px] sm:px-6">
+      <section id="events" className="relative mx-auto max-w-[1240px] scroll-mt-32 px-4 pb-6 pt-[88px] sm:px-6">
+        <div className="pointer-events-none absolute right-6 top-2 hidden sm:block"><PixelQBlock scale={4} /></div>
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <Kicker>On the calendar</Kicker>
@@ -428,9 +435,9 @@ export default function HomePage() {
             ))}
           </div>
         ) : (
-          <div className="grid items-center gap-7 rounded-[22px] border-[3px] border-dashed border-border bg-[repeating-linear-gradient(135deg,rgb(var(--background))_0_14px,rgb(var(--background-soft)/.5)_14px_28px)] p-8 sm:grid-cols-[auto_1fr_auto]">
-            <div className="grid h-[72px] w-[72px] place-items-center rounded-[18px] border-[3px] border-[#161412] bg-primary-yellow font-display text-[32px] text-[#161412]" style={hardShadow(4, '#161412')}>
-              0
+          <div className="grid items-center gap-7 rounded-[22px] border-[3px] border-primary-yellow bg-panel p-7 sm:grid-cols-[auto_1fr_auto]">
+            <div className="grid h-[64px] w-[64px] place-items-center rounded-[16px] border-[3px] border-[#161412] bg-primary-yellow text-[#161412]" style={hardShadow(4, '#161412')}>
+              <CalendarDays className="h-8 w-8" strokeWidth={2.25} aria-hidden />
             </div>
             <div>
               <p className="font-display text-[22px]">NOTHING OPEN RIGHT NOW</p>
@@ -440,7 +447,7 @@ export default function HomePage() {
               href={instagram.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="justify-self-start whitespace-nowrap rounded-full border-[3px] border-[#161412] bg-[#161412] px-[22px] py-[13px] font-bold tracking-[0.06em] text-primary-yellow"
+              className="justify-self-start whitespace-nowrap rounded-full border-[3px] border-primary-yellow px-[22px] py-[13px] font-bold tracking-[0.06em] text-primary-yellow transition-colors hover:bg-primary-yellow hover:text-[#161412]"
             >
               FOLLOW
             </a>
@@ -450,7 +457,7 @@ export default function HomePage() {
         {!loading && !error && (
           <div className="mt-16">
             <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-              <p className="font-display text-2xl uppercase">Past events</p>
+              <p className="font-display text-2xl uppercase">Past events<span aria-hidden className="ml-1.5 inline-block h-[0.3em] w-[0.3em] bg-primary-red" /></p>
               <Link href="/events#past" className="font-tech text-xs font-bold tracking-[0.18em] text-primary-red hover:text-foreground">
                 SEE ALL {hosted} →
               </Link>
@@ -474,7 +481,7 @@ export default function HomePage() {
       </section>
 
       {/* Lanes */}
-      <section className="mx-auto max-w-[1240px] px-4 pb-6 pt-[88px] sm:px-6">
+      <section className="relative mx-auto max-w-[1240px] px-4 pb-6 pt-[88px] sm:px-6">
         <div className="mb-8 grid items-end gap-x-10 gap-y-6 md:grid-cols-2">
           <div>
             <Kicker>Something for everyone</Kicker>
@@ -519,18 +526,28 @@ export default function HomePage() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="relative mt-[88px] scroll-mt-24 overflow-hidden bg-[#161412] text-cream">
+      <section id="how" className="relative mt-[88px] scroll-mt-24 overflow-hidden text-cream">
         <Deco className="landing-spin -right-[60px] -top-[60px] h-[220px] w-[220px] rounded-full border-[3px] border-dashed border-[#3a3632]" style={{ animationDuration: '40s' }} />
-        <Deco className="landing-bob -left-[30px] bottom-10 h-[60px] w-[60px] border-[3px] border-primary-red" style={{ ['--r' as string]: '45deg', animationDuration: '6s' }} />
-        <div className="relative mx-auto max-w-[1240px] px-4 py-20 sm:px-6">
+        {/* level ground: coins, and the runner crossing */}
+        {[18, 44, 70].map((left, i) => (
+          <span key={left} className="px-bob pointer-events-none absolute bottom-[96px]" style={{ left: `${left}%`, animationDelay: `${i * 0.3}s` }}>
+            <PixelCoin scale={3} />
+          </span>
+        ))}
+        <PixelTraverse seconds={14} className="bottom-9 z-[1]"><span className="px-jump inline-block"><PixelRunner scale={3} /></span></PixelTraverse>
+        <PixelGround scale={3} className="absolute inset-x-0 bottom-0" />
+        <div className="relative mx-auto max-w-[1240px] px-4 pb-[150px] pt-20 sm:px-6">
           <div className="mb-12 grid items-end gap-x-10 gap-y-6 md:grid-cols-2">
             <div>
-              <Kicker className="text-primary-yellow">How it works</Kicker>
-              <H2>
-                FOUR STEPS
-                <br />
-                <span className="text-primary-red">TO THE DOOR</span>
-              </H2>
+              <Kicker>Here it begins</Kicker>
+              <div className="flex items-end gap-5">
+                <H2>
+                  FOUR STEPS
+                  <br />
+                  <span className="text-primary-red">TO THE DOOR</span>
+                </H2>
+                <PixelFlag scale={3} className="mb-1 flex-none" />
+              </div>
             </div>
             <p className="max-w-[460px] text-[17px] leading-relaxed text-[#CFC7B8] [text-wrap:pretty]">
               Your details are saved after your first event, so every registration after that takes seconds.
@@ -538,9 +555,12 @@ export default function HomePage() {
           </div>
           <ol data-reveal-kids="left" className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,190px),1fr))] gap-[3px] overflow-hidden rounded-[22px] border-[3px] border-cream bg-cream">
             {STEPS.map((s, i) => (
-              <li key={s.title} className="flex min-h-[230px] flex-col gap-3.5 bg-[#161412] p-7 transition-colors duration-200 hover:bg-[#2A2622]">
+              <li key={s.title} className="flex min-h-[230px] flex-col gap-3.5 bg-[#0d111f] p-7 transition-colors duration-200 hover:bg-[#161c30]">
                 <div className="flex items-center justify-between">
-                  <span className="font-display text-5xl leading-none text-primary-yellow">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="flex items-center gap-3">
+                    <span className="font-display text-5xl leading-none text-primary-yellow">{String(i + 1).padStart(2, '0')}</span>
+                    <s.icon className="h-7 w-7 text-cream" strokeWidth={2} aria-hidden />
+                  </span>
                   <span className="font-tech text-lg text-primary-red">→</span>
                 </div>
                 <p className="mt-auto text-[19px] font-bold">{s.title}</p>
@@ -552,11 +572,22 @@ export default function HomePage() {
       </section>
 
       {/* Stats */}
-      <section ref={stats.ref as React.RefObject<HTMLElement>} className="border-b-[3px] border-[#161412] bg-primary-yellow text-[#161412]">
-        <div data-reveal-kids="up" className="mx-auto grid max-w-[1240px] grid-cols-[repeat(auto-fit,minmax(min(100%,170px),1fr))] gap-6 px-4 py-12 sm:px-6">
+      <section ref={stats.ref as React.RefObject<HTMLElement>} className="relative overflow-hidden border-y-[3px] border-[#161412] bg-primary-yellow text-[#161412]">
+        <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 hidden w-[200px] xl:block">
+          <PixelCloud small scale={3} className="absolute bottom-[84px] left-4" />
+          <PixelTree scale={3} className="absolute bottom-[30px] left-[92px]" />
+          <PixelGround scale={3} className="absolute inset-x-0 bottom-0" />
+        </div>
+        <div aria-hidden className="pointer-events-none absolute bottom-0 right-0 hidden w-[200px] xl:block">
+          <PixelTree scale={3} className="absolute bottom-[30px] left-4" />
+          <PixelFlag scale={2} className="absolute bottom-[36px] right-10" />
+          <PixelGround scale={3} className="absolute inset-x-0 bottom-0" />
+        </div>
+        <div data-reveal-kids="up" className="relative mx-auto grid max-w-[860px] grid-cols-[repeat(auto-fit,minmax(min(100%,170px),1fr))] gap-6 px-4 py-12 sm:px-6">
           {statList.map((st) => (
             <div key={st.label} className="flex flex-col gap-1.5 border-l-[3px] border-[#161412] pl-[18px]">
-              <span className="font-display text-[clamp(48px,6vw,72px)] leading-none">
+              <span className="flex items-center gap-3 font-display text-[clamp(48px,6vw,72px)] leading-none">
+                <PixelCoin scale={3} className="flex-none" />
                 {loading ? '–' : Math.round(st.n * stats.p) + st.suffix}
               </span>
               <span className="font-tech text-xs font-bold tracking-[0.16em]">{st.label}</span>
@@ -566,7 +597,7 @@ export default function HomePage() {
       </section>
 
       {/* What we run */}
-      <section className="mx-auto max-w-[1240px] px-4 pb-6 pt-[88px] sm:px-6">
+      <section className="relative mx-auto max-w-[1240px] px-4 pb-6 pt-[88px] sm:px-6">
         <div className="mb-8">
           <Kicker>From {CLUB.shortName}</Kicker>
           <H2>WHAT WE RUN</H2>
@@ -577,7 +608,18 @@ export default function HomePage() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="mx-auto max-w-[1240px] scroll-mt-32 px-4 py-[88px] sm:px-6">
+      <section id="faq" className="relative scroll-mt-32">
+        <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 w-[180px]">
+          <PixelTree scale={3} className="absolute bottom-[30px] left-3" />
+          <PixelTree scale={2} className="absolute bottom-[30px] left-[88px]" />
+          <PixelGround scale={3} className="absolute inset-x-0 bottom-0" />
+        </div>
+        <div aria-hidden className="pointer-events-none absolute bottom-0 right-0 w-[180px]">
+          <PixelTree scale={3} className="absolute bottom-[30px] right-4" />
+          <PixelGround scale={3} className="absolute inset-x-0 bottom-0" />
+        </div>
+        <div className="pointer-events-none absolute right-[3%] top-[42%] hidden xl:block"><PixelQBlock scale={4} /></div>
+      <div className="mx-auto max-w-[1240px] px-4 pb-[120px] pt-[88px] sm:px-6">
         <div className="grid gap-10 lg:grid-cols-2">
           <div>
             <Kicker>Good to know</Kicker>
@@ -594,7 +636,7 @@ export default function HomePage() {
             {FAQS.map(([q, a], i) => {
               const open = openFaq === i
               return (
-                <div key={q} className="overflow-hidden rounded-[18px] border-[3px] border-border bg-panel">
+                <div key={q} className="overflow-hidden rounded-[18px] border-[3px] border-primary-yellow bg-panel">
                   <button
                     type="button"
                     onClick={() => setOpenFaq(open ? -1 : i)}
@@ -612,17 +654,23 @@ export default function HomePage() {
             })}
           </div>
         </div>
+      </div>
       </section>
 
       {/* CTA */}
       <section className="relative overflow-hidden border-y-[3px] border-[#161412] bg-primary-red">
-        <Deco className="landing-bob right-[34%] top-5 h-10 w-10 rounded-full border-[3px] border-[#161412] bg-primary-yellow" style={{ animationDuration: '4s' }} />
-        <Deco className="landing-spin -bottom-10 left-[46%] h-[120px] w-[120px] rounded-full border-[3px] border-dashed border-[#161412]" style={{ animationDuration: '20s' }} />
-        <div className="relative mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-7 px-4 py-16 sm:px-6">
-          <h2 data-reveal="wipe" className="m-0 max-w-[720px] font-display text-[clamp(34px,5.4vw,64px)] font-normal leading-[0.95] text-white">
-            NEVER MISS
-            <br />A <span className="text-primary-yellow">DROP.</span>
-          </h2>
+        <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 hidden w-[96px] lg:block">
+          <PixelRunner scale={4} className="absolute bottom-[36px] left-5" />
+          <PixelGround scale={3} className="absolute inset-x-0 bottom-0" />
+        </div>
+        <div className="relative mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-7 px-4 py-16 sm:px-6 lg:pl-[120px]">
+          <div>
+            <h2 data-reveal="wipe" className="m-0 max-w-[720px] font-display text-[clamp(34px,5.4vw,64px)] font-normal leading-[0.95] text-white">
+              NEVER MISS
+              <br />A <span className="text-primary-yellow">DROP.</span>
+            </h2>
+            <p className="mt-3 text-base text-white/85">Get updates, event announcements and more.</p>
+          </div>
           <a
             href={instagram.href}
             target="_blank"
