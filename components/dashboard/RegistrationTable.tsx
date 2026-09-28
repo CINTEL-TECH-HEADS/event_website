@@ -162,7 +162,6 @@ export function RegistrationTable({
   useEffect(() => {
     loadRegistrations()
     // refreshSignal is intentionally a dep so a live check-in re-fetches.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadRegistrations, refreshSignal])
 
   const [offering, setOffering] = useState<string | null>(null)

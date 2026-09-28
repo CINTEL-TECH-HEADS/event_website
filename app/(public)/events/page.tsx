@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { EventGrid } from '@/components/public/EventGrid'
 import { PageHeader } from '@/components/site/PageHeader'
 import { isRegistrationOpen } from '@/lib/utils'
@@ -84,9 +85,14 @@ export default function EventsPage() {
         )}
 
         {archiveFiltered && (
-          <a href="/events#past" className="mb-6 inline-block font-tech text-xs font-bold uppercase tracking-widest text-brand hover:underline">
+          // The filter is read from the URL once, so clear it here as well.
+          <Link
+            href="/events#past"
+            onClick={() => setTypeParam(null)}
+            className="mb-6 inline-block font-tech text-xs font-bold uppercase tracking-widest text-brand hover:underline"
+          >
             Showing {EVENT_TYPE_LABELS[typeParam!] ?? typeParam} events · show all
-          </a>
+          </Link>
         )}
         <div className="space-y-12">
           {periods.map((p) => (

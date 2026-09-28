@@ -280,7 +280,7 @@ portal; organizers run events from a dashboard; judges review participants.
 - Closed holes: `events/[id]` PATCH/DELETE, `events/[id]/registrations`, `events/[id]/organizers*`,
   `registrations/[id]/cancel`, `events/[id]/form-fields` POST, `certificates/download` (now session+ownership),
   `waitlist` (organizer-only). Public POSTs rate-limited (`registrations`, `waitlist`, `resend-confirmation`).
-- **Session hardening (defense-in-depth):** middleware protects `/dashboard`,`/judge`,`/participant/portal`;
+- **Session hardening (defense-in-depth):** `proxy.ts` (formerly `middleware.ts`) protects `/dashboard`,`/judge`,`/participant/portal`;
   **server-side auth gates** in the protected layouts (dashboard/judge layouts + new
   `participant/portal/layout.tsx`) via `getAuthUser()` → `redirect('/login')` so no page renders
   without a live session; `no-store` + `force-dynamic`; `SessionGuard.tsx` re-validates on

@@ -159,7 +159,7 @@ function ResetForm() {
             </button>
 
             <div className="text-center font-tech text-xs text-foreground-soft">
-              Didn't get a code?{' '}
+              Didn&apos;t get a code?{' '}
               <button type="button" onClick={() => sendCode(email)} className="text-brand hover:underline font-bold uppercase tracking-wide">
                 Resend
               </button>

@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // This folder is the project root. Without this, Next guesses the root from
+  // lockfiles and picks a parent folder when one has its own package-lock.json.
+  outputFileTracingRoot: __dirname,
+  turbopack: { root: __dirname },
   images: {
     remotePatterns: [
       {

@@ -49,7 +49,7 @@ export function PromotionEmail({
 
           <Text style={text}>
             Good news — someone cancelled their registration for{' '}
-            <strong>{eventTitle}</strong> and you've been moved off the
+            <strong>{eventTitle}</strong> and you&apos;ve been moved off the
             waitlist. Your spot is confirmed.
           </Text>
 
