@@ -25,13 +25,13 @@ const profileSchema = z.object({
   batch: nullableStr,
   section: nullableStr,
   fa_name: nullableStr,
-  // Networking fields (Find Teammates)
+  // Networking fields (no longer shown in the UI; kept so saved values survive)
   department: nullableStr,
   skills: nullableText,
   interests: nullableText,
   linkedin_url: nullableStr,
   github_url: nullableStr,
-  // 'srm' (SRM IST student) or 'external' (student from another college)
+  // 'srm' (SRM KTR student) or 'external' (student from another college)
   affiliation: z.enum(['srm', 'external']).optional().nullable(),
   college_name: nullableStr,
 })

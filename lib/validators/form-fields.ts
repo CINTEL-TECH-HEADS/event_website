@@ -15,6 +15,7 @@ export const formFieldSchema = z.object({
   is_required: z.boolean().default(false),
   applies_to: z.enum(['registration', 'member']),
   sort_order: z.number().int(),
+  audience: z.enum(['srm', 'external']).default('srm'),
   field_key: z.enum([
     'full_name', 'register_number', 'phone', 'college_email', 'personal_email',
     'year_of_study', 'batch', 'section', 'fa_name',

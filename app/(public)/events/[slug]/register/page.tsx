@@ -75,7 +75,7 @@ export default function RegisterPage() {
   const [event, setEvent] = useState<EventWithFields | null>(null)
   const [prefill, setPrefill] = useState<Record<string, any> | null>(null)
   const [alreadyRegistered, setAlreadyRegistered] = useState(false)
-  const [mode, setMode] = useState<'create' | 'find' | 'code'>('create')
+  const [mode, setMode] = useState<'create' | 'code'>('create')
   // For `both` events the participant chooses; solo/team events are fixed.
   const [participation, setParticipation] = useState<'solo' | 'team' | null>(null)
   const [loading, setLoading] = useState(true)
@@ -183,7 +183,7 @@ export default function RegisterPage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     {([
                       ['solo', 'Solo', 'Register just yourself.'],
-                      ['team', 'As a team', 'Create a team, find one, or join with a code.'],
+                      ['team', 'As a team', 'Create a team or join one with a code.'],
                     ] as const).map(([p, label, hint]) => (
                       <ChoiceCard key={p} active={part === p} onClick={() => setParticipation(p)} label={label} hint={hint} />
                     ))}
@@ -193,16 +193,15 @@ export default function RegisterPage() {
 
               {event.registration_mode === 'both' && part === null && !closed ? null : part === 'team' ? (
                 <>
-                  {/* Team: create a team, find a team, or join with a code */}
+                  {/* Team: create a team or join one with a code */}
                   {!closed && (
                     <fieldset>
                       <legend className="mb-3 font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">
                         Your team
                       </legend>
-                      <div className="grid gap-3 sm:grid-cols-3">
+                      <div className="grid gap-3 sm:grid-cols-2">
                         {([
                           ['create', 'Create a team', 'You become the team leader and get a code to share.'],
-                          ['find', 'Find a team', 'Register now and get matched with a team that needs members.'],
                           ['code', 'Join with code', 'A teammate already created the team.'],
                         ] as const).map(([m, label, hint]) => (
                           <ChoiceCard key={m} active={mode === m} onClick={() => setMode(m)} label={label} hint={hint} />
@@ -220,7 +219,6 @@ export default function RegisterPage() {
                         disabled={closed}
                         prefill={prefill}
                         forceTeam
-                        seeking={mode === 'find'}
                       />
                     </FormPanel>
                   )}

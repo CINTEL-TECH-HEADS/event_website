@@ -11,7 +11,7 @@ import { getAuthUser } from '@/lib/auth/get-session'
 import { findUserRegistration } from '@/lib/registrations/is-registered'
 import { canAccessEvent, isExternalParticipant, SRM_ONLY_MESSAGE } from '@/lib/participants/identity'
 import { generateUniqueGroupCode } from '@/lib/registrations/group-code'
-import { isTeamNameTaken, suggestTeamName } from '@/lib/registrations/team-name'
+import { isTeamNameTaken } from '@/lib/registrations/team-name'
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
@@ -64,7 +64,8 @@ export async function POST(req: NextRequest) {
   if (!event) return apiError('Event not found', 404)
 
   // Students from other colleges can only register for events open to them.
-  if (!canAccessEvent(await isExternalParticipant(supabase, user.id), event)) {
+  const external = await isExternalParticipant(supabase, user.id)
+  if (!canAccessEvent(external, event)) {
     return apiError(SRM_ONLY_MESSAGE, 403)
   }
 
@@ -159,19 +160,14 @@ export async function POST(req: NextRequest) {
   const requiresPayment =
     isPaid && status === 'confirmed' && payload.registration_type === 'solo'
 
-  // Step 6b: Resolve the team name — unique per event. A seeker's auto-name is
-  // uniquified silently; an explicit team name that's taken is rejected.
+  // Step 6b: Resolve the team name — unique per event; a taken name is rejected.
   let teamName: string | null = null
   if (payload.registration_type === 'team') {
     const rawName = ((payload as any).team_name ?? '').trim()
-    if ((payload as any).seeking) {
-      teamName = await suggestTeamName(supabase, event.id, rawName || `${leaderName}'s team`)
-    } else {
-      if (await isTeamNameTaken(supabase, event.id, rawName)) {
-        return apiError('That team name is already taken for this event. Please pick another.')
-      }
-      teamName = rawName
+    if (await isTeamNameTaken(supabase, event.id, rawName)) {
+      return apiError('That team name is already taken for this event. Please pick another.')
     }
+    teamName = rawName
   }
 
   // Step 7: Generate IDs (+ a shareable group code for teams)
@@ -224,16 +220,33 @@ export async function POST(req: NextRequest) {
     await supabase.from('team_members').insert(memberRows)
   }
 
-  // Step 11: Insert registration answers
+  // Step 11: Insert registration answers — only for this event's fields on the
+  // registrant's own form (SRM KTR or other colleges; other-college students fall
+  // back to the SRM form when an event has no other-college fields).
   if (payload.answers?.length) {
-    await supabase.from('registration_answers').insert(
-      payload.answers.map((a: any) => ({
-        registration_id: regId,
-        field_id:        a.field_id,
-        member_id:       null,
-        answer:          a.answer,
-      }))
+    const { data: eventFields } = await supabase
+      .from('form_fields')
+      .select('id, audience')
+      .eq('event_id', event.id)
+    const audience = external ? 'external' : 'srm'
+    const own = (eventFields ?? []).filter((f: any) => (f.audience ?? 'srm') === audience)
+    const allowed = new Set(
+      (own.length > 0 || audience === 'srm'
+        ? own
+        : (eventFields ?? []).filter((f: any) => (f.audience ?? 'srm') === 'srm')
+      ).map((f: any) => f.id)
     )
+    const answers = payload.answers.filter((a: any) => allowed.has(a.field_id))
+    if (answers.length) {
+      await supabase.from('registration_answers').insert(
+        answers.map((a: any) => ({
+          registration_id: regId,
+          field_id:        a.field_id,
+          member_id:       null,
+          answer:          a.answer,
+        }))
+      )
+    }
   }
 
   // Step 12: Send confirmation email

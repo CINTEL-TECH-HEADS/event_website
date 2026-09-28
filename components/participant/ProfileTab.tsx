@@ -13,7 +13,7 @@ type FormProfile = Omit<ParticipantProfile, 'id' | 'updated_at' | 'affiliation'>
 }
 type Field = { key: keyof FormProfile; label: string; placeholder?: string; required?: boolean; hint?: string }
 
-// SRM IST students identify with their registration number and @srmist.edu.in
+// SRM KTR students identify with their registration number and @srmist.edu.in
 // email; students from other colleges with their college name and phone.
 const SRM_FIELDS: Field[] = [
   { key: 'full_name', label: 'Full Name' },
@@ -35,14 +35,6 @@ const EXTERNAL_FIELDS: Field[] = [
 const COLLEGE_EMAIL_RE = /@srmist\.edu\.in$/i
 const REGISTER_NUMBER_RE = /^RA\d+$/i
 
-// Networking fields shown in Find Teammates.
-const NETWORK_FIELDS: { key: keyof FormProfile; label: string; placeholder?: string }[] = [
-  { key: 'skills', label: 'Skills', placeholder: 'e.g. AI/ML, Web Dev, UI/UX' },
-  { key: 'interests', label: 'Interests', placeholder: 'e.g. Hackathons, Robotics' },
-  { key: 'linkedin_url', label: 'LinkedIn (optional)', placeholder: 'https://linkedin.com/in/…' },
-  { key: 'github_url', label: 'GitHub (optional)', placeholder: 'https://github.com/…' },
-]
-
 const empty: FormProfile = {
   affiliation: '', college_name: '',
   full_name: '', register_number: '', phone: '', college_email: '',
@@ -51,7 +43,7 @@ const empty: FormProfile = {
 }
 
 const AFFILIATIONS = [
-  ['srm', 'SRM IST student', 'Register number and @srmist.edu.in email'],
+  ['srm', 'SRM KTR student', 'Register number and @srmist.edu.in email'],
   ['external', 'From another college', 'College name and phone'],
 ] as const
 
@@ -98,7 +90,7 @@ export function ProfileTab({
 
   function validate(): string | null {
     if (required && !form.affiliation) {
-      return 'Choose whether you are an SRM IST student or from another college.'
+      return 'Choose whether you are an SRM KTR student or from another college.'
     }
     if (external) {
       if (required && (!(form.college_name ?? '').trim() || !(form.phone ?? '').trim())) {
@@ -169,7 +161,7 @@ export function ProfileTab({
         )}
       </div>
 
-      {/* SRM IST student, or from another college */}
+      {/* SRM KTR student, or from another college */}
       {editing ? (
         <fieldset className="mb-6">
           <legend className={labelCls}>
@@ -195,7 +187,7 @@ export function ProfileTab({
       ) : (
         form.affiliation && (
           <p className="mb-6 text-sm font-bold text-foreground">
-            {external ? `Student from ${form.college_name || 'another college'}` : 'SRM IST student'}
+            {external ? `Student from ${form.college_name || 'another college'}` : 'SRM KTR student'}
           </p>
         )
       )}
@@ -251,28 +243,6 @@ export function ProfileTab({
                 </div>
               </>
             )}
-          </div>
-
-          {/* Networking — shown to teams in Find Teammates */}
-          <div className="mt-6 border-t-2 border-border pt-6">
-            <p className="mb-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent">
-              <span aria-hidden className="h-2 w-2 rotate-45 bg-accent" />
-              Networking (Find Teammates)
-            </p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {NETWORK_FIELDS.map(({ key, label, placeholder }) => (
-                <div key={key}>
-                  <label className={labelCls}>{label}</label>
-                  <input
-                    value={(form[key] as string) ?? ''}
-                    onChange={(e) => set(key, e.target.value)}
-                    disabled={!editing}
-                    placeholder={editing ? placeholder ?? '—' : ''}
-                    className={inputCls}
-                  />
-                </div>
-              ))}
-            </div>
           </div>
         </>
       )}

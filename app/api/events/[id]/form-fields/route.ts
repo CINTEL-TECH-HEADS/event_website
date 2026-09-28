@@ -17,6 +17,7 @@ import {
 
 import { requireOrganizerRole } from '@/lib/auth/get-session'
 import { logAction } from '@/lib/audit/log'
+import { formLockMessage, getFormLock, type FormLock } from '@/lib/events/form-lock'
 
 export async function GET(
   req: NextRequest,
@@ -93,10 +94,30 @@ export async function POST(
   const supabase =
     createAdminClient()
 
-  await supabase
+  // The form is fixed once the event is published or anyone has registered.
+  const { data: event } = await supabase
+    .from('events')
+    .select('is_published')
+    .eq('id', id)
+    .maybeSingle()
+  let lock: FormLock
+  try {
+    lock = await getFormLock(supabase, id, event?.is_published)
+  } catch {
+    return apiError('Could not check the event. Try again.', 500)
+  }
+  if (lock) return apiError(formLockMessage(lock), 409)
+
+  const { error: deleteError } = await supabase
     .from('form_fields')
     .delete()
     .eq('event_id', id)
+
+  if (deleteError)
+    return apiError(
+      deleteError.message,
+      500
+    )
 
   const rows =
     parsed.data.fields.map(

@@ -10,7 +10,7 @@ export async function buildCsv(event_id: string): Promise<string> {
   // Fetch form fields to use as column headers
   const { data: fields } = await admin
     .from('form_fields')
-    .select('id, label, applies_to')
+    .select('id, label, applies_to, audience')
     .eq('event_id', event_id)
     .order('sort_order')
 
@@ -39,7 +39,8 @@ export async function buildCsv(event_id: string): Promise<string> {
     'Checked In', 'Check-in Time', 'Check-in Method',
   ]
 
-  const fieldHeaders = (fields ?? []).map(f => f.label)
+  // Other-college form fields are labelled so same-named fields don't collide.
+  const fieldHeaders = (fields ?? []).map(f => (f.audience === 'external' ? `Other college: ${f.label}` : f.label))
   const headers = [...baseHeaders, ...fieldHeaders]
 
   // Build data rows

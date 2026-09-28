@@ -11,7 +11,7 @@ import FolderFloat from '@/components/reactbits/FolderFloat'
 import { CrtBackground } from '@/components/threeui/crt/CrtBackground'
 import { WhatWeRunMenu } from '@/components/public/WhatWeRunMenu'
 import { ARCHIVE_ALL, CLUB, SOCIALS } from '@/lib/club'
-import { ArchiveCard } from '@/components/public/ArchiveCard'
+import { PastEventsCarousel } from '@/components/public/PastEventsCarousel'
 import { countdownParts, useNow, usePublicEvents } from '@/lib/use-public-events'
 import { cn } from '@/lib/utils'
 
@@ -62,12 +62,12 @@ const LANES = [
 const STEPS = [
   { icon: UserRound, title: 'Sign in with Google', text: 'One click. No separate account or password to remember.' },
   { icon: FileText, title: 'Add your details once', text: 'Your college details are saved to your profile after the first time.' },
-  { icon: Users, title: 'Solo or as a team', text: 'Create a team, find one that needs members, or join with a code.' },
+  { icon: Users, title: 'Solo or as a team', text: 'Create a team and share its code, or join one with a teammate’s code.' },
   { icon: QrCode, title: 'Show your QR pass', text: 'Find it in My events. Paid events issue it once payment is verified.' },
 ]
 
 const FAQS = [
-  ['Who can register for an event?', 'Eligibility depends on the event. Some events are open to SRMIST students, while others may allow students from other colleges to participate.'],
+  ['Who can register for an event?', 'Eligibility depends on the event. Some events are open to SRM KTR students, while others may allow students from other colleges to participate.'],
   ['Can I register as a team?', 'Yes, if the event supports team participation. Create or join a team using the team code.'],
   ['Where can I find my event pass?', 'Your event pass and QR code will be available under My Events after successful registration.'],
   ['Can I register for multiple events?', 'Yes, you can register for multiple events as long as their schedules do not overlap and you meet the eligibility requirements.'],
@@ -471,10 +471,8 @@ export default function HomePage() {
                 ))}
               </div>
             )}
-            <div data-reveal-kids="up" className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-8">
-              {ARCHIVE_ALL.slice(0, completedEvents.length > 0 ? 3 : 6).map((e) => (
-                <ArchiveCard key={e.title} event={e} />
-              ))}
+            <div data-reveal="up">
+              <PastEventsCarousel />
             </div>
           </div>
         )}

@@ -1,6 +1,6 @@
 // app/api/participant/team/join/route.ts
 // POST — join a team (group-code model, authenticated).
-// Body: { code } (group code) OR { registration_id } (from the Team Finder).
+// Body: { code } (the team's group code).
 // The joiner is linked to their account (participant_id) and shares the team QR.
 
 import { NextRequest } from 'next/server'
@@ -17,21 +17,16 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}))
     const rawCode: string | undefined = body.code
-    const registrationId: string | undefined = body.registration_id
-    if (!rawCode && !registrationId) {
-      return apiError('A team code or team is required')
-    }
+    if (!rawCode) return apiError('A team code is required')
 
     const admin = createAdminClient()
 
-    // Resolve the team registration by group code or id.
-    let query = admin
+    // Resolve the team registration by its group code.
+    const { data: team } = await admin
       .from('registrations')
       .select('id, event_id, participant_id, team_name, status, is_open, registration_type, payment_status, events(title, max_team_size, registration_closes_at, open_to_external)')
-    query = rawCode
-      ? query.eq('group_code', rawCode.toUpperCase().trim())
-      : query.eq('id', registrationId!)
-    const { data: team } = await query.maybeSingle()
+      .eq('group_code', rawCode.toUpperCase().trim())
+      .maybeSingle()
 
     if (!team || team.registration_type !== 'team') return apiError('Team not found')
     if (team.status !== 'confirmed') return apiError('This team is no longer active')
@@ -45,7 +40,7 @@ export async function POST(req: NextRequest) {
     if (!canAccessEvent(await isExternalParticipant(admin, user.id), event ?? {})) {
       return apiError(SRM_ONLY_MESSAGE, 403)
     }
-    // SRM IST and other-college students never share a team.
+    // SRM KTR and other-college students never share a team.
     const teamPool = await poolOf(admin, team.participant_id)
     if ((await poolOf(admin, user.id)) !== teamPool) {
       return apiError(teamPoolMessage(teamPool), 403)
