@@ -31,12 +31,12 @@ export function WaitlistEmail({
       <Body style={main}>
         <Container style={container}>
 
-          <Heading style={h1}>You're on the waitlist</Heading>
+          <Heading style={h1}>You&apos;re on the waitlist</Heading>
 
           <Text style={text}>Hi {leaderName},</Text>
 
           <Text style={text}>
-            <strong>{eventTitle}</strong> is currently full, but you've been
+            <strong>{eventTitle}</strong> is currently full, but you&apos;ve been
             added to the waitlist.
           </Text>
 
@@ -48,7 +48,7 @@ export function WaitlistEmail({
           )}
 
           <Text style={text}>
-            If a spot opens up, you'll be automatically promoted and receive
+            If a spot opens up, you&apos;ll be automatically promoted and receive
             a new email with your QR code. No action needed from your side.
           </Text>
 

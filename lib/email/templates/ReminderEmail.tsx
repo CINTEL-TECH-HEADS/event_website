@@ -69,8 +69,8 @@ export function ReminderEmail({
 
           <Text style={text}>
             Your QR code was sent in your original confirmation email.
-            Can't find it? Check your spam folder or{' '}
-            search for "Cintel" in your inbox.
+            Can&apos;t find it? Check your spam folder or{' '}
+            search for &quot;Cintel&quot; in your inbox.
           </Text>
 
           <Hr style={hr} />

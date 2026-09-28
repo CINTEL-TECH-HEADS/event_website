@@ -1,4 +1,4 @@
-// middleware.ts
+// proxy.ts (Next 16's name for middleware)
 // Protects organizer routes (/dashboard, /judge) and participant portal (/participant/portal)
 
 import { createServerClient } from '@supabase/ssr'
@@ -14,7 +14,7 @@ type CookieItem = {
 const ORGANIZER_ROUTES    = ['/dashboard', '/judge']
 const PARTICIPANT_ROUTES  = ['/participant/portal']
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const isOrganizerRoute   = ORGANIZER_ROUTES.some(p => pathname.startsWith(p))

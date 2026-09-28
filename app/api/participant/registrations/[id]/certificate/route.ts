@@ -65,7 +65,9 @@ export async function GET(
       ? assignQuery.eq('team_member_id', teamMemberId)
       : assignQuery.is('team_member_id', null)
 
-    let { data: assignment, error: assignErr } = await assignQuery.maybeSingle()
+    const assignResult = await assignQuery.maybeSingle()
+    let assignment = assignResult.data
+    const assignErr = assignResult.error
 
     // Fallback: If certificate_file_url column does not exist yet in database schema
     if (assignErr) {

@@ -43,11 +43,11 @@ export function ConfirmationEmail({
   return (
     <Html>
       <Head />
-      <Preview>You're registered for {eventTitle} — your QR code is inside</Preview>
+      <Preview>You&apos;re registered for {eventTitle} — your QR code is inside</Preview>
       <Body style={main}>
         <Container style={container}>
 
-          <Heading style={h1}>You're in! 🎉</Heading>
+          <Heading style={h1}>You&apos;re in! 🎉</Heading>
 
           <Text style={text}>
             Hi {leaderName}{teamName ? ` (Team: ${teamName})` : ''},
@@ -70,7 +70,7 @@ export function ConfirmationEmail({
               />
             </a>
             <Text style={{ ...displayIdText, marginTop: '12px' }}>Registration ID: {displayId}</Text>
-            <Text style={fallbackText}>If the QR image doesn't load, please click the box above to view it in your browser.</Text>
+            <Text style={fallbackText}>If the QR image doesn&apos;t load, please click the box above to view it in your browser.</Text>
           </Section>
 
           {/* Event details */}

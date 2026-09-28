@@ -106,7 +106,7 @@ git push origin fe1/event-listing
 | `lib/certificates/`, `lib/export/` | BE4 |
 | `supabase/migrations/`, `supabase/rls/`, `supabase/seed/` | BE1 |
 | `types/index.ts` | BE1 — raise in group chat before editing |
-| `middleware.ts` | BE3 — raise before editing |
+| `proxy.ts` (was `middleware.ts`) | BE3 — raise before editing |
 | `lib/utils.ts` | SHARED — ask before editing |
 | `.env.local` | BE1 — never commit |
 | `next.config.js` | BE1 |
