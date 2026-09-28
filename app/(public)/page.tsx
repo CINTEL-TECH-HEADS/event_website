@@ -11,7 +11,7 @@ import FolderFloat from '@/components/reactbits/FolderFloat'
 import { CrtBackground } from '@/components/threeui/crt/CrtBackground'
 import { WhatWeRunMenu } from '@/components/public/WhatWeRunMenu'
 import { ARCHIVE_ALL, CLUB, SOCIALS } from '@/lib/club'
-import { ArchiveCard } from '@/components/public/ArchiveCard'
+import { PastEventsCarousel } from '@/components/public/PastEventsCarousel'
 import { countdownParts, useNow, usePublicEvents } from '@/lib/use-public-events'
 import { cn } from '@/lib/utils'
 
@@ -471,10 +471,8 @@ export default function HomePage() {
                 ))}
               </div>
             )}
-            <div data-reveal-kids="up" className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-8">
-              {ARCHIVE_ALL.slice(0, completedEvents.length > 0 ? 3 : 6).map((e) => (
-                <ArchiveCard key={e.title} event={e} />
-              ))}
+            <div data-reveal="up">
+              <PastEventsCarousel />
             </div>
           </div>
         )}
