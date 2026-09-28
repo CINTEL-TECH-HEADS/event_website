@@ -2,7 +2,22 @@
 
 > Living document. Update this at the end of every working session: append what was
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
-> Last updated: 2026-09-28 (report content, other-college students, test events removed).
+> Last updated: 2026-09-28 (separate other-college registration form; "SRM KTR" wording).
+
+## 2026-09-28: separate registration form for other-college students (branch `feat/external-form`, PR #5 → `feat/landing-content`)
+- **DB**: migration `027_form_field_audience.sql` (**applied to the live DB**) adds
+  `form_fields.audience`, either `'srm'` or `'external'` (default `'srm'`). Existing fields are on the SRM form.
+- **Builder** (`components/dashboard/FormFieldBuilder.tsx`, prop `openToExternal`):
+  - For open events it shows two tabs, SRM KTR students and Other-college students, plus "Copy from SRM form".
+  - The other-college form's standard fields are full name, phone, personal email and year of study.
+  - One combined list is kept and saved as all SRM fields followed by all other-college fields, because the save route replaces every field.
+  - Creating an open event lands on `?tab=form`.
+- **Publish rule**: an open event needs at least one field in each form. This is checked on the event page and in `PATCH /api/events/[id]`, including when a published event is opened up.
+- **Participants**: `RegistrationForm` shows each student the form for their affiliation. Other-college students fall back to the SRM form when an event has no other-college fields. `POST /api/registrations` stores only answers for the registrant's own form on that event.
+- **Exports**: other-college columns are prefixed with `Other college:`.
+- **Wording**: every mention of SRM students says "SRM KTR". "SRM Institute of Science and Technology" and the "SRM IST Kattankulathur" location line are unchanged.
+- **Verified end to end** with throwaway accounts, all deleted afterwards. See the PR #5 test plan.
+- **Known bug, not fixed**: the form-fields save route deletes all fields and then re-inserts them. Once answers exist, the delete fails, because `registration_answers.field_id` has no cascade. The error is ignored, so every field is **duplicated**.
 
 ## 2026-09-29: Team Finder / matchmaking removed
 Teams now form only by **Create a team** (get a group code) and **Join with code**.
@@ -37,7 +52,7 @@ Built on jayashriiSH's `feat/landing-redesign`; PR goes into that branch.
   `lib/participants/identity.ts`. Other-college students only see/register for events with
   "Open to students from other colleges" ticked (list filtered; detail 404; register/join/offer 403;
   Team Finder empty).
-- **Team pools**: SRM IST and other-college students never share a team. A team belongs to its creator's
+- **Team pools**: SRM KTR and other-college students never share a team. A team belongs to its creator's
   pool (`poolOf`/`getPools` in `lib/participants/identity.ts`); Team Finder lists, invites, join requests,
   join-by-code and the accept/merge step all enforce it.
 - **Security fix**: OAuth callback `?next=` open redirect (now same-site paths only).
