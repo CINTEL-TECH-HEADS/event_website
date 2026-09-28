@@ -44,9 +44,6 @@ export const teamRegistrationSchema = z.object({
   // participants join later with the code, so members are no longer required
   // up front. Kept optional for any legacy callers that still pass members.
   members: z.array(teamMemberSchema).optional().default([]),
-  // "Find a team" seeker: the team name is auto-generated, so uniqueness is
-  // resolved silently rather than rejected.
-  seeking: z.boolean().optional(),
   answers: z.array(registrationAnswerSchema).optional().default([]),
 })
 

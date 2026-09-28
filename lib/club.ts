@@ -16,56 +16,125 @@ export const SOCIALS = [
   { label: 'GitHub', handle: 'Cintel-Student-Association', href: 'https://github.com/Cintel-Student-Association' },
 ] as const
 
-// Recurring events the association runs. `photo` is from a past edition;
-// null renders a placeholder until one is added under public/club/. `type`
-// is the event_type the home page links to (/events?type=).
-export const FLAGSHIP_EVENTS: {
+export type ClubEvent = {
   title: string
   kind: string
+  // event_type the home page links to (/events?type=)
   type: string
   text: string
+  // From a past edition; null renders a poster tile in the sphere.
   photo: string | null
   alt: string
-}[] = [
+}
+
+export type ArchivedEvent = ClubEvent & { year: string; facts: string[] }
+
+// Events from the association's Annual Report 2025–26, shown as past events.
+export const ARCHIVE_2025_26: ArchivedEvent[] = [
   {
-    title: 'Sportiva',
-    kind: 'Sport',
-    type: 'fest',
-    text: 'The association’s sports meet: track, courts and team games.',
-    photo: null,
-    alt: 'Sportiva',
-  },
-  {
-    title: 'Ideathon',
-    kind: 'Ideas',
+    title: 'DIGITHON 3.0',
+    year: '2025–26',
+    kind: 'Hackathon',
     type: 'hackathon',
-    text: 'Teams pitch solutions to real problems. Ideas first, code optional.',
-    photo: null,
-    alt: 'Ideathon',
+    text: 'The association’s 24-hour flagship hackathon, with tracks in AI, cybersecurity, data science and full-stack.',
+    facts: ['24 hours', '200+ participants'],
+    photo: '/club/digithon.jpg',
+    alt: 'Teams working on laptops during DIGITHON 3.0',
   },
   {
-    title: 'CTF',
+    title: 'CTF 2025',
+    year: '2025',
     kind: 'Security',
     type: 'hackathon',
-    text: 'Capture the Flag: teams solve security challenges against the clock. Three editions so far.',
-    photo: '/club/ctf.jpg',
-    alt: 'A student briefing a group gathered around a laptop at CTF',
+    text: 'Capture the flag across cryptography, web exploitation, forensics, reverse engineering and OSINT.',
+    facts: ['12 hours', '120+ participants · 40 teams'],
+    photo: '/club/ctf-2025.jpg',
+    alt: 'A winning team receiving their prize at CTF 2025, with the leaderboard behind them',
   },
   {
+    title: 'IDEATHON 2.0',
+    year: '2025–26',
+    kind: 'Ideas',
+    type: 'hackathon',
+    text: 'Teams pitched ideas in AI, sustainability, healthcare and smart systems to faculty and industry judges.',
+    facts: ['5-minute pitches', '30+ teams'],
+    photo: '/club/ideathon.jpg',
+    alt: 'A team working through their idea on laptops at IDEATHON 2.0',
+  },
+  {
+    title: 'PyQuest 2025',
+    year: '2025',
+    kind: 'Coding',
+    type: 'hackathon',
+    text: 'A Python contest over three rounds: qualifier, semi-final and a live finale on campus.',
+    facts: ['45 teams', 'Top 10 in the finale'],
+    photo: '/club/pyquest.jpg',
+    alt: 'PyQuest 2025 winners on stage with a faculty member',
+  },
+  {
+    title: 'BugBusters 2025',
+    year: '2025',
+    kind: 'Debugging',
+    type: 'hackathon',
+    text: 'Find and fix broken code in Python, C++ and Java against the clock.',
+    facts: ['3 rounds', '60+ participants'],
+    photo: '/club/bugbusters.jpg',
+    alt: 'BugBusters 2025 participants holding their certificates',
+  },
+  {
+    title: 'Sportiva 2026',
+    year: '2026',
+    kind: 'Sport',
+    type: 'fest',
+    text: 'The department’s sports fest: athletics, cricket, football, badminton and more.',
+    facts: ['300+ athletes', '15+ sports'],
+    photo: '/club/sportiva.jpg',
+    alt: 'A football match on the ground during Sportiva 2026',
+  },
+]
+
+// Events held so far in 2026–27.
+export const ARCHIVE_2026_27: ArchivedEvent[] = [
+  {
+    title: 'CTF 2026',
+    year: '2026',
+    kind: 'Security',
+    type: 'hackathon',
+    text: 'Capture the flag: teams solve security challenges against the clock.',
+    facts: [],
+    photo: '/club/ctf-2026.jpg',
+    alt: 'A full lecture hall of students on laptops during CTF 2026',
+  },
+  {
+    title: 'Game Jam 2026',
+    year: '2026',
+    kind: 'Games',
+    type: 'fest',
+    text: 'Teams build a game in a fixed window, then pitch it to the judges.',
+    facts: [],
+    photo: '/club/game-jam-2026.jpg',
+    alt: 'A team walking a judge through their game at Game Jam 2026',
+  },
+]
+
+// Past events by academic year, newest first.
+export const ARCHIVE_PERIODS: { period: string; events: ArchivedEvent[] }[] = [
+  { period: '2026–27', events: ARCHIVE_2026_27 },
+  { period: '2025–26', events: ARCHIVE_2025_26 },
+]
+
+export const ARCHIVE_ALL: ArchivedEvent[] = ARCHIVE_PERIODS.flatMap((p) => p.events)
+
+// Everything the association runs, for the "What we run" sphere.
+export const FLAGSHIP_EVENTS: ClubEvent[] = [
+  ...ARCHIVE_2025_26,
+  {
     title: 'Game Jam',
-    kind: 'Build',
+    kind: 'Games',
     type: 'fest',
     text: 'Teams build a game in a fixed window, then pitch it to the judges.',
     photo: '/club/game-jam.jpg',
     alt: 'A team presenting their game to the judges at Game Jam',
-  },
-  {
-    title: 'CINTEL Connect',
-    kind: 'Stage',
-    type: 'fest',
-    text: 'The association’s stage night: live music, dance and performances.',
-    photo: '/club/cintel-connect.jpg',
-    alt: 'Three students performing live music on stage at CINTEL Connect',
   },
   {
     title: 'Learn. Leap. Lead.',

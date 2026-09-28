@@ -7,9 +7,12 @@ import {
 import {
   createAdminClient,
 } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth/get-session'
+import { canAccessEvent, isExternalParticipant } from '@/lib/participants/identity'
 
 import { requireOrganizerRole } from '@/lib/auth/get-session'
 import { logAction } from '@/lib/audit/log'
+import { formLockMessage, getFormLock } from '@/lib/events/form-lock'
 
 function isUUID(
   value: string
@@ -76,8 +79,21 @@ export async function GET(
         404
       )
 
+    // SRM-only events don't exist, as far as students from other colleges are
+    // concerned. (Organizers are never external, so the dashboard is unaffected.)
+    const viewer = await getAuthUser()
+    if (!canAccessEvent(await isExternalParticipant(supabase, viewer?.id), data))
+      return apiError(
+        'Event not found',
+        404
+      )
+
+    // Whether the dashboard may still edit the registration form.
+    const form_lock = await getFormLock(supabase, data.id, data.is_published)
+      .catch(() => 'registrations' as const)
+
     return apiSuccess(
-      data
+      { ...data, form_lock }
     )
   } catch {
     return apiError(
@@ -111,14 +127,41 @@ export async function PATCH(
     const supabase =
       createAdminClient()
 
-    // Gate publishing: an event must have at least one configured field.
+    const { data: current } = await supabase
+      .from('events')
+      .select('is_published, open_to_external')
+      .eq('id', id)
+      .maybeSingle()
+
+    // Who can register decides which forms exist, so it is locked with the
+    // form: while published, and once anyone has registered.
+    if (
+      typeof body.open_to_external === 'boolean' &&
+      body.open_to_external !== (current?.open_to_external === true)
+    ) {
+      const lock = await getFormLock(supabase, id, current?.is_published)
+      if (lock) return apiError(formLockMessage(lock, 'audience'), 409)
+    }
+
+    // Gate publishing: an event must have a registration form. Events open to
+    // other colleges have two forms (SRM KTR / other colleges) and need a field
+    // in each.
+    const willBeOpen = body.open_to_external ?? current?.open_to_external ?? false
     if (body.is_published === true) {
-      const { count } = await supabase
+      const { data: fields } = await supabase
         .from('form_fields')
-        .select('id', { count: 'exact', head: true })
+        .select('audience')
         .eq('event_id', id)
-      if ((count ?? 0) === 0) {
+      const external = (fields ?? []).filter((f: any) => f.audience === 'external').length
+      const srm = (fields ?? []).length - external
+      if (srm + external === 0) {
         return apiError('Add at least one registration field before publishing this event.', 400)
+      }
+      if (willBeOpen && srm === 0) {
+        return apiError('Add at least one field to the SRM KTR form before publishing this event.', 400)
+      }
+      if (willBeOpen && external === 0) {
+        return apiError('Add at least one field to the other-college form before publishing this event.', 400)
       }
     }
 
@@ -149,8 +192,11 @@ export async function PATCH(
       metadata: { fields: Object.keys(body ?? {}) },
     })
 
+    const form_lock = await getFormLock(supabase, id, data.is_published)
+      .catch(() => 'registrations' as const)
+
     return apiSuccess(
-      data
+      { ...data, form_lock }
     )
   } catch {
     return apiError(

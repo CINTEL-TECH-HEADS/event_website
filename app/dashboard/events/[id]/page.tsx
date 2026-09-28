@@ -27,7 +27,8 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<EventWithStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [fieldsCount, setFieldsCount] = useState<number | null>(null)
+  // Custom field counts per form (SRM KTR / other colleges); they gate publishing.
+  const [fieldCounts, setFieldCounts] = useState<{ srm: number; external: number } | null>(null)
   const [tab, setTab] = useState<'details' | 'form' | 'organizers'>('details')
   const [formData, setFormData] = useState({
     title: '',
@@ -45,6 +46,7 @@ export default function EventDetailPage() {
     bank_account_number: '',
     bank_ifsc: '',
     bank_name: '',
+    open_to_external: false,
   })
 
   useEffect(() => {
@@ -78,13 +80,9 @@ export default function EventDetailPage() {
         bank_account_number: data.bank_account_number ?? '',
         bank_ifsc: data.bank_ifsc ?? '',
         bank_name: data.bank_name ?? '',
+        open_to_external: data.open_to_external === true,
       })
 
-      // Fields count gates publishing.
-      fetch(`/api/events/${id}/form-fields`)
-        .then((r) => r.json())
-        .then((j) => setFieldsCount((j.data ?? []).length))
-        .catch(() => setFieldsCount(0))
     } catch (error) {
       console.error('Failed to load event:', error)
       setEvent(null)
@@ -95,6 +93,26 @@ export default function EventDetailPage() {
 
   if (id) loadEvent()
 }, [id])
+
+  // Open a specific tab from the URL (e.g. ?tab=form right after creating an event).
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get('tab')
+    if (t === 'form' || t === 'organizers' || t === 'details') setTab(t)
+  }, [])
+
+  // Refresh the per-form field counts whenever the details tab is shown, so the
+  // publish gate reflects edits made in the Custom fields tab.
+  useEffect(() => {
+    if (!id || tab !== 'details') return
+    fetch(`/api/events/${id}/form-fields`)
+      .then((r) => r.json())
+      .then((j) => {
+        const list: { audience?: string }[] = j.data ?? []
+        const external = list.filter((f) => f.audience === 'external').length
+        setFieldCounts({ srm: list.length - external, external })
+      })
+      .catch(() => setFieldCounts({ srm: 0, external: 0 }))
+  }, [id, tab])
 
   const handleSaveEvent = async () => {
     setSaving(true)
@@ -126,12 +144,13 @@ export default function EventDetailPage() {
         }),
       })
 
+      const json = await res.json().catch(() => null)
       if (!res.ok) {
-        throw new Error('Failed to save event')
+        // Surface the server's reason (e.g. who can register is locked).
+        alert(json?.error ?? 'Failed to save event')
+        return
       }
-
-      const { data } = await res.json()
-      setEvent(data)
+      setEvent(json.data)
     } catch (error) {
       console.error('Failed to save event:', error)
       alert('Failed to save event')
@@ -142,6 +161,15 @@ export default function EventDetailPage() {
 
   const togglePublish = async () => {
     if (!event) {
+      return
+    }
+
+    if (
+      !event.is_published &&
+      !window.confirm(
+        `Publish "${event.title}"?\n\nCheck the registration form${event.open_to_external ? 's' : ''} and who can register first. They can't be changed after publishing.`
+      )
+    ) {
       return
     }
 
@@ -176,6 +204,24 @@ export default function EventDetailPage() {
     return <div className="text-sm font-bold uppercase tracking-wide text-brand">Event not found</div>
   }
 
+  // The form and who can register are fixed once the event is published or
+  // anyone has registered (see lib/events/form-lock.ts).
+  const formLock = event.form_lock ?? (event.is_published ? 'published' : null)
+
+  // Publishing needs a form: at least one custom field, and for events open to
+  // other colleges at least one in each form.
+  const publishBlocker = !fieldCounts
+    ? null
+    : event.open_to_external
+      ? fieldCounts.srm === 0
+        ? 'Add at least one field to the SRM KTR form (Custom fields tab) to publish.'
+        : fieldCounts.external === 0
+          ? 'Add at least one field to the other-college form (Custom fields tab) to publish.'
+          : null
+      : fieldCounts.srm + fieldCounts.external === 0
+        ? 'Add at least one field (Custom fields tab) to publish.'
+        : null
+
   return (
     <div className="space-y-6">
       <DashboardPageHeader
@@ -186,14 +232,14 @@ export default function EventDetailPage() {
           <div className="flex flex-col items-start gap-1 lg:items-end">
             <button
               onClick={togglePublish}
-              disabled={saving || (!event.is_published && fieldsCount === 0)}
+              disabled={saving || (!event.is_published && !!publishBlocker)}
               className={event.is_published ? 'app-button-secondary' : 'app-button-primary'}
             >
               {event.is_published ? <CheckCircle2 size={16} /> : <CircleDashed size={16} />}
               {event.is_published ? 'Published' : 'Publish event'}
             </button>
-            {!event.is_published && fieldsCount === 0 && (
-              <p className="text-xs font-bold uppercase tracking-wide text-warning">Add at least one field (Custom fields tab) to publish.</p>
+            {!event.is_published && publishBlocker && (
+              <p className="text-xs font-bold uppercase tracking-wide text-warning">{publishBlocker}</p>
             )}
           </div>
         }
@@ -364,6 +410,24 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
+              <div className="rounded-xl border-2 border-border bg-panel-muted p-4">
+                <label className="flex items-center gap-3 text-sm font-bold uppercase tracking-wide text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={formData.open_to_external}
+                    disabled={!!formLock}
+                    onChange={(e) => setFormData({ ...formData, open_to_external: e.target.checked })}
+                    className="h-4 w-4 accent-accent disabled:opacity-60"
+                  />
+                  Open to students from other colleges
+                </label>
+                <p className="mt-2 text-xs font-medium text-foreground-soft">
+                  Off: only SRM KTR students can see and register. On: students from other colleges can too.
+                  {formLock === 'published' && ' Locked while the event is published.'}
+                  {formLock === 'registrations' && ' Locked because people have already registered.'}
+                </p>
+              </div>
+
               {Number(formData.fee) > 0 && (
                 <div className="border-t-2 border-border pt-5">
                   <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Payment method</label>
@@ -437,6 +501,7 @@ export default function EventDetailPage() {
                 ['Format', REGISTRATION_MODE_LABELS[event.registration_mode ?? 'both'] ?? event.registration_mode],
                 ['Capacity', event.capacity ?? 'Unlimited'],
                 ['Fee', (event.fee ?? 0) > 0 ? `₹${event.fee}` : 'Free'],
+                ['Open to', event.open_to_external ? 'All colleges' : 'SRM KTR only'],
               ].map(([label, value]) => (
                 <div key={label as string} className="flex items-center justify-between gap-3 py-2.5">
                   <dt className="font-tech text-[11px] font-bold uppercase tracking-widest text-foreground-soft">{label}</dt>
@@ -448,7 +513,9 @@ export default function EventDetailPage() {
         </div>
       )}
 
-      {tab === 'form' && <FormFieldBuilder eventId={id} />}
+      {tab === 'form' && (
+        <FormFieldBuilder eventId={id} openToExternal={event.open_to_external === true} lock={formLock} />
+      )}
       {tab === 'organizers' && <OrganizerManager eventId={id} />}
     </div>
   )

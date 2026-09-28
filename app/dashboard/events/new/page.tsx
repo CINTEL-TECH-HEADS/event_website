@@ -34,6 +34,7 @@ export default function NewEventPage() {
   const [isPaid, setIsPaid] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'bank'>('upi')
   const [hasWaitlist, setHasWaitlist] = useState(false)
+  const [openToExternal, setOpenToExternal] = useState(false)
 
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
@@ -100,6 +101,8 @@ export default function NewEventPage() {
         hasWaitlist && form.get('waitlist_capacity')
           ? Number(form.get('waitlist_capacity'))
           : null,
+
+      open_to_external: openToExternal,
     }
 
     const res = await fetch(
@@ -127,8 +130,9 @@ export default function NewEventPage() {
       return
     }
 
+    // Events open to other colleges have two registration forms to set up next.
     router.push(
-      `/dashboard/events/${data.id}`
+      `/dashboard/events/${data.id}${openToExternal ? '?tab=form' : ''}`
     )
   }
 
@@ -337,6 +341,16 @@ export default function NewEventPage() {
               )}
               <p className="mt-2 text-xs font-medium text-foreground-soft">Requires a capacity. When full, extra registrants join the waitlist.</p>
             </div>
+
+            <div className="rounded-xl border-2 border-border bg-panel-muted p-4 sm:col-span-2">
+              <label className="flex items-center gap-3 text-sm font-bold uppercase tracking-wide text-foreground">
+                <input type="checkbox" checked={openToExternal} onChange={(e) => setOpenToExternal(e.target.checked)} className="h-4 w-4 accent-accent" />
+                Open to students from other colleges
+              </label>
+              <p className="mt-2 text-xs font-medium text-foreground-soft">
+                Off: only SRM KTR students can see and register. On: students from other colleges can too.
+              </p>
+            </div>
           </div>
 
           {/* Payment method (paid events) */}
@@ -435,9 +449,9 @@ export default function NewEventPage() {
         <div className="rounded-2xl border-2 border-border bg-panel p-6 shadow-sm">
           <h2 className="font-display text-sm uppercase tracking-wide text-foreground">After you create it</h2>
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm font-medium text-foreground-soft">
-            <li>Add the registration fields you need (Custom fields tab).</li>
+            <li>Add the registration fields you need (Custom fields tab). Events open to other colleges get a second form for those students.</li>
             <li>Give other organizers access (Access control tab).</li>
-            <li>Publish the event to open registration.</li>
+            <li>Publish the event to open registration. After that, the registration form and who can register can&apos;t be changed.</li>
           </ol>
         </div>
 

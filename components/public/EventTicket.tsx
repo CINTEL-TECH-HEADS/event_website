@@ -97,6 +97,11 @@ export function EventTicket({ event, now, past = false, index = 0 }: {
           >
             {past ? 'ENDED' : daysTo(event.starts_at, now)}
           </span>
+          {event.open_to_external && (
+            <span className="whitespace-nowrap rounded-full bg-primary-yellow px-2.5 py-[5px] font-tech text-[10px] font-bold tracking-[0.14em] text-[#161412]">
+              OPEN TO ALL COLLEGES
+            </span>
+          )}
         </div>
         <Link href={href} className="font-display text-[26px] uppercase leading-none text-primary-yellow hover:text-cream">
           {event.title}

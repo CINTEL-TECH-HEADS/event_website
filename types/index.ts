@@ -52,6 +52,8 @@ export interface Event {
   // Waitlist + payment
   waitlist_capacity?: number | null
   fee?: number
+  // Other-college students can only see and register for events with this on.
+  open_to_external?: boolean
   // Payment configuration (only meaningful when fee > 0)
   payment_method?: 'upi' | 'bank' | null
   upi_id?: string | null
@@ -98,7 +100,11 @@ export interface FormField {
   applies_to: FieldAppliesTo
   sort_order: number
   field_key: ProfileFieldKey | null
+  // Which form the field is on: SRM KTR students, or students from other colleges.
+  audience?: FormAudience
 }
+
+export type FormAudience = 'srm' | 'external'
 
 export interface ParticipantProfile {
   id: string
@@ -116,6 +122,8 @@ export interface ParticipantProfile {
   interests: string | null
   linkedin_url: string | null
   github_url: string | null
+  affiliation: 'srm' | 'external' | null
+  college_name: string | null
   updated_at: string
 }
 
@@ -342,6 +350,10 @@ export type EventWithStats = {
   waitlist_count?: number
   banner_url?: string | null
   fee?: number
+  open_to_external?: boolean
+  // Returned by GET/PATCH /api/events/[id]: why the registration form (and
+  // open_to_external) can no longer change, or null while it can.
+  form_lock?: 'published' | 'registrations' | null
 }
 export type RegistrationWithDetails = {
   id: string
