@@ -1,0 +1,10 @@
+/* React Bits ScrambledText. The demo's margin/font/colour defaults are
+   dropped so each use site styles it with its own classes. */
+.text-block p {
+  margin: 0;
+}
+
+.char {
+  will-change: transform;
+  display: inline-block;
+}

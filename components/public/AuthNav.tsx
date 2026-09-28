@@ -72,7 +72,7 @@ export function AuthNav() {
 
   if (!me.authenticated) {
     return (
-      <Link href="/login" className="app-button-primary text-xs sm:text-sm">
+      <Link href="/login" className="app-button-primary text-xs hover:-translate-x-0.5 hover:-translate-y-0.5 hover:[box-shadow:5px_5px_0_rgb(var(--border))] sm:text-sm">
         Login
       </Link>
     )

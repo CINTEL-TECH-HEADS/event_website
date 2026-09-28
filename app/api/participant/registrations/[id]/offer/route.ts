@@ -10,6 +10,7 @@ import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth/get-session'
 import { isRegistrationOwner, linkParticipantIfUnset } from '@/lib/registrations/access'
+import { canAccessEvent, isExternalParticipant, SRM_ONLY_MESSAGE } from '@/lib/participants/identity'
 import { uploadQrToStorage, getQrSignedUrl } from '@/lib/qr/generate'
 import { generateGoogleCalendarLink } from '@/lib/calendar/gcal-link'
 import { sendConfirmationEmail } from '@/lib/email/send'
@@ -29,7 +30,7 @@ export async function POST(
     const admin = createAdminClient()
     const { data: reg } = await admin
       .from('registrations')
-      .select('*, events(title, venue, starts_at, ends_at, fee)')
+      .select('*, events(title, venue, starts_at, ends_at, fee, open_to_external)')
       .eq('id', id)
       .maybeSingle()
     if (!reg) return apiError('Registration not found', 404)
@@ -44,6 +45,9 @@ export async function POST(
 
     // Accept.
     const event = reg.events as any
+    if (!canAccessEvent(await isExternalParticipant(admin, user.id), event ?? {})) {
+      return apiError(SRM_ONLY_MESSAGE, 403)
+    }
     const isPaid = (event?.fee ?? 0) > 0
 
     if (isPaid) {

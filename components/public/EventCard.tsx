@@ -58,6 +58,7 @@ export function EventCard({ event, past = false }: { event: PublicEvent; past?: 
         {!past && (
           <div className="mt-auto flex flex-wrap items-center gap-2 border-t-2 border-border pt-3">
             <span className="app-badge app-badge-neutral">{fee > 0 ? `₹${fee}` : 'Free'}</span>
+            {event.open_to_external && <span className="app-badge app-badge-warning">Open to all colleges</span>}
             <CapacityBadge event={event} />
           </div>
         )}

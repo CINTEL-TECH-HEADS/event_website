@@ -2,7 +2,67 @@
 
 > Living document. Update this at the end of every working session: append what was
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
-> Last updated: 2026-09-27 (new page layouts across the site; Resend Pass + public Certificate removed).
+> Last updated: 2026-09-28 (separate other-college registration form; "SRM KTR" wording).
+
+## 2026-09-28: separate registration form for other-college students (branch `feat/external-form`, PR #5 → `feat/landing-content`)
+- **DB**: migration `027_form_field_audience.sql` (**applied to the live DB**) adds
+  `form_fields.audience`, either `'srm'` or `'external'` (default `'srm'`). Existing fields are on the SRM form.
+- **Builder** (`components/dashboard/FormFieldBuilder.tsx`, prop `openToExternal`):
+  - For open events it shows two tabs, SRM KTR students and Other-college students, plus "Copy from SRM form".
+  - The other-college form's standard fields are full name, phone, personal email and year of study.
+  - One combined list is kept and saved as all SRM fields followed by all other-college fields, because the save route replaces every field.
+  - Creating an open event lands on `?tab=form`.
+- **Publish rule**: an open event needs at least one field in each form. This is checked on the event page and in `PATCH /api/events/[id]`, including when a published event is opened up.
+- **Participants**: `RegistrationForm` shows each student the form for their affiliation. Other-college students fall back to the SRM form when an event has no other-college fields. `POST /api/registrations` stores only answers for the registrant's own form on that event.
+- **Exports**: other-college columns are prefixed with `Other college:`.
+- **Wording**: every mention of SRM students says "SRM KTR". "SRM Institute of Science and Technology" and the "SRM IST Kattankulathur" location line are unchanged.
+- **Verified end to end** with throwaway accounts, all deleted afterwards. See the PR #5 test plan.
+- **Form lock** (`lib/events/form-lock.ts`): the registration form and "open to other colleges" can't change while the event is published, or at all once anyone has registered.
+  - Unpublishing an event nobody has registered for unlocks it again.
+  - Enforced in `POST /api/events/[id]/form-fields` (409) and in `PATCH /api/events/[id]` when `open_to_external` changes (409).
+  - `GET` and `PATCH /api/events/[id]` return `form_lock` (`'published' | 'registrations' | null`).
+  - The builder turns read-only and shows why. Publishing asks for confirmation first.
+  - This fixes the old duplicate-fields bug: the save deleted every field and re-inserted it, and once answers existed the delete failed silently, so every field was duplicated. The save route now also checks the delete error, and the builder no longer blanks the list when a save is refused.
+
+## 2026-09-29: Team Finder / matchmaking removed
+Teams now form only by **Create a team** (get a group code) and **Join with code**.
+- **Removed**: register-page "Find a team" (open team-of-one seekers), the matchmaking page
+  `.../events/[registration_id]/find`, portal-home team invites/requests (accept/decline) and the
+  "Find teammates" button, `GET /api/events/[id]/seekers`, `GET /api/events/[id]/teams`,
+  `POST /api/participant/team/invite | invite/respond | request`, `GET /api/participant/team/invites`,
+  `lib/registrations/merge-into-team.ts`, the `seeking` registration flag, and the profile's
+  "Networking (Find Teammates)" fields (skills/interests/LinkedIn/GitHub stay in the DB, unused).
+- **Join** (`POST /api/participant/team/join`) is code-only now; joining by `registration_id` is gone.
+- **Kept**: `registrations.is_open` — the creator's open/closed toggle now means "the code still lets
+  people join" (join-by-code already checked it).
+- **DB**: migration `026_drop_team_invites.sql` (**applied to the live DB**) dropped `team_invites`
+  (it was empty, nothing referenced it; re-run 017 to restore). Any existing seeker registrations remain
+  as one-person teams.
+- **Migrations from Claude Code**: `scripts/db.mjs` (`query` / `dry-run` / `apply`, one transaction per
+  file) using `SUPABASE_DB_URL` (session pooler) in `.env.local`.
+
+## 2026-09-28: annual-report content, other-college students (branch `feat/landing-content`)
+Built on jayashriiSH's `feat/landing-redesign`; PR goes into that branch.
+- **Content**: `ARCHIVE_2025_26` in `lib/club.ts` (DIGITHON 3.0, CTF 2025, IDEATHON 2.0, PyQuest 2025,
+  BugBusters 2025, Sportiva 2026) with photos from the Annual Report 2025–26 in `public/club/`. Home
+  "Past events" + `/events#past` show it (`ArchiveCard`); sphere and "Pick your lane" = those six +
+  Game Jam + Learn. Leap. Lead. CSR and CINTEL Connect dropped. Report figures that contradicted each
+  other, winner names and stock photos were left out.
+- **2026–27 so far**: CTF 2026 and Game Jam 2026 (`ARCHIVE_2026_27`, photos from the user); past events
+  are grouped by academic year via `ARCHIVE_PERIODS` (newest first).
+- **Other colleges**: migration `025_external_participants.sql` (**applied to the live DB**):
+  `participant_profiles.affiliation` ('srm'|'external', existing SRM profiles backfilled),
+  `participant_profiles.college_name`, `events.open_to_external` (default false). Setup asks SRM vs
+  other college; other-college students give college name + phone. Rules in
+  `lib/participants/identity.ts`. Other-college students only see/register for events with
+  "Open to students from other colleges" ticked (list filtered; detail 404; register/join/offer 403;
+  Team Finder empty).
+- **Team pools**: SRM KTR and other-college students never share a team. A team belongs to its creator's
+  pool (`poolOf`/`getPools` in `lib/participants/identity.ts`); Team Finder lists, invites, join requests,
+  join-by-code and the accept/merge step all enforce it.
+- **Security fix**: OAuth callback `?next=` open redirect (now same-site paths only).
+- **Test events**: all 18 events in the live DB were test data → **soft-deleted** (`is_deleted = true`).
+  Backup + a dry-run-tested permanent-delete script were given to the user to run themselves.
 
 ## This repo (CINTEL-TECH-HEADS/event_website)
 Private copy of cintel-event-registration with jayashriiSH's retro redesign (cream/crimson/gold,

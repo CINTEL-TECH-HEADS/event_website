@@ -13,10 +13,17 @@ type PublicEvent = Event & {
 }
 
 // Search + type filter over a list of events. Only types that actually occur
-// in the list are offered as filters.
-export function EventGrid({ events, past = false }: { events: PublicEvent[]; past?: boolean }) {
+// in the list are offered as filters. `initialType` (e.g. from /events?type=)
+// preselects a filter when that type occurs in the list.
+export function EventGrid({ events, past = false, initialType }: {
+  events: PublicEvent[]
+  past?: boolean
+  initialType?: string | null
+}) {
   const [search, setSearch] = useState('')
-  const [type, setType] = useState<'all' | EventType>('all')
+  const [type, setType] = useState<'all' | EventType>(() =>
+    initialType && events.some((e) => e.event_type === initialType) ? (initialType as EventType) : 'all'
+  )
 
   const types = useMemo(() => {
     const counts = new Map<EventType, number>()

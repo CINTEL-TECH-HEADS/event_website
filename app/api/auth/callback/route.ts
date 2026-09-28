@@ -8,11 +8,18 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createSessionClient, createAdminClient } from '@/lib/supabase/server'
+import { isProfileComplete } from '@/lib/participants/identity'
+
+// Only same-site paths: '//evil.com' or '/\\evil.com' would leave the site.
+function safeNext(next: string | null): string | null {
+  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return null
+  return next
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = req.nextUrl
   const code = searchParams.get('code')
-  const next = searchParams.get('next')
+  const next = safeNext(searchParams.get('next'))
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`)
@@ -52,7 +59,7 @@ export async function GET(req: NextRequest) {
     // Seed participant_profiles on first login (don't overwrite existing values).
     const { data: pp } = await admin
       .from('participant_profiles')
-      .select('college_email, register_number, full_name, personal_email')
+      .select('affiliation, college_email, register_number, college_name, phone, full_name, personal_email')
       .eq('id', user.id)
       .maybeSingle()
 
@@ -75,8 +82,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Mandatory identity incomplete → send to the portal onboarding gate first.
-    const complete = !!pp?.college_email && !!pp?.register_number
-    if (!complete) {
+    if (!isProfileComplete(pp)) {
       return NextResponse.redirect(`${origin}/participant/portal`)
     }
   }

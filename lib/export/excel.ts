@@ -11,7 +11,7 @@ export async function buildExcel(event_id: string): Promise<Buffer> {
   // Fetch form fields
   const { data: fields } = await admin
     .from('form_fields')
-    .select('id, label')
+    .select('id, label, audience')
     .eq('event_id', event_id)
     .order('sort_order')
 
@@ -56,7 +56,8 @@ export async function buildExcel(event_id: string): Promise<Buffer> {
     }
 
     for (const field of fieldList) {
-      row[field.label] = answerMap[field.id] ?? ''
+      // Other-college form fields are labelled so same-named fields don't collide.
+      row[field.audience === 'external' ? `Other college: ${field.label}` : field.label] = answerMap[field.id] ?? ''
     }
 
     return row

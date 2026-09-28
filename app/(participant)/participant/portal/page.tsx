@@ -46,7 +46,6 @@ export default function PortalPage() {
   const [loading, setLoading]             = useState(true)
   const [error, setError]                 = useState<string | null>(null)
   const [copied, setCopied]               = useState<string | null>(null)
-  const [invites, setInvites]             = useState<any[]>([])
   const [respBusy, setRespBusy]           = useState<string | null>(null)
   const [tab, setTab]                     = useState<PortalTab>('events')
   const [profileComplete, setProfileComplete] = useState(true)
@@ -62,15 +61,9 @@ export default function PortalPage() {
     if (first?.leader_name) setRegName(firstName(first.leader_name))
   }
 
-  async function loadInvites() {
-    const { data } = await fetch('/api/participant/team/invites').then(r => r.json()).catch(() => ({ data: [] }))
-    setInvites(data ?? [])
-  }
-
   useEffect(() => {
     Promise.all([
       loadRegistrations(),
-      loadInvites(),
       fetch('/api/events').then(r => r.json()).then(({ data }) => setActiveEvents(data ?? [])),
       fetch('/api/participant/profile').then(r => r.json()).then(j => {
         setProfileComplete(!!j.data?.complete)
@@ -88,22 +81,6 @@ export default function PortalPage() {
     await navigator.clipboard.writeText(code)
     setCopied(regId)
     setTimeout(() => setCopied(null), 2000)
-  }
-
-  // Accept / decline an incoming team invite or request.
-  async function respondInvite(inviteId: string, action: 'accept' | 'decline') {
-    setRespBusy(inviteId + action)
-    const { data, error } = await fetch('/api/participant/team/invite/respond', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ invite_id: inviteId, action }),
-    }).then(r => r.json())
-    setRespBusy(null)
-    if (error) { alert(error); return }
-    if (action === 'accept' && data?.registration_id) {
-      router.push(`/participant/portal/events/${data.registration_id}`); return
-    }
-    await Promise.all([loadRegistrations(), loadInvites()])
   }
 
   // Respond to a waitlist spot offer.
@@ -132,18 +109,17 @@ export default function PortalPage() {
     <div className="flex items-center justify-center py-32"><p className="font-bold text-danger">{error}</p></div>
   )
 
-  // First sign-in gate: participants must record their college email + registration
-  // number before using the portal.
+  // First sign-in gate: participants record who they are (SRM KTR student, or
+  // a student from another college) before using the portal.
   if (!profileComplete) return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <p className="font-tech text-[11px] font-bold uppercase tracking-[0.25em] text-brand">One-time setup</p>
       <h1 className="mt-2 font-display text-3xl uppercase leading-tight tracking-tight text-foreground">Complete your details</h1>
       <p className="mt-2 mb-6 max-w-xl text-sm font-medium leading-6 text-foreground-soft">
-        Add your <strong className="text-foreground">college email</strong> and{' '}
-        <strong className="text-foreground">registration number</strong> before registering for events. Both are
-        required and unique to your account.
+        Tell us whether you study at SRM KTR or another college. SRM students add their registration number and
+        college email; students from other colleges add their college name and phone.
       </p>
-      <ProfileTab required onSaved={(p) => { if (p?.college_email && p?.register_number) setProfileComplete(true) }} />
+      <ProfileTab required onSaved={(_p, complete) => { if (complete) setProfileComplete(true) }} />
       <div className="mt-6">
         <button onClick={handleLogout} className="font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground">Sign out</button>
       </div>
@@ -160,13 +136,12 @@ export default function PortalPage() {
     e => !registeredIds.includes(e.id) && isRegistrationOpen(e)
   )
   const greeting          = getGreeting(profileName || regName || 'there')
-  const incomingInvites   = invites.filter((i: any) => i.incoming)
   const offers            = registrations.filter((r: any) => r.offer_status === 'offered')
   const paymentsDue       = upcoming.filter(owesPayment)
 
   const summary = [
     { label: 'Upcoming', value: upcoming.length },
-    { label: 'Need action', value: actionRequired.length + offers.length + incomingInvites.length },
+    { label: 'Need action', value: actionRequired.length + offers.length },
     { label: 'Payments due', value: paymentsDue.length },
   ]
 
@@ -221,30 +196,6 @@ export default function PortalPage() {
         </section>
       )}
 
-      {/* ── TEAM INVITES / REQUESTS (needs your response) ── */}
-      {incomingInvites.length > 0 && (
-        <section>
-          <SectionTitle icon={<Users size={13} className="text-brand" />} title="Team invites" count={incomingInvites.length} />
-          <div className="space-y-2">
-            {incomingInvites.map((i: any) => (
-              <div key={i.id} className="flex flex-col gap-3 rounded-2xl border-2 border-border bg-panel px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm font-medium text-foreground">
-                  {i.direction === 'invite'
-                    ? <>Invite to join <strong>{i.team_name}</strong> · {i.event_title}</>
-                    : <><strong>{i.seeker_name}</strong> wants to join your team · {i.event_title}</>}
-                </p>
-                <div className="flex gap-2 shrink-0">
-                  <button onClick={() => respondInvite(i.id, 'accept')} disabled={respBusy === i.id + 'accept'}
-                    className="app-button-primary !px-3 !py-1.5 !text-xs disabled:opacity-50"><Check size={12}/>Accept</button>
-                  <button onClick={() => respondInvite(i.id, 'decline')} disabled={respBusy === i.id + 'decline'}
-                    className="app-button-secondary !bg-panel-muted !text-foreground !px-3 !py-1.5 !text-xs disabled:opacity-50">Decline</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* ── ACTION REQUIRED (teams below minimum size) ── */}
       {actionRequired.length > 0 && (
         <section>
@@ -256,7 +207,6 @@ export default function PortalPage() {
               const maxSize    = r.events?.max_team_size
               const isLeader   = members.find((m: any) => m.is_leader)?.email === r.leader_email
               const needed     = Math.max(0, minSize - members.length)
-              const pending    = invites.filter((i: any) => i.incoming && i.team_registration_id === r.id).length
 
               return (
                 <div key={r.id} className="flex flex-col rounded-2xl border-2 border-border bg-panel p-5 shadow-sm">
@@ -306,19 +256,9 @@ export default function PortalPage() {
                           {copied === r.id ? 'Copied' : 'Copy'}
                         </button>
                       </div>
-                      <div className="flex gap-2">
-                        <Link href={`/participant/portal/events/${r.id}/team`} className="app-button-secondary flex-1 !bg-panel-muted !text-foreground">
-                          <Users size={12} /> Manage team
-                        </Link>
-                        <Link href={`/participant/portal/events/${r.id}/find`} className="app-button-primary relative flex-1">
-                          <Users size={12} /> Find teammates
-                          {pending > 0 && (
-                            <span className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-border bg-brand px-1 text-[10px] font-bold text-white">
-                              {pending}
-                            </span>
-                          )}
-                        </Link>
-                      </div>
+                      <Link href={`/participant/portal/events/${r.id}/team`} className="app-button-secondary w-full !bg-panel-muted !text-foreground">
+                        <Users size={12} /> Manage team
+                      </Link>
                     </div>
                   )}
                 </div>

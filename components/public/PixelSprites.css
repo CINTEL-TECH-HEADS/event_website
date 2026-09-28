@@ -1,0 +1,66 @@
+/* Motion for PixelSprites. Everything steps rather than eases so it moves like
+   the hero's 8-bit level, and all of it stops under reduced motion. */
+
+.px-coin { transform-origin: 50% 50%; animation: pxSpin 0.9s steps(1) infinite; }
+@keyframes pxSpin {
+  0% { transform: scaleX(1); }
+  25% { transform: scaleX(0.6); }
+  50% { transform: scaleX(0.2); }
+  75% { transform: scaleX(0.6); }
+}
+
+.px-bob { animation: pxBob 1.2s steps(1) infinite; }
+@keyframes pxBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.px-twinkle { animation: pxTwinkle 2.4s steps(1) infinite; }
+@keyframes pxTwinkle {
+  0%, 100% { opacity: 1; }
+  40% { opacity: 0.25; }
+  70% { opacity: 0.6; }
+}
+
+.px-runner > svg:first-child { animation: pxFrameA 0.24s steps(1) infinite; }
+.px-frame-b { animation: pxFrameB 0.24s steps(1) infinite; }
+@keyframes pxFrameA { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes pxFrameB { 0% { opacity: 0; } 50% { opacity: 1; } }
+
+.px-jump { animation: pxJump 2.2s steps(12) infinite; }
+@keyframes pxJump {
+  0%, 55%, 100% { transform: translateY(0); }
+  62% { transform: translateY(-34px); }
+  68% { transform: translateY(-46px); }
+  74% { transform: translateY(-34px); }
+  80% { transform: translateY(0); }
+}
+
+.px-bump { animation: pxBump 3s steps(1) infinite; }
+@keyframes pxBump {
+  0%, 8%, 100% { transform: translateY(0); }
+  3% { transform: translateY(-6px); }
+}
+.px-pop { animation: pxPop 3s steps(8) infinite; opacity: 0; }
+@keyframes pxPop {
+  0% { opacity: 1; transform: translate(-50%, 70%); }
+  14% { opacity: 1; transform: translate(-50%, -30%); }
+  22% { opacity: 0; transform: translate(-50%, -10%); }
+  100% { opacity: 0; transform: translate(-50%, 70%); }
+}
+
+.px-ground { background-repeat: repeat-x; image-rendering: pixelated; }
+
+.px-traverse { container-type: inline-size; }
+.px-traverse-item { display: inline-block; animation: pxTraverse 20s linear infinite; }
+.px-traverse-reverse { animation-direction: reverse; }
+@keyframes pxTraverse {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100cqw); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .px-coin, .px-bob, .px-twinkle, .px-jump, .px-bump, .px-pop, .px-traverse-item,
+  .px-runner > svg:first-child, .px-frame-b { animation: none; }
+  .px-frame-b, .px-pop { opacity: 0; }
+}

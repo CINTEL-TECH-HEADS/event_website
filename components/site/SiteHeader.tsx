@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import { AuthNav } from '@/components/public/AuthNav'
 import { ThemeToggle } from '@/components/public/ThemeToggle'
-import { PlanetMark } from '@/components/brand/PlanetMark'
+import { countdownParts, useNow, usePublicEvents } from '@/lib/use-public-events'
 import { cn } from '@/lib/utils'
 
 export type NavItem = { href: string; label: string }
@@ -14,11 +14,46 @@ export type NavItem = { href: string; label: string }
 const DEFAULT_NAV: NavItem[] = [
   { href: '/', label: 'Home' },
   { href: '/events', label: 'Events' },
+  { href: '/#faq', label: 'FAQ' },
   { href: '/contact', label: 'Contact' },
 ]
 
 function isActive(pathname: string, href: string) {
+  if (href.includes('#')) return false
   return href === '/' ? pathname === '/' : pathname.startsWith(href)
+}
+
+export function LiveDot() {
+  return (
+    <span className="relative h-2 w-2 flex-none" aria-hidden>
+      <span className="landing-ping absolute inset-0 rounded-full bg-primary-red" />
+      <span className="absolute inset-0 rounded-full bg-primary-red" />
+    </span>
+  )
+}
+
+// Dark strip above the header: the next open event and a live countdown.
+function NextUpStrip() {
+  const { nextUp } = usePublicEvents()
+  const now = useNow()
+  if (!nextUp) return null
+
+  const [d, h, m, s] = countdownParts(nextUp.starts_at, now)
+  const pad = (n: number) => String(n).padStart(2, '0')
+
+  return (
+    <Link href={`/events/${nextUp.slug}`} className="block bg-[#161412] text-cream transition-colors hover:bg-[#221F1C]">
+      <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-[7px] font-tech text-xs font-bold tracking-[0.12em] sm:px-6">
+        <LiveDot />
+        <span className="text-primary-yellow">NEXT UP</span>
+        <span className="truncate uppercase">{nextUp.title}</span>
+        <span className="whitespace-nowrap rounded-full bg-primary-yellow px-2.5 py-[3px] text-[#161412]">
+          {d}D {pad(h)}H {pad(m)}M {pad(s)}S
+        </span>
+        <span className="hidden whitespace-nowrap text-primary-yellow sm:inline">SEE EVENT →</span>
+      </div>
+    </Link>
+  )
 }
 
 export function SiteHeader({ nav = DEFAULT_NAV }: { nav?: NavItem[] }) {
@@ -29,26 +64,21 @@ export function SiteHeader({ nav = DEFAULT_NAV }: { nav?: NavItem[] }) {
   useEffect(() => setOpen(false), [pathname])
 
   return (
-    <header className="sticky top-0 z-50 border-b-2 border-border bg-background/95 backdrop-blur lg:border-b-4">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:h-20 lg:px-8">
-        <Link href="/" className="group flex items-center gap-2.5">
-          <PlanetMark className="h-10 w-10 shrink-0 transition duration-300 group-hover:rotate-6" />
-          <span className="leading-none">
-            <span className="block font-display text-lg uppercase text-primary-red text-poster-outline">Cintel</span>
-            <span className="block font-tech text-[10px] font-bold uppercase tracking-[0.25em] text-foreground-soft">Events</span>
-          </span>
+    <header className="sticky top-0 z-50 border-b-[3px] border-border bg-background">
+      <NextUpStrip />
+      <div className="mx-auto flex max-w-[1240px] items-center gap-4 px-4 py-2.5 sm:px-6 lg:gap-7">
+        <Link href="/" className="flex shrink-0 items-center" aria-label="CINTEL Events home">
+          <img src="/brand/cintel-events-logo.png" alt="CINTEL Events" className="block h-12 w-auto sm:h-[68px]" />
         </Link>
 
-        <nav className="ml-6 hidden items-center gap-1 md:flex" aria-label="Main">
+        <nav className="hidden items-center gap-1.5 md:flex" aria-label="Main">
           {nav.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
               className={cn(
-                'rounded-full px-4 py-2 font-tech text-xs font-bold uppercase tracking-widest transition-colors duration-200',
-                isActive(pathname, href)
-                  ? 'bg-foreground text-background'
-                  : 'text-foreground-soft hover:text-foreground'
+                'rounded-full px-3.5 py-2 font-tech text-xs font-bold uppercase tracking-[0.14em] transition-colors duration-200',
+                isActive(pathname, href) ? 'bg-foreground text-background' : 'text-foreground hover:bg-panel-muted'
               )}
             >
               {label}
@@ -56,12 +86,12 @@ export function SiteHeader({ nav = DEFAULT_NAV }: { nav?: NavItem[] }) {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
-          <AuthNav />
+        <div className="ml-auto flex items-center gap-2.5">
           {/* On the narrowest phones the toggle moves into the menu so the bar fits. */}
           <div className="hidden sm:block">
-            <ThemeToggle />
+            <ThemeToggle className="duration-300 hover:rotate-180" />
           </div>
+          <AuthNav />
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
@@ -81,6 +111,7 @@ export function SiteHeader({ nav = DEFAULT_NAV }: { nav?: NavItem[] }) {
             <Link
               key={href}
               href={href}
+              onClick={() => setOpen(false)}
               className={cn(
                 'block rounded-xl px-3 py-3 font-tech text-sm font-bold uppercase tracking-widest',
                 isActive(pathname, href) ? 'bg-panel-muted text-foreground' : 'text-foreground-soft'

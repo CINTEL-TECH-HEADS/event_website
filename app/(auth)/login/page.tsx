@@ -84,7 +84,7 @@ export default function LoginPage() {
       <div className="rounded-2xl border-2 border-border bg-panel p-6 shadow-lg sm:p-8 lg:border-4">
         <PosterHeading as="h1" fillClassName="text-primary-yellow" className="text-3xl sm:text-4xl">Sign in</PosterHeading>
         <p className="mt-2 text-sm font-medium leading-6 text-foreground-soft">
-          Participants use their Google account. Organizers sign in with the email and password the association gave them.
+          Students from SRM KTR or any other college sign in with Google. Organizers use the email and password the association gave them.
         </p>
 
         <button

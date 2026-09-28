@@ -43,7 +43,10 @@
     --shadow-lg: 8px 8px 0px 0px #14120F;
   }
 
-  :root[data-theme='dark'] {
+  /* .landing-night: the home page is one night-time pixel level in both
+     themes, so it takes the dark tokens whatever the toggle says */
+  :root[data-theme='dark'],
+  .landing-night {
     --background: 11 11 10;
     --background-soft: 24 22 19;
 
@@ -546,4 +549,124 @@ input:-webkit-autofill:focus {
   background-image: radial-gradient(rgb(var(--foreground)) 1px, transparent 1px);
   background-size: 22px 22px;
   opacity: .04;
+}
+
+/* ==========================================================================
+   Landing page (app/(public)/page.tsx) and the public header/footer
+   ========================================================================== */
+@keyframes landingMarq { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+@keyframes landingMarqR { from { transform: translateX(-50%) } to { transform: translateX(0) } }
+@keyframes landingBlink { 0%, 100% { opacity: 1 } 50% { opacity: .2 } }
+@keyframes landingSpin { to { transform: rotate(360deg) } }
+@keyframes landingBob {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)) }
+  50% { transform: translateY(-14px) rotate(var(--r, 0deg)) }
+}
+@keyframes landingPing { 0% { transform: scale(1); opacity: .7 } 100% { transform: scale(2.6); opacity: 0 } }
+@keyframes landingTick { 0% { transform: translateY(-30%); opacity: 0 } 100% { transform: translateY(0); opacity: 1 } }
+@keyframes landingWob { 0%, 100% { transform: rotate(-6deg) } 50% { transform: rotate(6deg) } }
+
+@layer components {
+  .landing-marquee {
+    display: flex;
+    width: max-content;
+    white-space: nowrap;
+    padding: 14px 0;
+    font-family: var(--font-bungee), sans-serif;
+    font-size: 26px;
+    animation: landingMarq var(--marquee-duration, 30s) linear infinite;
+  }
+  .landing-marquee-reverse { animation-name: landingMarqR; }
+
+  .landing-outline {
+    -webkit-text-stroke: 3px #161412;
+    paint-order: stroke fill;
+    text-shadow: 6px 6px 0 #161412;
+  }
+
+  .landing-night {
+    background-color: #080a14;
+    background-image:
+      linear-gradient(rgba(160, 176, 220, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(160, 176, 220, 0.035) 1px, transparent 1px);
+    background-size: 48px 48px;
+    color: rgb(var(--foreground));
+  }
+    .landing-dots { background-image: radial-gradient(#2c2925 1px, transparent 1px); background-size: 14px 14px; }
+  .landing-tick { display: inline-block; animation: landingTick .35s ease-out; }
+  .landing-blink { animation: landingBlink 1.4s infinite; }
+  .landing-ping { animation: landingPing 1.6s ease-out infinite; }
+  .landing-bob { animation: landingBob 5s ease-in-out infinite; }
+  .landing-wob { animation: landingWob 3s ease-in-out infinite; }
+  .landing-spin { animation: landingSpin 14s linear infinite; }
+}
+
+/* Scroll reveals. The page's useReveal hook adds .rv (start state), then
+   .rv-in when the element scrolls into view, and strips both afterwards so
+   hover transforms keep working. */
+.rv {
+  transition:
+    transform 700ms cubic-bezier(.2, .9, .25, 1.15) var(--rv-delay, 0ms),
+    opacity 490ms ease var(--rv-delay, 0ms),
+    clip-path 900ms cubic-bezier(.7, 0, .2, 1) var(--rv-delay, 0ms);
+}
+.rv[data-rv='up'] { transform: translateY(48px); opacity: 0; }
+.rv[data-rv='left'] { transform: translateX(-80px); opacity: 0; }
+.rv[data-rv='right'] { transform: translateX(80px); opacity: 0; }
+.rv[data-rv='pop'] { transform: translateY(40px) scale(.85) rotate(-4deg); opacity: 0; }
+.rv[data-rv='wipe'] { clip-path: inset(0 100% 0 0); }
+.rv.rv-in { transform: none; opacity: 1; clip-path: inset(0 0 0 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-marquee,
+  .landing-blink,
+  .landing-ping,
+  .landing-bob,
+  .landing-wob,
+  .landing-spin,
+  .landing-tick { animation: none; }
+}
+
+/* Event tickets (components/public/EventTicket.tsx) — poster hard shadow. */
+.event-ticket .tear-ticket__plane {
+  filter: drop-shadow(6px 6px 0 #D6294C);
+}
+
+/* Pick-your-lane folders (React Bits FolderFloat) in the poster style. */
+.lane-folder .folder-float__back,
+.lane-folder .folder-float__front {
+  border: 3px solid #161412;
+}
+.lane-folder .folder-float__back::before {
+  top: calc(-1 * var(--ff-tab) - 3px);
+  left: -3px;
+  border: 3px solid #161412;
+  border-bottom: 0;
+}
+.lane-folder .folder-float__front {
+  background: var(--ff-front);
+  box-shadow: 4px 4px 0 #161412;
+}
+.lane-folder .folder-float__paper {
+  border: 2px solid #161412;
+}
+.lane-folder .folder-float__label {
+  font-family: var(--font-bungee), sans-serif;
+  font-size: 22px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.lane-folder .folder-float__sub {
+  font-size: 13px;
+  line-height: 1.4;
+  opacity: .8;
+}
+.lane-folder .folder-float__item {
+  border: 2.5px solid #161412;
+  box-shadow: 3px 3px 0 #161412;
+  font-family: var(--font-space-mono), monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
 }
