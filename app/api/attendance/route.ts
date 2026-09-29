@@ -1,158 +1,74 @@
 // app/api/attendance/route.ts
 // POST /api/attendance — QR code check-in
 //
-// Body: { registration_id: string, event_id: string }
+// Body: { registration_id: string, event_id: string, member_ids?: string[] }
 //
-// Flow:
-//   1. Validate UUID format
-//   2. Look up registration
-//   3. Check status is 'confirmed' (not waitlisted/cancelled)
-//   4. Check event_id matches (prevents cross-event QR use)
-//   5. INSERT into attendance — UNIQUE constraint handles race conditions
-//   6. Return attendee details for the scanner UI
+// Solo pass → checked in straight away (409 if already checked in).
+// Team pass → without member_ids, nothing is recorded: the response lists the
+// members (and who is already present) so the scanner can ask who is here.
+// With member_ids → exactly those members are marked present.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { requireOrganizerRole } from '@/lib/auth/get-session'
 import { rateLimit } from '@/lib/rate-limit'
-import { logAction } from '@/lib/audit/log'
+import { loadAttendance, setAttendance } from '@/lib/attendance/set'
 import { z } from 'zod'
 
 const checkInSchema = z.object({
   registration_id: z.string().uuid('Invalid registration ID'),
   event_id: z.string().uuid('Invalid event ID'),
+  member_ids: z.array(z.string().uuid()).optional(),
 })
+
+const fail = (error: string, status: number) =>
+  NextResponse.json({ data: null, error }, { status })
 
 export async function POST(req: NextRequest) {
   try {
     // Rate limit — 60 scans per minute per IP
     const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
     const { success: rateLimitOk } = rateLimit('checkin', ip)
-    if (!rateLimitOk) {
-      return NextResponse.json(
-        { data: null, error: 'Too many requests. Slow down.' },
-        { status: 429 }
-      )
-    }
+    if (!rateLimitOk) return fail('Too many requests. Slow down.', 429)
 
     const body = await req.json()
     const parsed = checkInSchema.safeParse(body)
+    if (!parsed.success) return fail(parsed.error.errors[0].message, 400)
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        { data: null, error: parsed.error.errors[0].message },
-        { status: 400 }
-      )
-    }
-
-    const { registration_id, event_id } = parsed.data
+    const { registration_id, event_id, member_ids } = parsed.data
 
     // Auth — owner or sub_admin only
     const auth = await requireOrganizerRole(event_id, ['owner', 'sub_admin'])
-    if ('error' in auth) {
-      return NextResponse.json(
-        { data: null, error: auth.error },
-        { status: auth.status }
-      )
-    }
+    if ('error' in auth) return fail(auth.error, auth.status)
 
     const admin = createAdminClient()
+    const loaded = await loadAttendance(admin, event_id, registration_id)
+    if ('error' in loaded) return fail(loaded.error, loaded.status)
+    const { state } = loaded
 
-    // Look up registration
-    const { data: registration, error: regError } = await admin
-      .from('registrations')
-      .select('id, event_id, status, leader_name, team_name, registration_type')
-      .eq('id', registration_id)
-      .single()
-
-    if (regError || !registration) {
-      return NextResponse.json(
-        { data: null, error: 'Registration not found. Invalid QR code.' },
-        { status: 404 }
-      )
-    }
-
-    // Check event matches
-    if (registration.event_id !== event_id) {
-      return NextResponse.json(
-        { data: null, error: 'This QR code is for a different event.' },
-        { status: 400 }
-      )
-    }
-
-    // Check status
-    if (registration.status === 'cancelled') {
-      return NextResponse.json(
-        { data: null, error: 'This registration has been cancelled.' },
-        { status: 400 }
-      )
-    }
-
-    if (registration.status === 'waitlisted') {
-      return NextResponse.json(
-        { data: null, error: 'This registration is on the waitlist and has not been confirmed.' },
-        { status: 400 }
-      )
-    }
-
-    // Fetch team members if team registration
-    const { data: members } = await admin
-      .from('team_members')
-      .select('full_name, email')
-      .eq('registration_id', registration_id)
-
-    // INSERT attendance — UNIQUE constraint on registration_id prevents duplicates
-    const { data: attendanceRecord, error: insertError } = await admin
-      .from('attendance')
-      .insert({
-        registration_id,
-        event_id,
-        method: 'qr_scan',
-        checked_in_by: auth.user.id,
-      })
-      .select()
-      .single()
-
-    if (insertError) {
-      // Postgres unique violation code — already checked in
-      if (insertError.code === '23505') {
-        return NextResponse.json(
-          { data: null, error: 'Already checked in.' },
-          { status: 409 }
-        )
+    if (state.registration_type === 'team') {
+      // First scan of a team pass: ask who is here before recording anything.
+      if (!member_ids) {
+        return NextResponse.json({ data: { needs_members: true, ...state }, error: null })
       }
-      console.error('[POST /api/attendance]', insertError)
-      return NextResponse.json(
-        { data: null, error: 'Failed to record attendance' },
-        { status: 500 }
-      )
+      if (member_ids.length === 0) return fail('Tick at least one member who is here.', 400)
+    } else if (state.checked_in_at) {
+      return fail('Already checked in.', 409)
     }
 
-    await logAction({
-      actorId: auth.user.id,
-      actorEmail: auth.user.email,
-      action: 'attendance.checkin',
-      targetType: 'registration',
-      targetId: registration_id,
+    const result = await setAttendance(admin, {
       eventId: event_id,
-      metadata: { method: 'qr_scan' },
+      registrationId: registration_id,
+      present: true,
+      memberIds: member_ids,
+      method: 'qr_scan',
+      actor: auth.user,
     })
+    if ('error' in result) return fail(result.error, result.status)
 
-    return NextResponse.json({
-      data: {
-        leader_name: registration.leader_name,
-        team_name: registration.team_name,
-        registration_type: registration.registration_type,
-        members: members ?? [],
-        checked_in_at: attendanceRecord.checked_in_at,
-      },
-      error: null,
-    })
+    return NextResponse.json({ data: result.state, error: null })
   } catch (err) {
     console.error('[POST /api/attendance]', err)
-    return NextResponse.json(
-      { data: null, error: 'Internal server error' },
-      { status: 500 }
-    )
+    return fail('Internal server error', 500)
   }
 }

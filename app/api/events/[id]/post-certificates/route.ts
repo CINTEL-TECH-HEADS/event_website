@@ -32,7 +32,7 @@ export async function POST(
         registration_id,
         registrations!inner (
           id, registration_type, status,
-          members:team_members ( id )
+          members:team_members ( id, checked_in_at )
         )
       `)
       .eq('event_id', id)
@@ -43,7 +43,8 @@ export async function POST(
       const reg = row.registrations as any
       if (!reg || reg.status !== 'confirmed') continue
       if (reg.registration_type === 'team') {
-        for (const m of reg.members ?? []) {
+        // Only members marked present at check-in.
+        for (const m of (reg.members ?? []).filter((x: any) => x.checked_in_at)) {
           targets.push({ registration_id: reg.id, team_member_id: m.id })
         }
       } else {

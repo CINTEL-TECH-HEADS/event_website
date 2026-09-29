@@ -3,6 +3,7 @@
 // Uses the 'xlsx' npm package. Color-coded status column. Auto-filters.
 
 import * as XLSX from 'xlsx'
+import { attendanceOf, membersPresent } from './attendance'
 import { createAdminClient } from '@/lib/supabase/server'
 
 export async function buildExcel(event_id: string): Promise<Buffer> {
@@ -23,6 +24,7 @@ export async function buildExcel(event_id: string): Promise<Buffer> {
       leader_name, leader_email, leader_phone,
       status, waitlist_position, registered_at,
       attendance ( checked_in_at, method ),
+      team_members ( full_name, checked_in_at ),
       registration_answers ( field_id, answer )
     `)
     .eq('event_id', event_id)
@@ -33,7 +35,7 @@ export async function buildExcel(event_id: string): Promise<Buffer> {
 
   // Build rows
   const rows = regList.map((reg: any) => {
-    const attendance = reg.attendance?.[0]
+    const attendance = attendanceOf(reg)
 
     const answerMap: Record<string, string> = {}
     for (const ans of (reg.registration_answers ?? [])) {
@@ -53,6 +55,7 @@ export async function buildExcel(event_id: string): Promise<Buffer> {
       'Checked In': attendance ? 'Yes' : 'No',
       'Check-in Time': attendance ? new Date(attendance.checked_in_at).toLocaleString('en-IN') : '',
       'Check-in Method': attendance?.method ?? '',
+      'Members Present': membersPresent(reg),
     }
 
     for (const field of fieldList) {
@@ -81,6 +84,7 @@ export async function buildExcel(event_id: string): Promise<Buffer> {
     { wch: 10 },  // Checked In
     { wch: 22 },  // Check-in Time
     { wch: 14 },  // Check-in Method
+    { wch: 28 },  // Members Present
     ...fieldList.map(() => ({ wch: 20 })),
   ]
 

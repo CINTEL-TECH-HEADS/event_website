@@ -11,6 +11,7 @@ import {
 import { createBrowserClient } from '@/lib/supabase/client'
 import { CheckInPanel } from '@/components/dashboard/CheckInPanel'
 import { LiveStatsCounter } from '@/components/dashboard/LiveStatsCounter'
+import { AttendanceList } from '@/components/dashboard/AttendanceList'
 import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 
 export default function CheckInPage() {
@@ -57,7 +58,7 @@ export default function CheckInPage() {
         icon={QrCode}
         kicker="Check-in"
         title="Event-day check-in"
-        description={'Scan a participant’s QR pass or search by name to mark them present.'}
+        description={'Scan a QR pass to check people in. For teams, tick who is here. The attendance list below shows everyone and lets you fix it later.'}
       />
 
       {/* Body */}
@@ -89,12 +90,19 @@ export default function CheckInPage() {
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm font-medium text-foreground-soft">
               <li>Scan one QR pass at a time and hold the device steady.</li>
               <li>Green means checked in. Red means already checked in or not a valid pass.</li>
+              <li>Team pass: tick the members who are here. Scan it again when someone arrives later.</li>
             </ul>
           </div>
 
         </aside>
 
       </div>
+
+      <AttendanceList
+        eventId={id}
+        refreshSignal={refreshSignal}
+        onChange={() => setRefreshSignal((n) => n + 1)}
+      />
 
     </div>
   )

@@ -17,6 +17,7 @@ import QRScanner from '@/components/dashboard/QRScanner'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { parseUuidFromQr } from '@/lib/qr/parse'
 import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
+import { TeamCheckInList } from '@/components/dashboard/TeamCheckInList'
 
 export default function RegistrationsPage() {
   const { id } =
@@ -36,6 +37,13 @@ export default function RegistrationsPage() {
 
   const [scanResult, setScanResult] =
     useState<any | null>(null)
+
+  // A scanned team pass waiting for "who is here?".
+  const [pendingTeam, setPendingTeam] =
+    useState<any | null>(null)
+
+  const [savingTeam, setSavingTeam] =
+    useState(false)
 
   const [refreshSignal, setRefreshSignal] =
     useState(0)
@@ -81,16 +89,7 @@ export default function RegistrationsPage() {
     init()
   }, [loadStats])
 
-  async function handleScan(
-    code: string
-  ) {
-    // The QR encodes `${APP_URL}/checkin/<uuid>` — extract the registration id.
-    const registrationId = parseUuidFromQr(code)
-    if (!registrationId) {
-      setScanMessage('Invalid QR code.')
-      return
-    }
-
+  async function checkIn(registrationId: string, memberIds?: string[]) {
     try {
       setScanMessage('Processing scan...')
 
@@ -100,6 +99,7 @@ export default function RegistrationsPage() {
         body: JSON.stringify({
           registration_id: registrationId,
           event_id: id,
+          member_ids: memberIds,
         }),
       })
 
@@ -108,8 +108,14 @@ export default function RegistrationsPage() {
       if (json.error) {
         setScanMessage(json.error)
         setScanResult(null)
+      } else if (json.data?.needs_members) {
+        // Team pass: ask who is here before recording anything.
+        setScanMessage(null)
+        setScanResult(null)
+        setPendingTeam(json.data)
       } else {
         setScanMessage(null)
+        setPendingTeam(null)
         // Show the verified participant and refresh the table + stats live.
         setScanResult(json.data)
         setRefreshSignal((n) => n + 1)
@@ -118,6 +124,30 @@ export default function RegistrationsPage() {
     } catch {
       setScanMessage('Scan failed')
       setScanResult(null)
+    }
+  }
+
+  async function handleScan(
+    code: string
+  ) {
+    // While a team is waiting for "who is here?", ignore further scans.
+    if (pendingTeam) return
+    // The QR encodes `${APP_URL}/checkin/<uuid>` — extract the registration id.
+    const registrationId = parseUuidFromQr(code)
+    if (!registrationId) {
+      setScanMessage('Invalid QR code.')
+      return
+    }
+    await checkIn(registrationId)
+  }
+
+  async function confirmTeam(presentIds: string[]) {
+    if (!pendingTeam) return
+    setSavingTeam(true)
+    try {
+      await checkIn(pendingTeam.registration_id, presentIds)
+    } finally {
+      setSavingTeam(false)
     }
   }
 
@@ -167,6 +197,23 @@ export default function RegistrationsPage() {
             </div>
           )}
 
+          {/* Team pass: who is here? */}
+          {pendingTeam && (
+            <div className="mt-4 rounded-xl border-2 border-border bg-panel p-5">
+              <p className="text-lg font-bold text-foreground">{pendingTeam.team_name ?? pendingTeam.leader_name}</p>
+              <p className="mb-4 text-sm font-medium text-foreground-soft">Tick the members who are here, then confirm.</p>
+              <TeamCheckInList
+                key={pendingTeam.registration_id}
+                members={pendingTeam.members}
+                saving={savingTeam}
+                requireOne
+                confirmLabel="Confirm check-in"
+                onConfirm={confirmTeam}
+                onCancel={() => setPendingTeam(null)}
+              />
+            </div>
+          )}
+
           {/* Verified participant */}
           {scanResult && (
             <div className="mt-4 rounded-xl border-2 border-border border-l-8 border-l-success bg-panel p-5">
@@ -185,10 +232,14 @@ export default function RegistrationsPage() {
               </div>
               {scanResult.members?.length > 0 && (
                 <div className="mt-3">
-                  <p className="mb-1 text-xs font-bold uppercase tracking-widest text-foreground-soft">Members</p>
+                  <p className="mb-1 text-xs font-bold uppercase tracking-widest text-foreground-soft">
+                    Members · {scanResult.members.filter((m: any) => m.checked_in_at).length} of {scanResult.members.length} present
+                  </p>
                   <ul className="space-y-0.5 text-sm font-medium text-foreground-soft">
                     {scanResult.members.map((m: any, i: number) => (
-                      <li key={i}>{m.full_name} <span>{m.email}</span></li>
+                      <li key={i} className={m.checked_in_at ? '' : 'line-through opacity-60'}>
+                        {m.full_name} <span>{m.email}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>

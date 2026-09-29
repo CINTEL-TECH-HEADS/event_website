@@ -27,7 +27,7 @@ export async function GET(
     .from('registrations')
     .select(`
       *,
-      members:team_members(id, full_name, email, is_leader),
+      members:team_members(id, full_name, email, is_leader, checked_in_at),
       answers:registration_answers(id, answer, field_id, form_fields(label, field_type)),
       attendance(id, checked_in_at, method, checked_in_by),
       certificates(id, certificate_url)

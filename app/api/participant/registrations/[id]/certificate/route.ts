@@ -28,7 +28,7 @@ export async function GET(
       .select(`
         id, event_id, registration_type, team_name, leader_name, leader_email, participant_id,
         events!inner ( id, title, certificates_released_at, starts_at ),
-        members:team_members ( id, full_name, email, participant_id, is_leader )
+        members:team_members ( id, full_name, email, participant_id, is_leader, checked_in_at )
       `)
       .eq('id', id)
       .maybeSingle()
@@ -50,6 +50,15 @@ export async function GET(
       return apiSuccess({
         released: false,
         message: 'Certificates have not been released yet.',
+      })
+    }
+
+    // A team member who wasn't marked present at check-in doesn't get one.
+    if (reg.registration_type === 'team' && myMember && !myMember.checked_in_at) {
+      return apiSuccess({
+        released: true,
+        eligible: false,
+        message: 'No certificate: you were not marked present at check-in.',
       })
     }
 
