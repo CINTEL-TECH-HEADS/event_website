@@ -2,9 +2,49 @@
 
 > Living document. Update this at the end of every working session: append what was
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
-> Last updated: 2026-09-29 (per-member attendance, event posters, sub-admin/club-organizer access).
+> Last updated: 2026-09-29 (security lockdown, server moved to Sydney, attendance/posters/access, judge fixes).
 
-## 2026-09-29: per-member attendance, posters, access (branch `feat/attendance-posters-subadmin`)
+## 2026-09-29: security lockdown, speed, judge and event fixes
+**Security (all applied to the live DB; recorded by PRs #16 and #17):**
+- **Migration `029_lock_down_rls.sql`.** The Supabase Security Advisor flagged 3 tables with RLS off (`contacts`, `payment_submissions`, `event_certificate_templates`), all readable and writable with the public key. Auditing every policy found more:
+  - "read every row" policies on `registrations`, `team_members` and `team_invite_codes`
+  - direct-write policies letting any signed-in user insert a (published) event, rewrite their own `participant_profiles` (fake an SRM profile) or, via `profiles: update own`, make themselves superadmin
+  - self-referencing policies that made reads error with "infinite recursion"
+  - 029 enables RLS on the three tables, drops every read-all and direct-write policy, and replaces the recursive ones.
+- **Migration `030_fix_registration_policies.sql`.** The registrations own-row policy is now `participant_id = auth.uid()`.
+- **Migration `031_harden_functions.sql`.** `handle_new_user`, `decrement_waitlist_positions` and `schedule_notification_job` (SECURITY DEFINER) now have `search_path = public`, and `EXECUTE` is limited to `service_role`. Anyone could previously call them via `/rest/v1/rpc`; `schedule_notification_job` creates `pg_cron` jobs that POST to any URL.
+- The 2 stale `pg_cron` reminder jobs (for a deleted test event, posting to `localhost:3000`) were unscheduled. `cron.job` is now empty.
+- **Rule:** all app DB access is server-side with the service role. Only scoped `SELECT` policies remain (own rows, published events, events you organize, and attendance for Realtime). **Never add `anon`/`authenticated` write policies.**
+- The advisor still warns "Leaked password protection disabled". That setting needs the Pro plan.
+
+**Speed (PR #14):**
+- **Region.** Supabase is in `ap-southeast-2` (Sydney), but Vercel functions ran in `iad1` (Washington), so every query crossed the Pacific. Signed-in APIs took 1–3.5 s. `vercel.json` now sets `regions: ["syd1"]`, and they take about 0.35 s. Check with the `x-vercel-id: bom1::syd1::…` header.
+- **Images.** `lib/image.ts` `optimizedImage()` sends `/club` photos and posters through Next's image optimizer (resized WebP). Home-page images went from 2.1 MB to 0.7 MB.
+- **Home tickets.** The upcoming-event tickets no longer show posters. The events page cards and the event page still do.
+- **Possible next step.** Moving Supabase to Mumbai (`ap-south-1`) would need a new project and a data migration (region can't be changed in place). About 0.3 s of India↔Sydney latency remains.
+
+**Features and fixes:**
+- **PR #10:** Event details can edit the venue, event type and start/end/registration-close times, including after publishing. `PATCH /api/events/[id]` validates the order against the stored times. `LuxuryDatePicker` supports `value`/`onChange`.
+- **PR #11:** Access Control "add" never saved. It posted an email to a `profile_id` route and ignored the error. It now uses `POST /api/organizers`. Team list and Remove are fixed. Owners can't be removed. Judges of one event land on `/judge/[id]/participants`, and `my_role` from `/api/events?mine` drives judge links. People must sign in once before they can be added.
+- **PR #12:** the judge view shows each answer's question label (it used to show the field UUID).
+- **PR #13:** attendance, posters and access (next section).
+- **jayashriiSH:**
+  - PR #8: sidebar events, fixed sidebar scroll, accent contrast
+  - PR #9: other-college students no longer see SRM-only events after profile setup
+  - PR #15: image certificate system restored (layout editor, per-type image templates, ZIP export). It is server-side only, so compatible with the RLS lockdown.
+
+**Deploy notes:**
+- The test deployment is https://event-website-gamma.vercel.app (jayashriiSH's Vercel project). It is not the real site.
+- For Google sign-in there, the exact domain must be in Supabase Auth → Redirect URLs. Keep the Site URL for the real domain.
+- `NEXT_PUBLIC_APP_URL` should be set per Vercel project (QR codes, emails and certificate links fall back to localhost otherwise).
+
+## 2026-09-28: `main` checkup (PR #7)
+- `npm run lint` works again: ESLint 9 + `eslint-config-next` 16 with a flat config. `any` is allowed. React Compiler rules only warn. Vendored `reactbits`/`threeui` are ignored. There are 0 errors and about 62 warnings.
+- `middleware.ts` → `proxy.ts` (Next 16).
+- `next.config.js` pins `outputFileTracingRoot`/`turbopack.root`. The user's home folder has its own `package.json` and `node_modules`; don't touch them.
+- `GET /api/registrations/[id]` (the confirmation page's QR pass) now requires the registrant or a linked teammate.
+
+## 2026-09-29: per-member attendance, posters, access (branch `feat/attendance-posters-subadmin`, PR #13)
 - **Attendance**:
   - Migration `028_member_attendance.sql` (**applied to the live DB**) adds `team_members.checked_in_at` and `checked_in_by`, backfilled for existing team check-ins.
   - A team keeps one `attendance` row, which exists exactly when at least one member is present. All writes go through `lib/attendance/set.ts`.
@@ -273,7 +313,10 @@ portal; organizers run events from a dashboard; judges review participants.
   `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL`. Optional: `RESEND_API_KEY`, `EMAIL_FROM`, Twilio.
 - Supabase project ref: `jokcuuftvqehycawioba`.
 - `.env.db.local` (gitignored) holds a direct Postgres URL used for admin SQL/verification.
-- DB schema-as-code lives in `supabase/migrations/**` (001–013), `supabase/rls/**`, `supabase/seed/**`.
+- DB schema-as-code lives in `supabase/migrations/**` (001–031), `supabase/rls/**`, `supabase/seed/**`.
+  - `supabase/rls/**` is **out of date**. Migrations 029–031 define the current policies.
+  - Apply migrations with `node scripts/db.mjs dry-run|apply <file>`, which reads `SUPABASE_DB_URL` (session pooler) from `.env.local`. `db.mjs` wraps each file in one transaction, so don't put `begin;`/`commit;` in a file you dry-run.
+- **This repo locally:** port **3001** (launch config `event-website-3001`), because 3000 is the original repo's dev server. Google OAuth callbacks only work on 3000. Next dev blocks `127.0.0.1`, so use `localhost:3001`.
 
 ## 4. Auth & role model (current design)
 - **Single login** at `/login` for everyone (`POST /api/auth/login`): authenticates only,
@@ -306,32 +349,48 @@ portal; organizers run events from a dashboard; judges review participants.
   mount/bfcache/focus/cross-tab-logout; **logout** does global `signOut` + sends
   `Clear-Site-Data` so Back/Forward can't resurrect a protected page. Verified in-browser:
   sign-out → Back → lands on `/login`; refresh while logged in stays put.
+- **Database access (2026-09-29):**
+  - RLS is on for all 19 public tables. Only scoped `SELECT` policies remain.
+  - The app reads and writes only server-side with the service role. The browser uses Supabase only for auth and the attendance Realtime channel.
+  - SECURITY DEFINER functions can be executed by `service_role` only.
+  - There are no storage policies: buckets are written server-side, and `banners` is public-read.
+- **Club vs event roles:**
+  - Creating events and editing Contacts need a club organizer (`profiles.role` organizer/superadmin, `UserAccess.canManageClub`).
+  - Event roles (owner/sub_admin/judge in `event_organizers`) only reach their own events.
+  - Adding or removing people and deleting an event are owner-only.
 - **Audit log** (`audit_log` table, migration 013; `lib/audit/log.ts`; superadmin-only
   `GET /api/audit`). Instrumented: event create/update/delete, registration cancel,
   attendance check-in, organizer add/remove, certificate generate/release, export, form-fields update.
 
-## 6. Current state (2026-09-23)
-- `main` = PRs #8, #9, #11, #12, **#14** (payments, Google auth, profile identity) merged; HEAD `91cc20f`.
-  Runs locally clean (home, events, login, contact; protected routes redirect when signed out).
-- Branch **`fix/portal-greeting-name`** (PR open to `main`): portal greets by profile `full_name`
-  (was "there" for accounts with no registrations); `<body suppressHydrationWarning>` to silence
-  Grammarly-injected attribute mismatches. PR #13 (`ER-Improvements1`) open.
-- Live DB: migrations through **024** applied.
-- Auth note: §4 is partly superseded — participants now use **Google only**; organizers use
-  email/password.
+## 6. Current state (2026-09-29)
+- **`main`:**
+  - This repo (`CINTEL-TECH-HEADS/event_website`) has everything through PR #17. HEAD is `d0864df`.
+  - There are no open PRs.
+  - Build and lint pass (0 errors).
+- **Live DB (shared with the original app):**
+  - Migrations are applied through **031**.
+  - Only one account is a club organizer (the superadmin), and it owns all events.
+  - The 18 old test events are soft-deleted (`is_deleted = true`).
+- **Deploy:** the test site `event-website-gamma.vercel.app` runs functions in `syd1`, next to Supabase (`ap-southeast-2`).
+- **Original repo** (`Cintel-Student-Association/cintel-event-registration`): its PR #16 is still open. Site work happens in this repo.
+- **Auth note:** §4 is partly out of date:
+  - Participants use **Google only**, and organizers use email/password.
+  - Organizer accounts are club-level (`profiles.role`). Event sub-admins and judges are added in Access Control and must have signed in once.
 
 ## 7. Future plan / open items (prioritized)
-1. **Merge the greeting/hydration fix PR**; end-to-end test the portal with a Google sign-in.
-2. **Duplicate migration numbers** — `019`, `020`, `021`, `022` each have two files (cert set from PR #11
-   vs ours). All applied live, but renumber so a fresh replay has a deterministic order.
-3. **Google OAuth prod config** — Supabase Google provider + prod redirect URLs allowlisted.
-4. **Re-enable email** when a provider is chosen (un-stub `lib/email/resend.ts`, reactivate Notification Center).
-5. **Review/merge PR #13** (`ER-Improvements1`) — check for conflicts with this branch.
-6. **Reset the test password** on `test@cinteluser.com`; **reclassify mislabeled `organizer` profiles**
-   (`update profiles set role='participant' where role='organizer' and id not in (select profile_id from event_organizers);`).
-7. **Durable rate-limit store** (in-memory today → Redis/Upstash); extend audit coverage
-   (manual check-in, payment approve/reject, duplicate review).
-8. Real payment gateway (currently manual proof + organizer verification).
+1. **Rotate the DB password** (it was shared in chat), then update `SUPABASE_DB_URL` in `.env.local`.
+2. **Permanently delete the 18 soft-deleted test events**, if wanted. The user runs `node scripts/db.mjs apply ~/cintel-test-events-cleanup/delete-test-events.dbmjs.sql`. It was dry-run tested, and backups are in the same folder.
+3. **Check on a real phone on the test site:**
+   - scan a team QR (member checklist)
+   - Google sign-in as an other-college student
+   - posters on home, events and the event page
+4. **Security Advisor:** refresh and confirm the 3 errors and 9 warnings are gone. Leaked-password protection needs the Pro plan.
+5. **Optional: move Supabase to Mumbai (`ap-south-1`)** for about 0.3 s less per request. This needs a new project and a data migration, and it affects both apps.
+6. **Legacy `certificates` upsert** in `app/api/participant/registrations/[id]/certificate/route.ts` targets partial unique indexes and fails silently. It is best-effort and nothing reads it.
+7. **Duplicate migration numbers:** `019`–`022` each have two files. All are applied live, but renumber them so a fresh replay has a deterministic order.
+8. **Re-enable email** when a provider is chosen (un-stub `lib/email/resend.ts` and reactivate the Notification Center).
+9. **Durable rate-limit store** (in-memory today; move to Redis/Upstash). Extend audit coverage (payment approve/reject, duplicate review).
+10. Lint has about 62 warnings, mostly fetch-on-mount effects. There is no real payment gateway yet (manual proof plus organizer verification).
 
 ## 8. Operational caveats
 - Rate limiter is **in-memory** (`lib/rate-limit`) — dev-only semantics on multi-instance.
