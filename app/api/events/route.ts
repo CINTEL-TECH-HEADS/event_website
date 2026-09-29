@@ -6,7 +6,7 @@ import {
   createSessionClient,
 } from '@/lib/supabase/server'
 import { logAction } from '@/lib/audit/log'
-import { getAuthUser } from '@/lib/auth/get-session'
+import { getAuthUser, resolveUserAccess } from '@/lib/auth/get-session'
 import { isExternalParticipant } from '@/lib/participants/identity'
 
 // The list depends on who is asking.
@@ -239,6 +239,15 @@ export async function POST(
     return apiError(
       'Unauthorized',
       401
+    )
+
+  // Only club organizers create events (they become its owner). Sub-admins and
+  // judges work on events they're added to; participants can't create any.
+  const access = await resolveUserAccess(user.id, user.email ?? '')
+  if (!access.canManageClub)
+    return apiError(
+      'Only club organizers can create events.',
+      403
     )
 
   try {

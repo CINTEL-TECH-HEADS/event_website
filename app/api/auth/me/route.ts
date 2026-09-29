@@ -19,8 +19,9 @@ export async function GET() {
         email: access.user.email,
         role: access.role,
         home: access.home,
+        can_manage_club: access.canManageClub,
       }
-    : { authenticated: false, email: null, role: null, home: null }
+    : { authenticated: false, email: null, role: null, home: null, can_manage_club: false }
 
   return NextResponse.json(body, {
     headers: { 'Cache-Control': 'no-store' },

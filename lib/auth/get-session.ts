@@ -51,6 +51,9 @@ export type UserAccess = {
     user: { id: string; email: string }
     role: 'superadmin' | 'organizer' | 'participant'
     isOrganizer: boolean
+    // Club organizer (profiles.role organizer/superadmin): can create events and
+    // edit club-wide things like Contacts. Event sub-admins and judges can't.
+    canManageClub: boolean
     home: string
 }
 
@@ -98,6 +101,7 @@ export async function resolveUserAccess(
         user: { id: userId, email },
         role,
         isOrganizer,
+        canManageClub: isGlobalOrganizer,
         home: onlyJudging
             ? `/judge/${memberships[0].event_id}/participants`
             : isOrganizer ? '/dashboard' : '/participant/portal',

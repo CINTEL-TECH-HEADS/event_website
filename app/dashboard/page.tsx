@@ -26,6 +26,17 @@ export default function DashboardPage() {
   const [loading, setLoading] =
     useState(true)
 
+  // Only club organizers create events; sub-admins and judges don't see it.
+  const [canCreate, setCanCreate] =
+    useState(false)
+
+  useEffect(() => {
+    fetch('/api/auth/me', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((me) => setCanCreate(me?.can_manage_club === true))
+      .catch(() => {})
+  }, [])
+
   useEffect(() => {
     async function loadEvents() {
       try {
@@ -96,12 +107,16 @@ export default function DashboardPage() {
         icon={LayoutGrid}
         kicker="Dashboard"
         title="Events"
-        description="Every event you manage. Open one to edit it, see registrations, check people in or export data."
+        description={canCreate
+          ? 'Every event you manage. Open one to edit it, see registrations, check people in or export data.'
+          : 'The events you help run. Open one to see registrations, check people in or export data.'}
         actions={
-          <Link href="/dashboard/events/new" className="app-button-primary">
-            <Plus size={16} strokeWidth={2.5} />
-            Create event
-          </Link>
+          canCreate ? (
+            <Link href="/dashboard/events/new" className="app-button-primary">
+              <Plus size={16} strokeWidth={2.5} />
+              Create event
+            </Link>
+          ) : undefined
         }
       />
 
@@ -123,14 +138,14 @@ export default function DashboardPage() {
           <>
             <section>
               <h2 className="mb-4 font-display text-lg uppercase tracking-tight text-foreground">Active and upcoming</h2>
-              <EventTable events={active} />
+              <EventTable events={active} canCreate={canCreate} />
             </section>
 
             {pastEvents.length > 0 && (
               <section>
                 <h2 className="mb-1 font-display text-lg uppercase tracking-tight text-foreground">Past</h2>
                 <p className="mb-4 text-sm font-medium text-foreground-soft">Events whose end date has passed.</p>
-                <EventTable events={pastEvents} />
+                <EventTable events={pastEvents} canCreate={canCreate} />
               </section>
             )}
           </>

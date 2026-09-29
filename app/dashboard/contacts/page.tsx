@@ -28,6 +28,8 @@ export default function ContactsAdminPage() {
   const [newContact, setNewContact] = useState<Draft>(emptyDraft)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState<Draft>(emptyDraft)
+  // Contacts are club-wide: only club organizers edit them; everyone else reads.
+  const [canEdit, setCanEdit] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -43,6 +45,10 @@ export default function ContactsAdminPage() {
 
   useEffect(() => {
     load()
+    fetch('/api/auth/me', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((me) => setCanEdit(me?.can_manage_club === true))
+      .catch(() => {})
   }, [])
 
   async function addContact() {
@@ -121,7 +127,14 @@ export default function ContactsAdminPage() {
         </div>
       )}
 
+      {!canEdit && (
+        <p className="rounded-xl border-2 border-border bg-panel-muted px-5 py-4 text-sm font-medium text-foreground-soft">
+          Only club organizers can change this list.
+        </p>
+      )}
+
       {/* Add form */}
+      {canEdit && (
       <section className="app-panel p-6 sm:p-8">
         <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-foreground-soft">Add a contact</h2>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -160,6 +173,7 @@ export default function ContactsAdminPage() {
           Add Contact
         </button>
       </section>
+      )}
 
       {/* List */}
       <section className="app-panel p-6 sm:p-8">
@@ -235,6 +249,7 @@ export default function ContactsAdminPage() {
                       {[c.email, c.phone].filter(Boolean).join('  ·  ') || 'No contact details'}
                     </p>
                   </div>
+                  {canEdit && (
                   <div className="flex shrink-0 gap-2">
                     <button
                       onClick={() => startEdit(c)}
@@ -251,6 +266,7 @@ export default function ContactsAdminPage() {
                       <Trash2 size={15} />
                     </button>
                   </div>
+                  )}
                 </div>
               )
             )}

@@ -12,10 +12,13 @@ import { EventWithStats } from '@/types'
 
 interface Props {
   events: EventWithStats[]
+  // Only club organizers can create events.
+  canCreate?: boolean
 }
 
 export function EventTable({
   events,
+  canCreate = true,
 }: Props) {
   if (events.length === 0) {
     return (
@@ -25,12 +28,14 @@ export function EventTable({
           No events yet
         </p>
 
-        <Link
-          href="/dashboard/events/new"
-          className="mt-4 inline-flex text-sm font-bold uppercase tracking-wide text-accent transition-colors duration-200 hover:text-brand"
-        >
-          Create an event
-        </Link>
+        {canCreate && (
+          <Link
+            href="/dashboard/events/new"
+            className="mt-4 inline-flex text-sm font-bold uppercase tracking-wide text-accent transition-colors duration-200 hover:text-brand"
+          >
+            Create an event
+          </Link>
+        )}
 
       </div>
     )
