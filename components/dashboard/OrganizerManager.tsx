@@ -292,7 +292,7 @@ export function OrganizerManager({
 
         <div className="mb-5 flex items-center gap-3">
 
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-border bg-accent text-white">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-border bg-accent text-background">
             <Shield
               size={18}
               strokeWidth={2.5}

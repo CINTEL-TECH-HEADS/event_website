@@ -22,20 +22,22 @@ export default async function DashboardLayout({
   if (!access.isOrganizer) redirect('/participant/portal')
 
   return (
-    <div className="dashboard-theme-shell relative flex min-h-screen flex-col bg-background text-foreground lg:flex-row">
+    // On lg+ the shell is pinned to the viewport: the sidebar stays put and only
+    // <main> scrolls. Below lg the page scrolls normally under the sticky MobileNav.
+    <div className="dashboard-theme-shell relative flex min-h-screen flex-col bg-background text-foreground lg:h-screen lg:flex-row lg:overflow-hidden">
 
       <SessionGuard />
 
       {/* Mobile top bar + drawer (< lg) */}
       <MobileNav />
 
-      {/* Static sidebar (>= lg) */}
-      <div className="hidden lg:block">
+      {/* Fixed sidebar (>= lg); scrolls on its own only if its event list overflows */}
+      <div className="hidden shrink-0 lg:block lg:h-full lg:overflow-y-auto">
         <Sidebar />
       </div>
 
       {/* Main Content */}
-      <main className="app-main relative flex-1 bg-background px-4 py-4 sm:px-6 lg:px-8 lg:py-8">
+      <main className="app-main relative flex-1 bg-background px-4 py-4 sm:px-6 lg:overflow-y-auto lg:px-8 lg:py-8">
 
         {/* Faint corner starburst — restrained poster accent, not a scene */}
         <div className="pointer-events-none absolute right-6 top-6 hidden opacity-[0.07] lg:block">

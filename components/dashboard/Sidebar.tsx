@@ -2,6 +2,7 @@
 
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -26,24 +27,44 @@ type EventWithStats = {
   confirmed_count: number
 }
 
-interface SidebarProps {
-  profile?: Profile
-  events?: EventWithStats[]
-}
-
-export function Sidebar({
-  profile,
-  events = [],
-}: SidebarProps) {
+export function Sidebar() {
   const pathname =
     usePathname()
+
+  const [profile, setProfile] =
+    useState<Profile>()
+
+  const [events, setEvents] =
+    useState<EventWithStats[]>([])
+
+  useEffect(() => {
+    fetch('/api/auth/me', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((me) => me?.email && setProfile({ email: me.email }))
+      .catch(() => {})
+  }, [])
+
+  // The sidebar lives in the persistent dashboard layout, so refetch on
+  // navigation — otherwise events created/renamed/deleted elsewhere go stale.
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/events?mine=true', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!cancelled && json) setEvents(json.data ?? [])
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [pathname])
 
   const navClass = (
     active: boolean
   ) =>
     `flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-sm font-bold uppercase tracking-wide transition-all duration-200 ease-out ${
       active
-        ? 'border-border bg-accent text-white shadow-sm'
+        ? 'border-border bg-accent text-background shadow-sm'
         : 'border-transparent text-foreground-soft hover:border-border hover:bg-panel-muted hover:text-foreground'
     }`
 

@@ -38,7 +38,7 @@ export function CountdownTimer({ closesAt, compact = false }: { closesAt: string
 
   return (
     <div className="flex items-center gap-3 rounded-2xl border-2 border-border bg-accent-soft px-4 py-3">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-border bg-accent text-white">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-border bg-accent text-background">
         <Timer className="h-4 w-4" strokeWidth={2.5} />
       </span>
       <p className="text-sm font-bold text-foreground" suppressHydrationWarning>{label}</p>

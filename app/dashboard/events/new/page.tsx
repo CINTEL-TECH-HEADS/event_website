@@ -368,7 +368,7 @@ export default function NewEventPage() {
                     onClick={() => setPaymentMethod(m)}
                     className={`rounded-full border-2 px-4 py-2 font-tech text-xs font-bold uppercase tracking-widest transition-all duration-200 ease-out ${
                       paymentMethod === m
-                        ? 'border-border bg-accent text-white shadow-sm'
+                        ? 'border-border bg-accent text-background shadow-sm'
                         : 'border-border bg-panel text-foreground-soft hover:text-foreground'
                     }`}
                   >

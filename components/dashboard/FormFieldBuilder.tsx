@@ -456,7 +456,7 @@ export function FormFieldBuilder({
                 aria-selected={active === value}
                 onClick={() => { setForm(value); setEditingId(null); setShowAddForm(false) }}
                 className={`rounded-full border-2 border-border px-4 py-2 font-tech text-xs font-bold uppercase tracking-widest transition-colors duration-200 ${
-                  active === value ? 'bg-accent text-white shadow-sm' : 'bg-panel-muted text-foreground-soft hover:text-foreground'
+                  active === value ? 'bg-accent text-background shadow-sm' : 'bg-panel-muted text-foreground-soft hover:text-foreground'
                 }`}
               >
                 {label} <span className="ml-1 opacity-70">{count}</span>
@@ -543,7 +543,7 @@ export function FormFieldBuilder({
                         }
                       </span>
 
-                      <span className="app-badge bg-accent text-white">
+                      <span className="app-badge bg-accent text-background">
                         {
                           field.applies_to
                         }
