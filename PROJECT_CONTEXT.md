@@ -2,7 +2,34 @@
 
 > Living document. Update this at the end of every working session: append what was
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
-> Last updated: 2026-09-29 (security lockdown, server moved to Sydney, attendance/posters/access, judge fixes).
+> Last updated: 2026-09-29 (launch audit: blockers fixed; security lockdown, server moved to Sydney, attendance/posters/access, judge fixes).
+
+## 2026-09-29: launch audit and blocker fixes (branch `fix/launch-blockers`)
+**Audit result:**
+- All 52 API routes check access.
+- There are no secrets in git history.
+- RLS and functions are locked down (see below).
+- Headers are good: HSTS preload, CSP, XFO DENY, nosniff.
+- Uploads are server-side with type and size limits. Only `banners` is public.
+
+**Blockers fixed:**
+- **Next 16.2.4 → 16.3.7.** 16.2.4 had RCE in the image optimizer (AVIF), proxy/middleware bypasses and cache poisoning. Also applied `npm audit fix`.
+- **Removed the unused `react-email` CLI.** It bundled next@14, socket.io and an old postcss. It had also been supplying `framer-motion`, which the app imports directly, so that is now a declared dependency.
+- **Prod audit went from 1 critical / 16 high to 0 critical / 1 high.** The remaining high is `xlsx`, which has no npm fix. The app only writes spreadsheets and never parses uploads with it.
+- **Deleted `POST /api/payments/simulate`.** It let any registrant mark their own registration paid and confirmed: a payment bypass. Nothing used it.
+- **`GET /api/uploads/file` now signs a file only for its uploader, or for owners, sub-admins and judges of the event** it was submitted to (as a form answer or a payment screenshot). Other users get 404. `..` paths are refused.
+- **Uploads get their content type from the checked extension**, not from the browser.
+- **The dashboard no longer logs event data to the console.**
+- **Local dev only:** after dependency changes, clear `.next/dev` if the dev server reports missing `next/node_modules/...` paths.
+
+**Still to do before launch (all need the owner):**
+- Create a real superadmin (`scripts/create-organizer.mjs`) and delete `test2@cintel.com`.
+- Rotate the DB password.
+- Put the Google OAuth consent screen "In production".
+- Set Supabase Site URL and Redirect URLs, and `NEXT_PUBLIC_APP_URL`, for the real domain.
+- Don't deploy the original app against this DB.
+- Consider Supabase Pro: Free projects pause after 7 idle days and have no backups.
+- **Clean wipe of test data:** 8 events, 20 accounts and 133 files, all test data. Tooling is blocked for Claude (mass delete), so the owner does it in the dashboard: event tables, then Auth users except admins, then storage buckets.
 
 ## 2026-09-29: security lockdown, speed, judge and event fixes
 **Security (all applied to the live DB; recorded by PRs #16 and #17):**
@@ -390,7 +417,7 @@ portal; organizers run events from a dashboard; judges review participants.
 7. **Duplicate migration numbers:** `019`–`022` each have two files. All are applied live, but renumber them so a fresh replay has a deterministic order.
 8. **Re-enable email** when a provider is chosen (un-stub `lib/email/resend.ts` and reactivate the Notification Center).
 9. **Durable rate-limit store** (in-memory today; move to Redis/Upstash). Extend audit coverage (payment approve/reject, duplicate review).
-10. Lint has about 62 warnings, mostly fetch-on-mount effects. There is no real payment gateway yet (manual proof plus organizer verification).
+10. Lint has about 70 warnings, mostly fetch-on-mount effects. There is no real payment gateway yet (manual proof plus organizer verification).
 
 ## 8. Operational caveats
 - Rate limiter is **in-memory** (`lib/rate-limit`) — dev-only semantics on multi-instance.
