@@ -197,6 +197,7 @@ export async function GET(
         capacity,
         registration_mode,
         open_to_external,
+        banner_url,
         is_published
       `)
       .eq('is_published', true)

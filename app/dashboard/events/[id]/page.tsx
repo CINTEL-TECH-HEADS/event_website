@@ -7,6 +7,7 @@ import { CheckCircle2, CircleDashed, Settings2 } from 'lucide-react'
 import { FormFieldBuilder } from '@/components/dashboard/FormFieldBuilder'
 import { OrganizerManager } from '@/components/dashboard/OrganizerManager'
 import LuxuryDatePicker from '@/components/dashboard/LuxuryDatePicker'
+import { EventPoster } from '@/components/dashboard/EventPoster'
 import { EventWithStats } from '@/types'
 import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 import { EVENT_TYPE_LABELS, REGISTRATION_MODE_LABELS } from '@/lib/club'
@@ -331,7 +332,7 @@ export default function EventDetailPage() {
             <div className="mb-6">
               <h2 className="text-xl font-black uppercase tracking-tight text-foreground">Event details</h2>
               <p className="mt-1 text-sm font-medium text-foreground-soft">
-                Title, description, venue, dates, capacity, fee and team size.
+                Title, description, venue, dates, poster, capacity, fee and team size.
               </p>
             </div>
 
@@ -399,6 +400,13 @@ export default function EventDetailPage() {
                   onChange={(d) => setFormData((f) => ({ ...f, registration_closes_at: d }))}
                 />
               </div>
+
+              {/* Saved on its own, straight away — not part of Save Changes. */}
+              <EventPoster
+                eventId={id}
+                url={event.banner_url}
+                onChange={(url) => setEvent((e) => (e ? { ...e, banner_url: url } : e))}
+              />
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>

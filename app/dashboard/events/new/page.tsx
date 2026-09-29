@@ -16,6 +16,7 @@ import {
 
 import type { CreateEventPayload } from '@/lib/validators/event'
 import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
+import { PosterPicker, uploadPoster } from '@/components/dashboard/EventPoster'
 
 export default function NewEventPage() {
   const router = useRouter()
@@ -35,6 +36,7 @@ export default function NewEventPage() {
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'bank'>('upi')
   const [hasWaitlist, setHasWaitlist] = useState(false)
   const [openToExternal, setOpenToExternal] = useState(false)
+  const [poster, setPoster] = useState<File | null>(null)
 
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
@@ -128,6 +130,13 @@ export default function NewEventPage() {
       setError(error)
       setLoading(false)
       return
+    }
+
+    // The poster needs the event's id, so it goes up once the event exists. If it
+    // fails, the event is still created and the poster can be added from its page.
+    if (poster) {
+      const { error: posterError } = await uploadPoster(data.id, poster)
+      if (posterError) alert(`The event was created, but the poster didn't upload: ${posterError} You can add it from the Event details tab.`)
     }
 
     // Events open to other colleges have two registration forms to set up next.
@@ -404,6 +413,8 @@ export default function NewEventPage() {
             name="description"
             label="Description"
           />
+
+          <PosterPicker file={poster} onChange={setPoster} />
 
           {error && (
             <div className="rounded-xl border-2 border-l-8 border-border border-l-brand bg-panel px-5 py-4 text-sm font-medium text-foreground">
