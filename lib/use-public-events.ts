@@ -4,17 +4,19 @@ import { useEffect, useState } from 'react'
 import { isRegistrationOpen } from '@/lib/utils'
 import { normalizeEvent, type PublicEvent } from '@/lib/public-events'
 
-// One GET /api/events per page load, shared by the header's "Next up" strip
-// and the home page.
+// Concurrent callers (the header's "Next up" strip and the home page) share one
+// in-flight GET /api/events. The result is NOT kept: the list is filtered per
+// viewer (other-college students only see open_to_external events), and the
+// viewer can change without a full reload — e.g. finishing profile setup as
+// "other college" and then navigating client-side to Home.
 let pending: Promise<PublicEvent[]> | null = null
 
 function fetchEvents() {
-  pending ??= fetch('/api/events')
+  pending ??= fetch('/api/events', { cache: 'no-store' })
     .then((res) => res.json())
     .then(({ data }) => ((data ?? []) as PublicEvent[]).map(normalizeEvent))
-    .catch((err) => {
+    .finally(() => {
       pending = null
-      throw err
     })
   return pending
 }
