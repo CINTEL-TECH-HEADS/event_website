@@ -16,6 +16,30 @@ export const SOCIALS = [
   { label: 'GitHub', handle: 'Cintel-Student-Association', href: 'https://github.com/Cintel-Student-Association' },
 ] as const
 
+// Tech team credited in the "Developed by" section above the footer.
+// Photos live in public/team/.
+// linkedin: null hides the link until one is added.
+// Heads are shown in the first row, members in the row below.
+export type TechTeamMember = {
+  name: string
+  role: 'head' | 'member'
+  photo: string
+  linkedin: string | null
+}
+
+export const TECH_TEAM: TechTeamMember[] = [
+  { name: 'Jayashrii SH', role: 'head', photo: '/team/jayashrii.jpg', linkedin: 'https://www.linkedin.com/in/jayashrii' },
+  {
+    name: 'Prathamesh Nithyanandan',
+    role: 'head',
+    photo: '/team/prathamesh.jpg',
+    linkedin: 'https://www.linkedin.com/in/prathamesh-nithyanandan-156014373/',
+  },
+  { name: 'Atharv Arya', role: 'member', photo: '/team/atharv.jpg', linkedin: 'https://www.linkedin.com/in/atharv-arya-9990b2375/' },
+  { name: 'Asmitha Rajeshraj', role: 'member', photo: '/team/asmitha.jpg', linkedin: 'https://www.linkedin.com/in/asmitha-rajeshraj' },
+  { name: 'Aadith Geeth Mohan', role: 'member', photo: '/team/aadith.jpg', linkedin: 'https://www.linkedin.com/in/aadithgeethmohan/' },
+]
+
 export type ClubEvent = {
   title: string
   kind: string
