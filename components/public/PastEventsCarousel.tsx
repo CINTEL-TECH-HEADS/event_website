@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import FlexCarousel from '@/components/reactbits/FlexCarousel'
 import { ARCHIVE_ALL } from '@/lib/club'
+import { optimizedImage } from '@/lib/image'
 
 // Archive events that have a photo, newest period first.
 const EVENTS = ARCHIVE_ALL.filter((e) => e.photo)
 const ITEMS = EVENTS.map((e) => ({
-  src: e.photo as string,
+  src: optimizedImage(e.photo as string, 828),
   alt: e.alt,
   title: e.title,
   subtitle: `${e.year} · ${e.kind}`.toUpperCase(),

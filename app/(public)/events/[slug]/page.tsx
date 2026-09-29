@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/site/PageHeader'
 import { generateGoogleCalendarLink } from '@/lib/calendar/gcal-link'
 import { formatEventDate, isPast } from '@/lib/utils'
 import { EVENT_TYPE_LABELS, REGISTRATION_MODE_LABELS } from '@/lib/club'
+import { optimizedImage } from '@/lib/image'
 
 function normalizeCount(value: unknown): number {
   if (typeof value === 'number') return value
@@ -124,7 +125,7 @@ export default function EventPage() {
           {event.banner_url && (
             <div className="overflow-hidden rounded-2xl border-2 border-border bg-[#14120F] shadow-sm">
               <img
-                src={event.banner_url}
+                src={optimizedImage(event.banner_url, 1200)}
                 alt={`${event.title} poster`}
                 className="mx-auto max-h-[80vh] w-auto max-w-full object-contain"
               />

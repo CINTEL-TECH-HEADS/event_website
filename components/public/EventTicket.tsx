@@ -7,6 +7,7 @@ import ScrambledText from '@/components/reactbits/ScrambledText'
 import { EVENT_TYPE_LABELS, REGISTRATION_MODE_LABELS } from '@/lib/club'
 import type { PublicEvent } from '@/lib/public-events'
 import { cn } from '@/lib/utils'
+import { optimizedImage } from '@/lib/image'
 
 const W = 460
 const H = 230
@@ -38,7 +39,7 @@ export function EventTicket({ event, now, past = false, index = 0 }: {
   return (
     <TearTicket
       className="event-ticket"
-      image={event.banner_url ?? undefined}
+      image={optimizedImage(event.banner_url, 828)}
       imageAlt=""
       scrim
       imageRadius={12}
