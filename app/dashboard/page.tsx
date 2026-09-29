@@ -40,7 +40,6 @@ export default function DashboardPage() {
   useEffect(() => {
     async function loadEvents() {
       try {
-        console.log('Fetching events...')
         const res = await fetch(
           '/api/events?mine=true'
         )
@@ -53,8 +52,6 @@ export default function DashboardPage() {
 
         const json =
           await res.json()
-
-        console.log('Events response:', json)
 
         const events = (
           json.data ?? []
