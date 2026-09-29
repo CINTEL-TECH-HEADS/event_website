@@ -61,10 +61,18 @@ export default function PortalPage() {
     if (first?.leader_name) setRegName(firstName(first.leader_name))
   }
 
+  // /api/events is filtered by the viewer's affiliation (other-college students
+  // only get open_to_external events), so reload it whenever the profile is saved:
+  // on first sign-in the list is fetched before setup records the affiliation.
+  async function loadEvents() {
+    const { data } = await fetch('/api/events', { cache: 'no-store' }).then(r => r.json())
+    setActiveEvents(data ?? [])
+  }
+
   useEffect(() => {
     Promise.all([
       loadRegistrations(),
-      fetch('/api/events').then(r => r.json()).then(({ data }) => setActiveEvents(data ?? [])),
+      loadEvents(),
       fetch('/api/participant/profile').then(r => r.json()).then(j => {
         setProfileComplete(!!j.data?.complete)
         if (j.data?.profile?.full_name) setProfileName(firstName(j.data.profile.full_name))
@@ -119,7 +127,11 @@ export default function PortalPage() {
         Tell us whether you study at SRM KTR or another college. SRM students add their registration number and
         college email; students from other colleges add their college name and phone.
       </p>
-      <ProfileTab required onSaved={(_p, complete) => { if (complete) setProfileComplete(true) }} />
+      <ProfileTab required onSaved={async (_p, complete) => {
+        if (!complete) return
+        await loadEvents()
+        setProfileComplete(true)
+      }} />
       <div className="mt-6">
         <button onClick={handleLogout} className="font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft hover:text-foreground">Sign out</button>
       </div>
@@ -333,7 +345,7 @@ export default function PortalPage() {
       )}
 
       {/* ── PROFILE TAB ──────────────────────────────── */}
-      {tab === 'profile' && <ProfileTab />}
+      {tab === 'profile' && <ProfileTab onSaved={() => { loadEvents() }} />}
     </div>
   )
 }
