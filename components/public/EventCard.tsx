@@ -4,6 +4,7 @@ import type { Event } from '@/types'
 import { formatShortDate } from '@/lib/utils'
 import { EVENT_TYPE_LABELS } from '@/lib/club'
 import { CapacityBadge } from './CapacityBadge'
+import { optimizedImage } from '@/lib/image'
 
 type PublicEvent = Event & {
   confirmed_count: number
@@ -22,7 +23,7 @@ export function EventCard({ event, past = false }: { event: PublicEvent; past?: 
       <div className="relative aspect-[16/9] overflow-hidden border-b-2 border-border bg-[#14120F]">
         {event.banner_url ? (
           <img
-            src={event.banner_url}
+            src={optimizedImage(event.banner_url, 828)}
             alt=""
             className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
           />

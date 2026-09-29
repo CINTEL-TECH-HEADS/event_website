@@ -1,4 +1,5 @@
 import type { ArchivedEvent } from '@/lib/club'
+import { optimizedImage } from '@/lib/image'
 
 // A past event from the association's archive (not a database event): photo,
 // year · kind, title, one line and a couple of facts.
@@ -6,7 +7,7 @@ export function ArchiveCard({ event }: { event: ArchivedEvent }) {
   return (
     <article className="flex h-full w-full flex-col overflow-hidden rounded-[22px] border-[3px] border-[#161412] bg-panel [box-shadow:6px_6px_0_#161412]">
       <div className="relative aspect-[16/10] overflow-hidden border-b-[3px] border-[#161412] bg-[#161412]">
-        {event.photo && <img src={event.photo} alt={event.alt} loading="lazy" className="h-full w-full object-cover" />}
+        {event.photo && <img src={optimizedImage(event.photo, 828)} alt={event.alt} loading="lazy" className="h-full w-full object-cover" />}
         <span className="absolute left-3 top-3 rounded-full border-2 border-[#161412] bg-primary-yellow px-3 py-1 font-tech text-[10px] font-bold uppercase tracking-[0.16em] text-[#161412]">
           {event.year} · {event.kind}
         </span>

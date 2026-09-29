@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import InfiniteMenu, { type MenuItem } from '@/components/reactbits/InfiniteMenu'
 import { FLAGSHIP_EVENTS } from '@/lib/club'
+import { optimizedImage } from '@/lib/image'
 
 // Square poster tile for a flagship event that has no photo yet, drawn in
 // the site's display font so the sphere never shows an empty face.
@@ -68,7 +69,7 @@ export function WhatWeRunMenu() {
     let active = true
     Promise.all(
       FLAGSHIP_EVENTS.map(async (e) => ({
-        image: e.photo ?? (await posterTile(e.title, e.kind)),
+        image: e.photo ? optimizedImage(e.photo, 640) : await posterTile(e.title, e.kind),
         link: `/events?type=${e.type}`,
         title: e.title,
         description: e.text,
