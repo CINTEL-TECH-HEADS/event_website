@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { CLUB, SOCIALS } from '@/lib/club'
+import { DevelopedBy } from '@/components/site/DevelopedBy'
 
 const LINKS = [
   { href: '/events', label: 'All events' },
@@ -10,6 +11,8 @@ const LINKS = [
 
 export function SiteFooter() {
   return (
+    <>
+    <DevelopedBy />
     <footer id="contact" className="relative z-10 mt-16 bg-[#161412] text-cream">
       <div className="mx-auto max-w-[1240px] px-4 pb-7 pt-16 sm:px-6">
         <div className="flex flex-wrap items-center gap-[18px]">
@@ -60,5 +63,6 @@ export function SiteFooter() {
         </p>
       </div>
     </footer>
+    </>
   )
 }
