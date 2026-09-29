@@ -98,6 +98,7 @@ export async function GET(
               'event_organizers'
             )
             .select(`
+              role,
               events(
                 id,
                 title,
@@ -124,6 +125,8 @@ export async function GET(
             (item: any) =>
               item.events && !item.events.is_deleted ? [{
                 ...item.events,
+                // Their role on this event: judges get the read-only judge view.
+                my_role: item.role,
                 confirmed_count:
                   item.events
                     ?.registrations?.[0]

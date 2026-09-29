@@ -38,6 +38,8 @@ export async function DELETE(
           'profile_id',
           organizerId
         )
+        // The owner can't be removed from their own event here.
+        .neq('role', 'owner')
 
     if (error)
       return apiError(

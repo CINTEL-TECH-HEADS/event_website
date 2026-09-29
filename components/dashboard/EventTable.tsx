@@ -1,5 +1,6 @@
 // Owner: FE2 - Event list table for dashboard overview
 import Link from 'next/link'
+import { dashboardEventHref } from '@/lib/events/href'
 import {
   Calendar,
   ChevronRight,
@@ -44,7 +45,7 @@ export function EventTable({
             key={
               event.id
             }
-            href={`/dashboard/events/${event.id}`}
+            href={dashboardEventHref(event)}
             className="app-panel app-card-hover group flex items-center justify-between p-5"
           >
 

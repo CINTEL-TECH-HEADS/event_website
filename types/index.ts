@@ -354,6 +354,9 @@ export type EventWithStats = {
   // Returned by GET/PATCH /api/events/[id]: why the registration form (and
   // open_to_external) can no longer change, or null while it can.
   form_lock?: 'published' | 'registrations' | null
+  // From GET /api/events?mine=true: the signed-in user's role on this event
+  // (absent for club-wide organizers, who manage every event).
+  my_role?: OrganizerRole
 }
 export type RegistrationWithDetails = {
   id: string

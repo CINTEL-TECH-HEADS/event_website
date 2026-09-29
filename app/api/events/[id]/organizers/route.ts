@@ -1,9 +1,10 @@
 // Owner: BE2
+// GET /api/events/[id]/organizers — who has access to this event.
+// Adding people goes through POST /api/organizers (looks them up by email).
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/server'
 import { requireOrganizerRole } from '@/lib/auth/get-session'
-import { logAction } from '@/lib/audit/log'
 
 export async function GET(
   req: NextRequest,
@@ -32,14 +33,17 @@ export async function GET(
           'event_organizers'
         )
         .select(`
+          id,
           role,
-          profiles(
+          profile_id,
+          profile:profiles(
             id,
             full_name,
             email
           )
         `)
         .eq('event_id', id)
+        .order('created_at', { ascending: true })
 
     if (error)
       return apiError(
@@ -50,73 +54,6 @@ export async function GET(
     return apiSuccess(
       data ?? []
     )
-  } catch {
-    return apiError(
-      'Internal server error',
-      500
-    )
-  }
-}
-
-export async function POST(
-  req: NextRequest,
-  context: {
-    params: Promise<{
-      id: string
-    }>
-  }
-) {
-  try {
-    const { id } =
-      await context.params
-
-    // Only the event owner can add organizers
-    const auth = await requireOrganizerRole(id, ['owner'])
-    if ('error' in auth) {
-      return apiError(auth.error, auth.status)
-    }
-
-    const body =
-      await req.json()
-
-    const supabase =
-      createAdminClient()
-
-    const { data, error } =
-      await supabase
-        .from(
-          'event_organizers'
-        )
-        .insert([
-          {
-            event_id: id,
-            profile_id:
-              body.profile_id,
-            role:
-              body.role ??
-              'manager',
-          },
-        ])
-        .select()
-        .single()
-
-    if (error)
-      return apiError(
-        error.message,
-        500
-      )
-
-    await logAction({
-      actorId: auth.user.id,
-      actorEmail: auth.user.email,
-      action: 'organizer.add',
-      targetType: 'organizer',
-      targetId: body.profile_id,
-      eventId: id,
-      metadata: { role: body.role ?? 'manager' },
-    })
-
-    return apiSuccess(data)
   } catch {
     return apiError(
       'Internal server error',

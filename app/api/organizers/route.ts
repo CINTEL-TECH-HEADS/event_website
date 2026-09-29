@@ -29,7 +29,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { event_id, email, role } = parsed.data
+    const { event_id, role } = parsed.data
+    // Auth stores emails in lower case.
+    const email = parsed.data.email.trim().toLowerCase()
 
     // Only owners can assign organizers
     const auth = await requireOrganizerRole(event_id, ['owner'])
@@ -47,11 +49,11 @@ export async function POST(req: NextRequest) {
       .from('profiles')
       .select('id, full_name, email')
       .eq('email', email)
-      .single()
+      .maybeSingle()
 
     if (profileError || !profile) {
       return NextResponse.json(
-        { data: null, error: 'No account found with that email. Organizer accounts are created by an admin.' },
+        { data: null, error: 'No account uses that email yet. Ask them to sign in once (Continue with Google), then add them again.' },
         { status: 404 }
       )
     }
@@ -62,7 +64,7 @@ export async function POST(req: NextRequest) {
       .select('id')
       .eq('event_id', event_id)
       .eq('profile_id', profile.id)
-      .single()
+      .maybeSingle()
 
     if (existing) {
       return NextResponse.json(
