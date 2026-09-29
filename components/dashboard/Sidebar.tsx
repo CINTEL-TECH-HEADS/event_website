@@ -38,10 +38,17 @@ export function Sidebar() {
   const [events, setEvents] =
     useState<EventWithStats[]>([])
 
+  // Only club organizers create events; sub-admins and judges don't see it.
+  const [canManageClub, setCanManageClub] =
+    useState(false)
+
   useEffect(() => {
     fetch('/api/auth/me', { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : null))
-      .then((me) => me?.email && setProfile({ email: me.email }))
+      .then((me) => {
+        if (me?.email) setProfile({ email: me.email })
+        setCanManageClub(me?.can_manage_club === true)
+      })
       .catch(() => {})
   }, [])
 
@@ -116,6 +123,7 @@ export function Sidebar() {
             Dashboard
           </Link>
 
+          {canManageClub && (
           <Link
             href="/dashboard/events/new"
             className={navClass(
@@ -128,6 +136,7 @@ export function Sidebar() {
             />
             New Event
           </Link>
+          )}
 
           <Link
             href="/dashboard/contacts"

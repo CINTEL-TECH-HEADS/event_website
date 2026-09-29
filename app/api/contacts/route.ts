@@ -1,8 +1,9 @@
 // app/api/contacts/route.ts
 // Public "Contact Us" directory.
 //   GET  — public: list all contacts (used by /contact and /dashboard/contacts).
-//   POST — organizer-gated: create a contact.
-// Contacts are org-wide, so access is gated on isOrganizer (not per-event roles).
+//   POST — club organizers only: create a contact.
+// Contacts are club-wide, so writes need a club organizer (profiles.role
+// organizer/superadmin), not just a role on some event.
 
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
@@ -25,7 +26,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const access = await getUserAccess()
-  if (!access?.isOrganizer) return apiError('Forbidden', 403)
+  if (!access?.canManageClub) return apiError('Only club organizers can edit contacts.', 403)
 
   try {
     const body = await req.json()

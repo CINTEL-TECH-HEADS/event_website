@@ -1,6 +1,6 @@
 // app/api/contacts/[id]/route.ts
-//   PATCH  — organizer-gated: update a contact.
-//   DELETE — organizer-gated: remove a contact.
+//   PATCH  — club organizers only: update a contact.
+//   DELETE — club organizers only: remove a contact.
 
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
@@ -14,7 +14,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const access = await getUserAccess()
-  if (!access?.isOrganizer) return apiError('Forbidden', 403)
+  if (!access?.canManageClub) return apiError('Only club organizers can edit contacts.', 403)
 
   const { id } = await params
   try {
@@ -58,7 +58,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const access = await getUserAccess()
-  if (!access?.isOrganizer) return apiError('Forbidden', 403)
+  if (!access?.canManageClub) return apiError('Only club organizers can edit contacts.', 403)
 
   const { id } = await params
   const admin = createAdminClient()

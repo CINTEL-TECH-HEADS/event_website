@@ -39,7 +39,8 @@ export async function GET(req: NextRequest) {
           id,
           full_name,
           email,
-          is_leader
+          is_leader,
+          checked_in_at
         )
       )
     `)
@@ -66,7 +67,9 @@ export async function GET(req: NextRequest) {
     if (reg.status !== 'confirmed') continue
 
     if (reg.registration_type === 'team') {
-      const rawMembers: any[] = reg.members ?? []
+      // Only members marked present at check-in get certificates.
+      const rawMembers: any[] = (reg.members ?? []).filter((m: any) => m.checked_in_at)
+      if (rawMembers.length === 0) continue
 
       // Sort: leader first, then alphabetical by name
       const sorted = [...rawMembers].sort((a, b) => {

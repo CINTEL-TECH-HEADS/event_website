@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
         registration_id,
         registrations!inner (
           id, registration_type, leader_name, leader_email, status,
-          members:team_members ( id, full_name, email )
+          members:team_members ( id, full_name, email, checked_in_at )
         )
       `)
       .eq('event_id', event_id)
@@ -130,7 +130,8 @@ export async function POST(req: NextRequest) {
       const reg = record.registrations as any
       if (!reg) continue
       if (reg.registration_type === 'team') {
-        for (const m of (reg.members ?? [])) {
+        // Only members marked present at check-in.
+        for (const m of (reg.members ?? []).filter((x: any) => x.checked_in_at)) {
           targets.push({ regId: reg.id, teamMemberId: m.id, name: m.full_name, email: m.email })
         }
       } else {

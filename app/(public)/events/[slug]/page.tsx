@@ -120,12 +120,15 @@ export default function EventPage() {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
         <div className="min-w-0 space-y-8">
+          {/* The whole poster, uncropped (cards show a 16:9 crop of it). */}
           {event.banner_url && (
-            <img
-              src={event.banner_url}
-              alt=""
-              className="aspect-[16/8] w-full rounded-2xl border-2 border-border object-cover shadow-sm"
-            />
+            <div className="overflow-hidden rounded-2xl border-2 border-border bg-[#14120F] shadow-sm">
+              <img
+                src={event.banner_url}
+                alt={`${event.title} poster`}
+                className="mx-auto max-h-[80vh] w-auto max-w-full object-contain"
+              />
+            </div>
           )}
 
           <section>

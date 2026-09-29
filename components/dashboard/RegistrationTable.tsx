@@ -442,7 +442,11 @@ export function RegistrationTable({
 
                         <td className="px-4 py-4">
                           {attendanceRow(registration) ? (
-                            <span className="app-badge app-badge-success">✓ Checked in</span>
+                            <span className="app-badge app-badge-success">
+                              {registration.registration_type === 'team'
+                                ? `✓ ${(registration.members ?? []).filter((m: any) => m.checked_in_at).length}/${registration.members?.length ?? 0} present`
+                                : '✓ Checked in'}
+                            </span>
                           ) : (
                             <span className="text-xs font-medium text-foreground-soft">—</span>
                           )}
@@ -504,6 +508,7 @@ export function RegistrationTable({
                                           <li key={m.id} className="font-medium text-foreground-soft">
                                             {m.full_name} <span>{m.email}</span>
                                             {m.is_leader && <span className="ml-1 text-xs font-bold uppercase tracking-wide text-warning">Creator</span>}
+                                            {m.checked_in_at && <span className="ml-1 text-xs font-bold uppercase tracking-wide text-success">Present</span>}
                                           </li>
                                         ))}
                                       </ul>

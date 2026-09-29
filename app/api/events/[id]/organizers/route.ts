@@ -1,5 +1,6 @@
 // Owner: BE2
-// GET /api/events/[id]/organizers — who has access to this event.
+// GET /api/events/[id]/organizers — who has access to this event, and the
+// viewer's own role on it.
 // Adding people goes through POST /api/organizers (looks them up by email).
 import { NextRequest } from 'next/server'
 import { apiSuccess, apiError } from '@/lib/utils'
@@ -51,9 +52,12 @@ export async function GET(
         500
       )
 
-    return apiSuccess(
-      data ?? []
-    )
+    // viewer_role lets the screen show add/remove only to owners (club
+    // organizers count as owner for every event).
+    return apiSuccess({
+      organizers: data ?? [],
+      viewer_role: auth.organizerRole,
+    })
   } catch {
     return apiError(
       'Internal server error',

@@ -54,6 +54,11 @@ export function OrganizerManager({
   const [adding, setAdding] =
     useState(false)
 
+  // Only owners (and club organizers) can add or remove people.
+  const [viewerRole, setViewerRole] =
+    useState<OrganizerRole | null>(null)
+  const canManage = viewerRole === 'owner'
+
   async function loadOrganizers() {
     try {
       const res = await fetch(
@@ -64,8 +69,9 @@ export function OrganizerManager({
         await res.json()
 
       setOrganizers(
-        data ?? []
+        data?.organizers ?? []
       )
+      setViewerRole(data?.viewer_role ?? null)
     } catch {
       console.error(
         'Failed loading organizers'
@@ -193,7 +199,8 @@ export function OrganizerManager({
   return (
     <div className="space-y-4">
 
-      {/* Add Access */}
+      {/* Add Access — owners only */}
+      {canManage && (
       <section className="app-panel p-5 sm:p-6">
 
         <div className="mb-5 flex items-center gap-3">
@@ -309,6 +316,7 @@ export function OrganizerManager({
         </div>
 
       </section>
+      )}
 
       {/* Team */}
       <section className="app-panel p-5 sm:p-6">
@@ -331,6 +339,8 @@ export function OrganizerManager({
             <p className="mt-1 text-sm font-medium text-foreground-soft">
               Current access
               for this event.
+              {!canManage &&
+                ' Only the event owner can add or remove people.'}
             </p>
 
           </div>
@@ -388,7 +398,8 @@ export function OrganizerManager({
                       }
                     </span>
 
-                    {organizer.role !==
+                    {canManage &&
+                      organizer.role !==
                       'owner' && (
                       <button
                         onClick={() =>

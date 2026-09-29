@@ -32,7 +32,7 @@ export async function POST(
         registration_id,
         registrations!inner (
           id, registration_type, status,
-          members:team_members ( id )
+          members:team_members ( id, checked_in_at )
         )
       `)
       .eq('event_id', id)
@@ -43,7 +43,8 @@ export async function POST(
       const reg = row.registrations as any
       if (!reg || reg.status !== 'confirmed') continue
       if (reg.registration_type === 'team') {
-        for (const m of reg.members ?? []) {
+        // Only members marked present at check-in.
+        for (const m of (reg.members ?? []).filter((x: any) => x.checked_in_at)) {
           targets.push({ registration_id: reg.id, team_member_id: m.id })
         }
       } else {
@@ -76,9 +77,13 @@ export async function POST(
         certificate_type: 'Participation',
       }))
 
-      await admin
+      // Plain insert: these targets have no assignment yet. (An upsert can't be
+      // used here — the table's unique indexes are partial, so ON CONFLICT on
+      // these columns always failed and no assignments were ever created.)
+      const { error: assignErr } = await admin
         .from('certificate_assignments')
-        .upsert(newAssignments, { onConflict: 'event_id,registration_id,team_member_id' })
+        .insert(newAssignments)
+      if (assignErr) return apiError(`Failed to assign certificates: ${assignErr.message}`, 500)
     }
 
     // 3. Update event certificates_released_at

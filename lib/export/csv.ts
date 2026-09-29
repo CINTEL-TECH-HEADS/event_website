@@ -3,6 +3,7 @@
 // Custom form field answers are added as extra columns.
 
 import { createAdminClient } from '@/lib/supabase/server'
+import { attendanceOf, membersPresent } from './attendance'
 
 export async function buildCsv(event_id: string): Promise<string> {
   const admin = createAdminClient()
@@ -22,6 +23,7 @@ export async function buildCsv(event_id: string): Promise<string> {
       leader_name, leader_email, leader_phone,
       status, waitlist_position, registered_at,
       attendance ( checked_in_at, method ),
+      team_members ( full_name, checked_in_at ),
       registration_answers ( field_id, answer )
     `)
     .eq('event_id', event_id)
@@ -36,7 +38,7 @@ export async function buildCsv(event_id: string): Promise<string> {
     'Display ID', 'Type', 'Team Name',
     'Leader Name', 'Leader Email', 'Leader Phone',
     'Status', 'Waitlist Position', 'Registered At',
-    'Checked In', 'Check-in Time', 'Check-in Method',
+    'Checked In', 'Check-in Time', 'Check-in Method', 'Members Present',
   ]
 
   // Other-college form fields are labelled so same-named fields don't collide.
@@ -45,7 +47,7 @@ export async function buildCsv(event_id: string): Promise<string> {
 
   // Build data rows
   const rows = registrations.map((reg: any) => {
-    const attendance = reg.attendance?.[0]
+    const attendance = attendanceOf(reg)
 
     const baseValues = [
       reg.display_id,
@@ -60,6 +62,7 @@ export async function buildCsv(event_id: string): Promise<string> {
       attendance ? 'Yes' : 'No',
       attendance ? new Date(attendance.checked_in_at).toLocaleString('en-IN') : '',
       attendance?.method ?? '',
+      membersPresent(reg),
     ]
 
     // Map form answers to field columns

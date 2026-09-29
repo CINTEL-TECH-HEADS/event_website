@@ -2,7 +2,26 @@
 
 > Living document. Update this at the end of every working session: append what was
 > done, refresh **Current State** and **Future Plan**, and flag critical pending moves.
-> Last updated: 2026-09-28 (separate other-college registration form; "SRM KTR" wording).
+> Last updated: 2026-09-29 (per-member attendance, event posters, sub-admin/club-organizer access).
+
+## 2026-09-29: per-member attendance, posters, access (branch `feat/attendance-posters-subadmin`)
+- **Attendance**:
+  - Migration `028_member_attendance.sql` (**applied to the live DB**) adds `team_members.checked_in_at` and `checked_in_by`, backfilled for existing team check-ins.
+  - A team keeps one `attendance` row, which exists exactly when at least one member is present. All writes go through `lib/attendance/set.ts`.
+  - Scanning a team pass (`POST /api/attendance`) returns `needs_members` first. The scanner then asks who is here, with nobody ticked, and `member_ids` confirms.
+  - `PUT /api/events/[id]/attendance/[registration_id]` handles edits.
+  - The check-in page has an attendance list (`components/dashboard/AttendanceList.tsx`).
+  - Certificates go only to present members.
+  - The unused, unchecked `/api/attendance/manual` was removed.
+- **Exports**: "Checked In" was always "No", because attendance embeds as an object; this is fixed. There's a new "Members Present" column.
+- **Certificates**: releasing (`post-certificates`) never created assignments. Its upsert targeted partial unique indexes and failed silently; it now inserts.
+  - Still broken, and left alone: the participant certificate route's best-effort upsert into the legacy `certificates` table has the same problem.
+- **Posters**: `POST`/`DELETE /api/events/[id]/banner` write to the public `banners` bucket. Posters can be set on the create form and in Event details.
+  - The public list now selects `banner_url`: home tickets and event cards show a crop, and the event page shows the whole poster.
+- **Access**:
+  - `POST /api/events` and Contacts writes now require a club organizer (`profiles.role` organizer/superadmin, exposed as `UserAccess.canManageClub` and `/api/auth/me` `can_manage_club`). Before, any signed-in user could create events, and any event role could edit contacts.
+  - Access Control shows add and Remove only to owners (`viewer_role` from `GET /api/events/[id]/organizers`).
+  - Sub-admins were verified end to end.
 
 ## 2026-09-28: separate registration form for other-college students (branch `feat/external-form`, PR #5 → `feat/landing-content`)
 - **DB**: migration `027_form_field_audience.sql` (**applied to the live DB**) adds
