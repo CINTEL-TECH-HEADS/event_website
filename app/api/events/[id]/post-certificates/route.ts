@@ -77,9 +77,13 @@ export async function POST(
         certificate_type: 'Participation',
       }))
 
-      await admin
+      // Plain insert: these targets have no assignment yet. (An upsert can't be
+      // used here — the table's unique indexes are partial, so ON CONFLICT on
+      // these columns always failed and no assignments were ever created.)
+      const { error: assignErr } = await admin
         .from('certificate_assignments')
-        .upsert(newAssignments, { onConflict: 'event_id,registration_id,team_member_id' })
+        .insert(newAssignments)
+      if (assignErr) return apiError(`Failed to assign certificates: ${assignErr.message}`, 500)
     }
 
     // 3. Update event certificates_released_at
