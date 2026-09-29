@@ -26,7 +26,9 @@ const nextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-              "style-src 'self' 'unsafe-inline'",
+              // Google Fonts — used by the certificate layout editor/renderer.
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' data: https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://*.supabase.co https:",
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
               "frame-src 'none'",

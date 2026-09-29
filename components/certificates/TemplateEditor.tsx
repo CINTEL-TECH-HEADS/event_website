@@ -16,8 +16,24 @@ import {
 
 interface Props {
   template: TemplateConfig
-  onSave: (updated: TemplateConfig) => void
+  // All templates of the event — used to offer "apply to all solo/team templates".
+  otherTemplates: TemplateConfig[]
+  onSave: (updated: TemplateConfig[]) => void
   onClose: () => void
+}
+
+type SampleLength = 'short' | 'medium' | 'long'
+
+const SAMPLE_NAMES: Record<SampleLength, string> = {
+  short: 'Ria',
+  medium: 'Jayashrii Shankar',
+  long: 'Venkata Subramanian Krishnamurthy Raghavendran',
+}
+
+const SAMPLE_TEAM_NAMES: Record<SampleLength, string> = {
+  short: 'Byte',
+  medium: 'Team Alpha Coders',
+  long: 'The Quantum Neural Network Innovators Collective',
 }
 
 const DEFAULT_LAYOUT: LayoutConfig = {
@@ -50,7 +66,7 @@ const DEFAULT_LAYOUT: LayoutConfig = {
   },
 }
 
-export function TemplateEditor({ template, onSave, onClose }: Props) {
+export function TemplateEditor({ template, otherTemplates, onSave, onClose }: Props) {
   // Detect template type (solo vs team) from template metadata.
   // Solo templates only expose Name + QR; Team templates also expose Team Name.
   const isTeamTemplate = template.template_type === 'team'
@@ -66,6 +82,18 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
   })
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState<'name' | 'teamName' | 'qr'>('name')
+
+  // Sample text length shown in the preview, so the layout can be checked
+  // against short, typical and very long names.
+  const [sampleLength, setSampleLength] = useState<SampleLength>('medium')
+  const sampleName = SAMPLE_NAMES[sampleLength]
+  const sampleTeam = SAMPLE_TEAM_NAMES[sampleLength]
+
+  // Other templates of the same kind (solo/team) that can share this layout.
+  const siblingTemplates = otherTemplates.filter(
+    (t) => t.id !== template.id && t.template_type === template.template_type
+  )
+  const [applyToSiblings, setApplyToSiblings] = useState(siblingTemplates.length > 0)
 
   // Font options state
   const [customFonts, setCustomFonts] = useState<string[]>([])
@@ -144,13 +172,13 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
 
         while (fontSize > 8) {
           ctx.font = getFontStr(cfg, fontSize)
-          if (ctx.measureText('Jayashrii Shankar').width <= maxPx) break
+          if (ctx.measureText(sampleName).width <= maxPx) break
           fontSize -= 1
         }
 
         ctx.fillStyle = cfg.color ?? '#1a1a1a'
         ctx.font = getFontStr(cfg, fontSize)
-        ctx.fillText('Jayashrii Shankar', cfg.x * W, cfg.y * H, maxPx)
+        ctx.fillText(sampleName, cfg.x * W, cfg.y * H, maxPx)
       }
 
       // 3. Draw sample Team Name
@@ -165,13 +193,13 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
 
         while (fontSize > 8) {
           ctx.font = getFontStr(cfg, fontSize)
-          if (ctx.measureText('Team Alpha').width <= maxPx) break
+          if (ctx.measureText(sampleTeam).width <= maxPx) break
           fontSize -= 1
         }
 
         ctx.fillStyle = cfg.color ?? '#333333'
         ctx.font = getFontStr(cfg, fontSize)
-        ctx.fillText('Team Alpha', cfg.x * W, cfg.y * H, maxPx)
+        ctx.fillText(sampleTeam, cfg.x * W, cfg.y * H, maxPx)
       }
 
       // 4. Draw sample QR Code
@@ -197,7 +225,7 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
     } finally {
       setRenderingPreview(false)
     }
-  }, [template.previewUrl, imgDim, layout])
+  }, [template.previewUrl, imgDim, layout, sampleName, sampleTeam])
 
   // Re-render live preview whenever layout changes
   useEffect(() => {
@@ -306,21 +334,48 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
             return rest
           })()
 
-      const res = await fetch(`/api/certificates/templates/${template.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ layout_config: layoutToSave }),
-      })
-      const json = await res.json()
-      if (!res.ok || json.error) throw new Error(json.error ?? 'Save failed')
-      onSave(json.data)
-      alert('Template layout saved successfully!')
+      const targets = applyToSiblings ? [template, ...siblingTemplates] : [template]
+      const saved = await Promise.all(
+        targets.map(async (t) => {
+          const res = await fetch(`/api/certificates/templates/${t.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ layout_config: layoutToSave }),
+          })
+          const json = await res.json()
+          if (!res.ok || json.error) {
+            throw new Error(`${t.certificate_type ?? t.name}: ${json.error ?? 'Save failed'}`)
+          }
+          return json.data as TemplateConfig
+        })
+      )
+      onSave(saved)
+      alert(
+        targets.length > 1
+          ? `Layout saved to all ${targets.length} ${isTeamTemplate ? 'Team' : 'Solo'} templates.`
+          : 'Template layout saved successfully!'
+      )
     } catch (err: any) {
       alert(`Save failed: ${err.message}`)
     } finally {
       setSaving(false)
     }
   }
+
+  // Transparent drag handle covering the area the text is drawn in:
+  // maxWidth wide, about one line tall, anchored like the canvas text.
+  const textBoxStyle = (cfg: TextLayerConfig): React.CSSProperties => ({
+    left: `${cfg.x * 100}%`,
+    top: `${cfg.y * 100}%`,
+    width: `${(cfg.maxWidth ?? 0.7) * 100}%`,
+    height: `${Math.max((cfg.fontSize * 1.3) / imgDim.h, 0.02) * 100}%`,
+    transform:
+      cfg.textAlign === 'center'
+        ? 'translate(-50%, -50%)'
+        : cfg.textAlign === 'right'
+        ? 'translate(-100%, -50%)'
+        : 'translate(0, -50%)',
+  })
 
   const updateText = (key: 'name' | 'teamName', field: keyof TextLayerConfig, val: any) => {
     setLayout((prev) => ({
@@ -367,14 +422,28 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
           </div>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="app-button-primary text-sm disabled:opacity-50"
-        >
-          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-          Save Layout Configuration
-        </button>
+        <div className="flex flex-col items-end gap-2">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="app-button-primary text-sm disabled:opacity-50"
+          >
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+            Save Layout Configuration
+          </button>
+          {siblingTemplates.length > 0 && (
+            <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-foreground-soft">
+              <input
+                type="checkbox"
+                checked={applyToSiblings}
+                onChange={(e) => setApplyToSiblings(e.target.checked)}
+                className="accent-warning"
+              />
+              Also apply to all other {isTeamTemplate ? 'Team' : 'Solo'} templates (
+              {siblingTemplates.map((t) => t.certificate_type ?? t.name).join(', ')})
+            </label>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -389,6 +458,26 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
                 <Loader2 size={10} className="animate-spin" /> Updating preview...
               </span>
             )}
+          </div>
+
+          {/* Sample name length — check the layout fits short and long names */}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-bold uppercase tracking-wider text-foreground-soft">Sample name:</span>
+            {(['short', 'medium', 'long'] as const).map((len) => (
+              <button
+                key={len}
+                onClick={() => setSampleLength(len)}
+                title={isTeamTemplate ? `${SAMPLE_NAMES[len]} · ${SAMPLE_TEAM_NAMES[len]}` : SAMPLE_NAMES[len]}
+                className={`rounded-full border-2 px-3 py-1 font-bold capitalize transition-colors ${
+                  sampleLength === len
+                    ? 'border-warning bg-warning/15 text-warning'
+                    : 'border-border bg-panel-muted text-foreground-soft hover:text-foreground'
+                }`}
+              >
+                {len}
+              </button>
+            ))}
+            <span className="truncate font-medium text-foreground-soft">“{sampleName}”</span>
           </div>
 
           <div
@@ -418,74 +507,48 @@ export function TemplateEditor({ template, onSave, onClose }: Props) {
             {layout.name && (
               <div
                 onPointerDown={(e) => handlePointerDown(e, 'name')}
-                className={`absolute transform -translate-y-1/2 cursor-grab active:cursor-grabbing border-2 px-3 py-1 transition-shadow ${
+                title={`Participant name (${Math.round(layout.name.x * 100)}%, ${Math.round(layout.name.y * 100)}%) — drag to move`}
+                className={`absolute cursor-grab active:cursor-grabbing border ${
                   activeTab === 'name'
-                    ? 'border-warning bg-warning/20 ring-2 ring-warning/50 z-20'
-                    : 'border-dashed border-foreground/60 bg-black/10 hover:border-warning'
+                    ? 'border-warning z-20'
+                    : 'border-dashed border-foreground/50 hover:border-warning'
                 }`}
-                style={{
-                  left: `${layout.name.x * 100}%`,
-                  top: `${layout.name.y * 100}%`,
-                  transform:
-                    layout.name.textAlign === 'center'
-                      ? 'translate(-50%, -50%)'
-                      : layout.name.textAlign === 'right'
-                      ? 'translate(-100%, -50%)'
-                      : 'translate(0, -50%)',
-                }}
-              >
-                <div className="text-[10px] font-mono font-bold text-warning bg-black/80 px-1 py-0.5 whitespace-nowrap pointer-events-none mb-0.5">
-                  Participant Name [{Math.round(layout.name.x * 100)}%, {Math.round(layout.name.y * 100)}%]
-                </div>
-              </div>
+                style={textBoxStyle(layout.name)}
+              />
             )}
 
             {/* Team Name Bounding Box (Team templates only) */}
             {isTeamTemplate && layout.teamName && (
               <div
                 onPointerDown={(e) => handlePointerDown(e, 'teamName')}
-                className={`absolute transform -translate-y-1/2 cursor-grab active:cursor-grabbing border-2 px-3 py-1 transition-shadow ${
+                title={`Team name (${Math.round(layout.teamName.x * 100)}%, ${Math.round(layout.teamName.y * 100)}%) — drag to move`}
+                className={`absolute cursor-grab active:cursor-grabbing border ${
                   activeTab === 'teamName'
-                    ? 'border-accent bg-accent/20 ring-2 ring-accent/50 z-20'
-                    : 'border-dashed border-foreground/60 bg-black/10 hover:border-accent'
+                    ? 'border-accent z-20'
+                    : 'border-dashed border-foreground/50 hover:border-accent'
                 }`}
-                style={{
-                  left: `${layout.teamName.x * 100}%`,
-                  top: `${layout.teamName.y * 100}%`,
-                  transform:
-                    layout.teamName.textAlign === 'center'
-                      ? 'translate(-50%, -50%)'
-                      : layout.teamName.textAlign === 'right'
-                      ? 'translate(-100%, -50%)'
-                      : 'translate(0, -50%)',
-                }}
-              >
-                <div className="text-[10px] font-mono font-bold text-accent bg-black/80 px-1 py-0.5 whitespace-nowrap pointer-events-none mb-0.5">
-                  Team Name [{Math.round(layout.teamName.x * 100)}%, {Math.round(layout.teamName.y * 100)}%]
-                </div>
-              </div>
+                style={textBoxStyle(layout.teamName)}
+              />
             )}
 
             {/* QR Code Bounding Box */}
             {layout.qr && (
               <div
                 onPointerDown={(e) => handlePointerDown(e, 'qr')}
-                className={`absolute cursor-grab active:cursor-grabbing border-2 flex items-center justify-center transition-shadow ${
+                title={`QR code (${Math.round(layout.qr.x * 100)}%, ${Math.round(layout.qr.y * 100)}%) — drag to move`}
+                className={`absolute cursor-grab active:cursor-grabbing border ${
                   activeTab === 'qr'
-                    ? 'border-success bg-success/20 ring-2 ring-success/50 z-20'
-                    : 'border-dashed border-foreground/60 bg-black/10 hover:border-success'
+                    ? 'border-success z-20'
+                    : 'border-dashed border-foreground/50 hover:border-success'
                 }`}
+                // Same size/position the renderer draws the QR at (top-left anchored).
                 style={{
                   left: `${layout.qr.x * 100}%`,
                   top: `${layout.qr.y * 100}%`,
-                  width: `clamp(36px, ${layout.qr.size * 0.3}px, 120px)`,
-                  height: `clamp(36px, ${layout.qr.size * 0.3}px, 120px)`,
+                  width: `${(layout.qr.size / imgDim.w) * 100}%`,
+                  height: `${(layout.qr.size / imgDim.h) * 100}%`,
                 }}
-              >
-                <div className="text-[9px] font-mono font-bold text-success bg-black/80 px-1 py-0.5 pointer-events-none">
-                  QR [{Math.round(layout.qr.x * 100)}%, {Math.round(layout.qr.y * 100)}%]
-                </div>
-              </div>
+              />
             )}
           </div>
         </div>

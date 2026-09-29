@@ -48,11 +48,7 @@ export function PreviewModal({
         return
       }
 
-      if (!tmpl.layout_config) {
-        setError(`Template for "${certType}" (${registrationType}) is missing layout positioning. Open the Layout editor first.`)
-        setLoading(false)
-        return
-      }
+      // No saved layout → the renderer falls back to default positions.
 
       try {
         setLoading(true)
@@ -63,8 +59,8 @@ export function PreviewModal({
           ? `${registrationId}-${teamMemberId}`
           : registrationId)
 
-        const baseUrl =
-          process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+        // The site this dashboard is served from — the QR must point back here.
+        const baseUrl = window.location.origin
         const verificationUrl = `${baseUrl}/verify/${finalAssignmentId}`
 
         const blob = await generateCertificateBlob({

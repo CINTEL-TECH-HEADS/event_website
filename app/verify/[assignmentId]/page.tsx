@@ -11,6 +11,7 @@
 //   4. ⚠ VERIFICATION SERVICE UNAVAILABLE
 
 import { Metadata } from 'next'
+import { headers } from 'next/headers'
 import { CheckCircle2, XCircle, Shield, Award, AlertTriangle, Clock, Users, User, Calendar } from 'lucide-react'
 import { PosterHeading } from '@/components/brand/PosterHeading'
 import { Starburst, Sparkle } from '@/components/brand/Starburst'
@@ -31,7 +32,12 @@ interface VerifyResult {
 
 async function fetchVerification(assignmentId: string): Promise<VerifyResult> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    // Call our own API on the host serving this page (NEXT_PUBLIC_APP_URL
+    // can point at a different deployment/port).
+    const h = await headers()
+    const host = h.get('x-forwarded-host') ?? h.get('host')
+    const proto = h.get('x-forwarded-proto') ?? (host?.startsWith('localhost') ? 'http' : 'https')
+    const baseUrl = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000')
     const res = await fetch(`${baseUrl}/api/verify/${assignmentId}`, { cache: 'no-store' })
     const json = await res.json()
     if (res.status === 200 && json.data?.valid) {
