@@ -13,6 +13,7 @@ import { canAccessEvent, isExternalParticipant } from '@/lib/participants/identi
 import { requireOrganizerRole } from '@/lib/auth/get-session'
 import { logAction } from '@/lib/audit/log'
 import { formLockMessage, getFormLock } from '@/lib/events/form-lock'
+import { eventBaseSchema } from '@/lib/validators/event'
 
 function isUUID(
   value: string
@@ -129,9 +130,26 @@ export async function PATCH(
 
     const { data: current } = await supabase
       .from('events')
-      .select('is_published, open_to_external')
+      .select('is_published, open_to_external, starts_at, ends_at, registration_closes_at')
       .eq('id', id)
       .maybeSingle()
+
+    // Where/when edits: same rules as creating an event, checked against the
+    // event's current times for any that aren't being changed. Venue and times
+    // stay editable after publishing (events get moved); only the registration
+    // form and open_to_external lock (lib/events/form-lock.ts).
+    const whereWhen = eventBaseSchema
+      .pick({ venue: true, event_type: true, starts_at: true, ends_at: true, registration_closes_at: true })
+      .partial()
+      .safeParse(body)
+    if (!whereWhen.success) return apiError(whereWhen.error.errors[0].message, 400)
+    if ('starts_at' in body || 'ends_at' in body || 'registration_closes_at' in body) {
+      const startsAt = new Date(body.starts_at ?? current?.starts_at)
+      const endsAt = new Date(body.ends_at ?? current?.ends_at)
+      const closesAt = new Date(body.registration_closes_at ?? current?.registration_closes_at)
+      if (endsAt <= startsAt) return apiError('End time must be after start time', 400)
+      if (closesAt > startsAt) return apiError('Registration must close before the event starts', 400)
+    }
 
     // Who can register decides which forms exist, so it is locked with the
     // form: while published, and once anyone has registered.

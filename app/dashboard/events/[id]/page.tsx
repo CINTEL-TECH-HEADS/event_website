@@ -6,10 +6,11 @@ import Link from 'next/link'
 import { CheckCircle2, CircleDashed, Settings2 } from 'lucide-react'
 import { FormFieldBuilder } from '@/components/dashboard/FormFieldBuilder'
 import { OrganizerManager } from '@/components/dashboard/OrganizerManager'
+import LuxuryDatePicker from '@/components/dashboard/LuxuryDatePicker'
 import { EventWithStats } from '@/types'
 import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
 import { EVENT_TYPE_LABELS, REGISTRATION_MODE_LABELS } from '@/lib/club'
-import { isPast } from '@/lib/utils'
+import { formatEventDate, isPast } from '@/lib/utils'
 
 const SUBNAV = [
   { label: 'Registrations', path: 'registrations' },
@@ -33,6 +34,11 @@ export default function EventDetailPage() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    event_type: 'workshop',
+    venue: '',
+    starts_at: null as Date | null,
+    ends_at: null as Date | null,
+    registration_closes_at: null as Date | null,
     capacity: '',
     registration_mode: 'both' as 'solo' | 'team' | 'both',
     min_team_size: '',
@@ -67,6 +73,11 @@ export default function EventDetailPage() {
       setFormData({
         title: data.title ?? '',
         description: data.description ?? '',
+        event_type: data.event_type ?? 'other',
+        venue: data.venue ?? '',
+        starts_at: data.starts_at ? new Date(data.starts_at) : null,
+        ends_at: data.ends_at ? new Date(data.ends_at) : null,
+        registration_closes_at: data.registration_closes_at ? new Date(data.registration_closes_at) : null,
         capacity: data.capacity?.toString() ?? '',
         registration_mode: data.registration_mode ?? 'both',
         min_team_size: data.min_team_size?.toString() ?? '',
@@ -115,6 +126,22 @@ export default function EventDetailPage() {
   }, [id, tab])
 
   const handleSaveEvent = async () => {
+    const { starts_at, ends_at, registration_closes_at } = formData
+    const problem =
+      formData.venue.trim().length < 3
+        ? 'Enter the venue (at least 3 characters).'
+        : !starts_at || !ends_at || !registration_closes_at
+          ? 'Pick the start, end and registration close times.'
+          : ends_at <= starts_at
+            ? 'The end time must be after the start time.'
+            : registration_closes_at > starts_at
+              ? 'Registration must close before the event starts.'
+              : null
+    if (problem) {
+      alert(problem)
+      return
+    }
+
     setSaving(true)
     try {
       const res = await fetch(`/api/events/${id}`, {
@@ -122,6 +149,10 @@ export default function EventDetailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          venue: formData.venue.trim(),
+          starts_at: starts_at!.toISOString(),
+          ends_at: ends_at!.toISOString(),
+          registration_closes_at: registration_closes_at!.toISOString(),
           capacity: formData.capacity ? Number(formData.capacity) : null,
           min_team_size:
             formData.registration_mode !== 'solo' && formData.min_team_size
@@ -300,7 +331,7 @@ export default function EventDetailPage() {
             <div className="mb-6">
               <h2 className="text-xl font-black uppercase tracking-tight text-foreground">Event details</h2>
               <p className="mt-1 text-sm font-medium text-foreground-soft">
-                Title, description, dates, capacity, fee and team size.
+                Title, description, venue, dates, capacity, fee and team size.
               </p>
             </div>
 
@@ -322,6 +353,50 @@ export default function EventDetailPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={5}
                   className="app-textarea"
+                />
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Venue</label>
+                  <input
+                    type="text"
+                    value={formData.venue}
+                    onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
+                    placeholder="Building and room, e.g. TP1 911"
+                    className="app-input"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block font-tech text-xs font-bold uppercase tracking-widest text-foreground-soft">Event type</label>
+                  <select
+                    value={formData.event_type}
+                    onChange={(e) => setFormData({ ...formData, event_type: e.target.value })}
+                    className="app-select"
+                  >
+                    {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <LuxuryDatePicker
+                  label="Starts"
+                  value={formData.starts_at}
+                  onChange={(d) => setFormData((f) => ({ ...f, starts_at: d }))}
+                />
+                <LuxuryDatePicker
+                  label="Ends"
+                  value={formData.ends_at}
+                  onChange={(d) => setFormData((f) => ({ ...f, ends_at: d }))}
+                />
+                <LuxuryDatePicker
+                  label="Registration closes"
+                  value={formData.registration_closes_at}
+                  onChange={(d) => setFormData((f) => ({ ...f, registration_closes_at: d }))}
                 />
               </div>
 
@@ -497,6 +572,8 @@ export default function EventDetailPage() {
             <dl className="mt-3 divide-y-2 divide-border text-sm">
               {[
                 ['Status', event.is_published ? 'Published' : 'Draft'],
+                ['Starts', event.starts_at ? formatEventDate(event.starts_at) : 'Not set'],
+                ['Venue', event.venue || 'Not set'],
                 ['Registration', event.registration_closes_at && isPast(event.registration_closes_at) ? 'Closed' : 'Open'],
                 ['Format', REGISTRATION_MODE_LABELS[event.registration_mode ?? 'both'] ?? event.registration_mode],
                 ['Capacity', event.capacity ?? 'Unlimited'],
