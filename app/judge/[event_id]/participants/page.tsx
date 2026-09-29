@@ -148,7 +148,7 @@ export default function JudgeParticipantsPage() {
                                   {registration.answers?.map((answer) => (
                                     <div key={answer.id} className="rounded-lg border-2 border-border bg-panel-muted px-3 py-2">
                                       <span className="font-bold text-foreground">
-                                        {answer.field_id}
+                                        {answer.form_fields?.label ?? 'Question'}
                                       </span>
                                       : {answer.answer}
                                     </div>
