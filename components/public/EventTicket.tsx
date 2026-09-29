@@ -7,7 +7,6 @@ import ScrambledText from '@/components/reactbits/ScrambledText'
 import { EVENT_TYPE_LABELS, REGISTRATION_MODE_LABELS } from '@/lib/club'
 import type { PublicEvent } from '@/lib/public-events'
 import { cn } from '@/lib/utils'
-import { optimizedImage } from '@/lib/image'
 
 const W = 460
 const H = 230
@@ -37,12 +36,10 @@ export function EventTicket({ event, now, past = false, index = 0 }: {
   const mode = REGISTRATION_MODE_LABELS[event.registration_mode] ?? event.registration_mode
 
   return (
+    // No poster on the home-page tickets (posters show on the events page and the
+    // event's own page); the ticket shows the event's details instead.
     <TearTicket
       className="event-ticket"
-      image={optimizedImage(event.banner_url, 828)}
-      imageAlt=""
-      scrim
-      imageRadius={12}
       defaultTorn={past}
       onTear={() => router.push(href)}
       ariaLabel={`Tear off the stub to register for ${event.title}`}
@@ -85,7 +82,7 @@ export function EventTicket({ event, now, past = false, index = 0 }: {
         </div>
       }
     >
-      <div className={cn('flex h-full flex-col gap-2.5 p-[22px]', event.banner_url && 'justify-end')}>
+      <div className="flex h-full flex-col gap-2.5 p-[22px]">
         <div className="flex flex-wrap gap-2">
           <span className="rounded-full bg-cream px-2.5 py-[5px] font-tech text-[10px] font-bold uppercase tracking-[0.16em] text-[#161412]">
             {kind}
@@ -107,7 +104,7 @@ export function EventTicket({ event, now, past = false, index = 0 }: {
         <Link href={href} className="font-display text-[26px] uppercase leading-none text-primary-yellow hover:text-cream">
           {event.title}
         </Link>
-        {event.description && !event.banner_url && (
+        {event.description && (
           <ScrambledText
             className="text-sm leading-normal text-[#CFC7B8] [&_p]:line-clamp-2"
             radius={70}
