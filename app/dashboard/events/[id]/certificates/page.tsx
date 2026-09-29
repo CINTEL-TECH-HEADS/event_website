@@ -1,126 +1,117 @@
-// Certificates: manage named templates, assign attendees to a template, then
-// generate + release. Unassigned attendees use the default template.
+// app/dashboard/events/[id]/certificates/page.tsx
+//
+// Image-based certificate workflow:
+//   1. Upload PNG/JPG templates (solo + team, per certificate type) and
+//      position Participant Name, Team Name and QR in the layout editor
+//   2. Assign a certificate type per team / solo participant
+//   3. Post certificates (release to participants + activate QR verification)
+//   4. Canvas PNG rendering and batch ZIP export
+//   Public QR verification lives at /verify/<assignment-id>.
+
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
-import { Award, Check, Loader2, Mail, Trash2, Upload } from 'lucide-react'
+import { Award, Loader2, RefreshCw } from 'lucide-react'
 import { DashboardPageHeader } from '@/components/dashboard/DashboardPageHeader'
-
-type Template = { id: string; name: string; is_default: boolean }
-type Attendee = {
-  registration_id: string
-  team_member_id: string | null
-  name: string
-  email: string
-  template_id: string | null
-}
+import {
+  TemplateConfig,
+  TeamGroup,
+  SoloParticipant,
+  AssignmentRow,
+} from '@/components/certificates/types'
+import { CertificateTemplates } from '@/components/certificates/CertificateTemplates'
+import { TemplateEditor } from '@/components/certificates/TemplateEditor'
+import { CertificateAssignments } from '@/components/certificates/CertificateAssignments'
+import { GenerateDownloadPanel } from '@/components/certificates/GenerateDownloadPanel'
+import { PreviewModal } from '@/components/certificates/PreviewModal'
 
 export default function CertificatesPage() {
   const { id } = useParams<{ id: string }>()
-  const fileRef = useRef<HTMLInputElement>(null)
 
-  const [templates, setTemplates] = useState<Template[]>([])
-  const [attendees, setAttendees] = useState<Attendee[]>([])
-  const [templateName, setTemplateName] = useState('')
-  const [uploading, setUploading] = useState(false)
-  const [generating, setGenerating] = useState(false)
-  const [releasing, setReleasing] = useState(false)
-  const [result, setResult] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [eventTitle, setEventTitle] = useState('CINTEL Event')
+  const [certificatesReleasedAt, setCertificatesReleasedAt] = useState<string | null>(null)
 
-  const loadTemplates = useCallback(async () => {
-    const { data } = await fetch(`/api/certificates/templates?event_id=${id}`).then((r) => r.json())
-    setTemplates(data ?? [])
-  }, [id])
+  const [templates, setTemplates] = useState<TemplateConfig[]>([])
+  const [teams, setTeams] = useState<TeamGroup[]>([])
+  const [solos, setSolos] = useState<SoloParticipant[]>([])
+  const [assignments, setAssignments] = useState<AssignmentRow[]>([])
 
-  const loadAttendees = useCallback(async () => {
-    const { data: regs } = await fetch(`/api/events/${id}/registrations?status=confirmed`).then((r) => r.json())
-    const { data: assigns } = await fetch(`/api/certificates/assign?event_id=${id}`)
-      .then((r) => r.json())
-      .catch(() => ({ data: [] }))
-    const assignMap = new Map(
-      (assigns ?? []).map((a: any) => [`${a.registration_id}:${a.team_member_id ?? 'solo'}`, a.template_id])
-    )
-    const attended = (regs ?? []).filter((r: any) => {
-      const a = Array.isArray(r.attendance) ? r.attendance[0] : r.attendance
-      return !!a?.id
-    })
-    const rows: Attendee[] = []
-    for (const r of attended) {
-      if (r.registration_type === 'team') {
-        for (const m of r.members ?? []) {
-          rows.push({
-            registration_id: r.id, team_member_id: m.id, name: m.full_name, email: m.email,
-            template_id: (assignMap.get(`${r.id}:${m.id}`) as string) ?? null,
-          })
-        }
-      } else {
-        rows.push({
-          registration_id: r.id, team_member_id: null, name: r.leader_name, email: r.leader_email,
-          template_id: (assignMap.get(`${r.id}:solo`) as string) ?? null,
-        })
+  const [editingTemplate, setEditingTemplate] = useState<TemplateConfig | null>(null)
+
+  const [previewTarget, setPreviewTarget] = useState<{
+    registrationId: string
+    teamMemberId: string | null
+    name: string
+    teamName: string | null
+    certType: string
+    registrationType: 'solo' | 'team'
+  } | null>(null)
+
+  const loadAllData = useCallback(async () => {
+    if (!id) return
+    setLoading(true)
+    try {
+      const [eventJson, checkedInJson, templatesJson, assignmentsJson] = await Promise.all([
+        fetch(`/api/events/${id}`).then((r) => r.json()),
+        fetch(`/api/certificates/checked-in?event_id=${id}`).then((r) => r.json()),
+        fetch(`/api/certificates/templates?event_id=${id}`).then((r) => r.json()),
+        fetch(`/api/certificates/assignments?event_id=${id}`).then((r) => r.json()),
+      ])
+
+      if (eventJson.data?.title) setEventTitle(eventJson.data.title)
+      setCertificatesReleasedAt(eventJson.data?.certificates_released_at ?? null)
+
+      if (checkedInJson.data) {
+        setTeams(checkedInJson.data.teams ?? [])
+        setSolos(checkedInJson.data.solos ?? [])
       }
+      if (templatesJson.data) setTemplates(templatesJson.data)
+      if (assignmentsJson.data) setAssignments(assignmentsJson.data)
+    } catch (err) {
+      console.error('[CertificatesPage] Failed to load data:', err)
+    } finally {
+      setLoading(false)
     }
-    setAttendees(rows)
   }, [id])
 
-  useEffect(() => { loadTemplates(); loadAttendees() }, [loadTemplates, loadAttendees])
+  useEffect(() => {
+    loadAllData()
+  }, [loadAllData])
 
-  async function uploadTemplate(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!templateName.trim()) { alert('Name the template first (e.g. Winner / Participant).'); return }
-    setUploading(true)
-    try {
-      const fd = new FormData()
-      fd.append('file', file); fd.append('event_id', id); fd.append('name', templateName.trim())
-      const { error } = await fetch('/api/certificates/templates', { method: 'POST', body: fd }).then((r) => r.json())
-      if (error) { alert(error); return }
-      setTemplateName('')
-      await loadTemplates()
-    } finally {
-      setUploading(false)
-      if (fileRef.current) fileRef.current.value = ''
-    }
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center gap-2 text-foreground-soft">
+        <Loader2 size={24} className="animate-spin text-warning" />
+        <span className="text-sm font-bold">Loading certificates…</span>
+      </div>
+    )
   }
 
-  async function deleteTemplate(tid: string) {
-    if (!confirm('Delete this template?')) return
-    await fetch('/api/certificates/templates', {
-      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: tid, event_id: id }),
-    })
-    await Promise.all([loadTemplates(), loadAttendees()])
+  if (editingTemplate) {
+    return (
+      <TemplateEditor
+        template={editingTemplate}
+        otherTemplates={templates}
+        onSave={(updatedList) => {
+          // PATCH responses carry no signed previewUrl and may have a NULL
+          // template_type (legacy-constraint workaround) — keep ours.
+          const byId = new Map(updatedList.map((u) => [u.id, u]))
+          setTemplates((prev) =>
+            prev.map((t) => {
+              const u = byId.get(t.id)
+              return u
+                ? { ...t, ...u, template_type: t.template_type, previewUrl: t.previewUrl }
+                : t
+            })
+          )
+          setEditingTemplate(null)
+        }}
+        onClose={() => setEditingTemplate(null)}
+      />
+    )
   }
-
-  async function assign(a: Attendee, templateId: string) {
-    setAttendees((prev) => prev.map((x) => (x === a ? { ...x, template_id: templateId } : x)))
-    await fetch('/api/certificates/assign', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        event_id: id, template_id: templateId,
-        targets: [{ registration_id: a.registration_id, team_member_id: a.team_member_id }],
-      }),
-    })
-  }
-
-  async function run(action: 'generate' | 'release') {
-    const setBusy = action === 'generate' ? setGenerating : setReleasing
-    if (!confirm(action === 'generate' ? 'Generate certificates for all attendees?' : 'Email certificates to all attendees?')) return
-    setBusy(true); setResult(null)
-    try {
-      const { data, error } = await fetch('/api/certificates', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, event_id: id }),
-      }).then((r) => r.json())
-      if (error) { alert(error); return }
-      setResult(action === 'generate' ? `Generated ${data.generated}/${data.total}` : `Emailed ${data.emailed}/${data.total}`)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const defaultTemplate = templates.find((t) => t.is_default)
 
   return (
     <div className="space-y-6">
@@ -128,86 +119,85 @@ export default function CertificatesPage() {
         icon={Award}
         kicker="Certificates"
         title="Certificates"
-        description={'Upload templates (e.g. Winner, Participant) and assign attendees to them. Attendees without an assignment get the default template.'}
+        description="Upload image templates, place the name and QR code, assign certificate types, then post certificates and export them as a ZIP."
+        actions={
+          <button onClick={loadAllData} className="app-button-secondary text-sm">
+            <RefreshCw size={14} />
+            Refresh
+          </button>
+        }
       />
 
-      {/* Templates */}
+      {/* Step 1: Templates & layout */}
       <section className="app-panel-muted p-6">
-        <h2 className="app-subheading text-lg font-black uppercase tracking-tight text-foreground">Templates</h2>
-        <div className="mt-4 flex flex-wrap items-end gap-3">
-          <div>
-            <label className="mb-1 block text-xs font-bold uppercase tracking-widest text-foreground-soft">Template name</label>
-            <input value={templateName} onChange={(e) => setTemplateName(e.target.value)} placeholder="e.g. Winner"
-              className="app-input py-2 text-sm" />
-          </div>
-          <input ref={fileRef} type="file" accept=".pdf" onChange={uploadTemplate} className="hidden" />
-          <button onClick={() => fileRef.current?.click()} disabled={uploading}
-            className="app-button-primary text-sm disabled:opacity-50">
-            {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-            {uploading ? 'Uploading…' : 'Upload PDF'}
-          </button>
-        </div>
-        <div className="mt-4 space-y-2">
-          {templates.length === 0 ? (
-            <p className="text-sm font-medium text-foreground-soft">No templates yet. Upload at least one to generate certificates.</p>
-          ) : (
-            templates.map((t) => (
-              <div key={t.id} className="flex items-center justify-between rounded-xl border-2 border-border bg-panel px-4 py-2.5">
-                <span className="text-sm font-bold text-foreground">
-                  {t.name} {t.is_default && <span className="app-badge app-badge-warning ml-2">Default</span>}
-                </span>
-                <button onClick={() => deleteTemplate(t.id)} className="p-1.5 text-foreground-soft transition hover:text-brand">
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            ))
-          )}
-        </div>
+        <CertificateTemplates
+          eventId={id}
+          templates={templates}
+          onTemplatesChange={setTemplates}
+          onEditTemplate={(tmpl) => setEditingTemplate(tmpl)}
+        />
       </section>
 
-      {/* Attendees + assignment */}
-      <section className="app-panel-muted p-6">
-        <h2 className="text-lg font-black uppercase tracking-tight text-foreground">Attendees ({attendees.length})</h2>
-        <p className="mt-1 text-sm font-medium text-foreground-soft">Assign each attendee a template (defaults to {defaultTemplate?.name ?? '—'}).</p>
-        <div className="mt-4 space-y-2">
-          {attendees.length === 0 ? (
-            <p className="text-sm font-medium text-foreground-soft">No attended participants yet. Check people in first.</p>
-          ) : (
-            attendees.map((a) => (
-              <div key={`${a.registration_id}:${a.team_member_id ?? 'solo'}`} className="flex items-center justify-between gap-3 rounded-xl border-2 border-border bg-panel px-4 py-2.5">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-foreground">{a.name}</p>
-                  <p className="truncate text-xs font-medium text-foreground-soft">{a.email}</p>
-                </div>
-                <select
-                  value={a.template_id ?? ''}
-                  onChange={(e) => assign(a, e.target.value)}
-                  disabled={templates.length === 0}
-                  className="app-select max-w-[180px] py-2 text-sm"
-                >
-                  <option value="">{defaultTemplate ? `Default (${defaultTemplate.name})` : 'Default'}</option>
-                  {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-              </div>
-            ))
-          )}
+      {/* Step 2: Assignments */}
+      <section className="app-panel-muted space-y-4 p-6">
+        <div className="border-b-2 border-border pb-4">
+          <span className="app-badge app-badge-warning">Step 2</span>
+          <h2 className="mt-2 text-lg font-black uppercase tracking-tight text-foreground">
+            Certificate Type Assignments
+          </h2>
+          <p className="mt-1 text-sm font-medium text-foreground-soft">
+            Team registrations get one type for the whole team; solo registrations are assigned individually.
+          </p>
         </div>
+
+        <CertificateAssignments
+          eventId={id}
+          teams={teams}
+          solos={solos}
+          assignments={assignments}
+          onAssignmentsSaved={setAssignments}
+          onPreviewIndividual={(registrationId, teamMemberId, name, teamName, certType, registrationType) => {
+            setPreviewTarget({ registrationId, teamMemberId, name, teamName, certType, registrationType })
+          }}
+        />
       </section>
 
-      {/* Generate + release */}
-      <section className="app-panel-muted flex flex-wrap items-center gap-3 p-6">
-        <button onClick={() => run('generate')} disabled={generating || templates.length === 0}
-          className="app-button-success text-sm disabled:opacity-50">
-          {generating ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-          {generating ? 'Generating…' : 'Generate Certificates'}
-        </button>
-        <button onClick={() => run('release')} disabled={releasing}
-          className="app-button-secondary text-sm disabled:opacity-50">
-          {releasing ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
-          {releasing ? 'Sending…' : 'Release by Email'}
-        </button>
-        {result && <span className="app-badge app-badge-warning">{result}</span>}
+      {/* Step 3 + 4: Post & ZIP export */}
+      <section className="app-panel-muted p-6">
+        <GenerateDownloadPanel
+          eventId={id}
+          eventTitle={eventTitle}
+          teams={teams}
+          solos={solos}
+          assignments={assignments}
+          templates={templates}
+          certificatesReleasedAt={certificatesReleasedAt}
+          onPostCertificatesSuccess={(releasedAt) => setCertificatesReleasedAt(releasedAt)}
+        />
       </section>
+
+      {previewTarget && (() => {
+        const asgn = assignments.find(
+          (a) =>
+            a.registration_id === previewTarget.registrationId &&
+            (previewTarget.teamMemberId
+              ? a.team_member_id === previewTarget.teamMemberId
+              : a.team_member_id === null)
+        )
+        return (
+          <PreviewModal
+            registrationId={previewTarget.registrationId}
+            teamMemberId={previewTarget.teamMemberId}
+            assignmentId={asgn?.id}
+            name={previewTarget.name}
+            teamName={previewTarget.teamName}
+            certType={previewTarget.certType}
+            registrationType={previewTarget.registrationType}
+            templates={templates}
+            onClose={() => setPreviewTarget(null)}
+          />
+        )
+      })()}
     </div>
   )
 }

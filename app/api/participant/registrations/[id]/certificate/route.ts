@@ -251,8 +251,36 @@ export async function POST(
       .eq('id', assignmentId)
       .maybeSingle()
 
-    if (assignErr || !assignment) {
+    if (assignErr || !assignment || assignment.registration_id !== id) {
       return apiError('Certificate assignment not found', 404)
+    }
+
+    // Same ownership + release gating as GET: only the certificate's own
+    // holder may store its file, and only once certificates are released.
+    const { data: reg } = await admin
+      .from('registrations')
+      .select(`
+        id, participant_id, leader_email,
+        events!inner ( certificates_released_at ),
+        members:team_members ( id, email, participant_id )
+      `)
+      .eq('id', id)
+      .maybeSingle()
+    if (!reg) return apiError('Registration not found', 404)
+
+    const lower = user.email!.toLowerCase()
+    const members = (reg.members as any[]) ?? []
+    const ownsCert = assignment.team_member_id
+      ? members.some(
+          (m) =>
+            m.id === assignment.team_member_id &&
+            (m.participant_id === user.id || m.email?.toLowerCase() === lower)
+        )
+      : reg.participant_id === user.id || reg.leader_email?.toLowerCase() === lower
+    if (!ownsCert) return apiError('Forbidden: You can only save your own certificate.', 403)
+
+    if (!(reg.events as any)?.certificates_released_at) {
+      return apiError('Certificates have not been released yet.', 403)
     }
 
     const storagePath = `generated/${assignment.event_id}/${assignment.id}.png`

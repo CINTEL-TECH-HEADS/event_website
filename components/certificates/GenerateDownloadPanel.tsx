@@ -41,15 +41,16 @@ export function GenerateDownloadPanel({
   const [progress, setProgress] = useState<BatchProgress | null>(null)
   const [errorNotice, setErrorNotice] = useState<string | null>(null)
   const [releasedAt, setReleasedAt] = useState<string | null>(certificatesReleasedAt ?? null)
+  // In-page confirm + result (native confirm()/alert() are suppressed in some
+  // embedded browsers, which silently cancelled the post).
+  const [confirmingPost, setConfirmingPost] = useState(false)
+  const [postNotice, setPostNotice] = useState<{ ok: boolean; text: string } | null>(null)
 
   async function handlePostCertificates() {
     if (!eventId) return
-    if (!confirm('Are you sure you want to Post Certificates? Once posted, participants will be able to view/download their certificates, and QR verification will be active.')) {
-      return
-    }
-
+    setConfirmingPost(false)
     setPosting(true)
-    setErrorNotice(null)
+    setPostNotice(null)
     try {
       const res = await fetch(`/api/events/${eventId}/post-certificates`, {
         method: 'POST',
@@ -64,10 +65,13 @@ export function GenerateDownloadPanel({
       if (onPostCertificatesSuccess) {
         onPostCertificatesSuccess(newReleasedAt)
       }
-      alert('Certificates posted successfully! Participants can now access their certificates.')
+      setPostNotice({
+        ok: true,
+        text: `Certificates posted. ${json.data?.total_assigned ?? 0} attendee(s) can now view and download their certificate, and QR verification is active.`,
+      })
     } catch (err: any) {
       console.error('[handlePostCertificates]', err)
-      setErrorNotice(err.message ?? 'Failed to post certificates')
+      setPostNotice({ ok: false, text: err.message ?? 'Failed to post certificates' })
     } finally {
       setPosting(false)
     }
@@ -123,7 +127,7 @@ export function GenerateDownloadPanel({
     })
 
     if (recipients.length === 0) {
-      alert('No checked-in participants available for certificate generation.')
+      setErrorNotice('No checked-in participants available for certificate generation.')
       return
     }
 
@@ -139,7 +143,8 @@ export function GenerateDownloadPanel({
     const missingTemplates = requiredTemplateKeys.filter((key) => {
       const [regType, certType] = key.split(':')
       const tmpl = templates.find((t) => t.certificate_type === certType && t.template_type === regType)
-      return !tmpl || !tmpl.previewUrl || !tmpl.layout_config
+      // A missing layout_config is fine — the renderer uses default positions.
+      return !tmpl || !tmpl.previewUrl
     })
 
     if (missingTemplates.length > 0) {
@@ -161,8 +166,8 @@ export function GenerateDownloadPanel({
     const zip = new JSZip()
     const usedFilenames = new Set<string>()
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    // The site this dashboard is served from — the QR must point back here.
+    const baseUrl = window.location.origin
 
     // Template cache to avoid repeated image fetching in browser
     const templateImageCache: Record<string, string> = {}
@@ -206,11 +211,6 @@ export function GenerateDownloadPanel({
         const assignmentId = asgn?.id ?? (rec.teamMemberId ? `${rec.registrationId}-${rec.teamMemberId}` : rec.registrationId)
 
         const verificationUrl = `${baseUrl}/verify/${assignmentId}`
-
-        if (!tmpl.layout_config) {
-          failed++
-          continue
-        }
 
         // Render Canvas PNG Blob
         const blob = await generateCertificateBlob({
@@ -273,7 +273,7 @@ export function GenerateDownloadPanel({
         statusText: `Complete! Generated ${succeeded} certificates into ZIP.`,
       })
     } catch (err: any) {
-      alert(`ZIP creation failed: ${err.message}`)
+      setErrorNotice(`ZIP creation failed: ${err.message}`)
     } finally {
       setGenerating(false)
     }
@@ -303,8 +303,8 @@ export function GenerateDownloadPanel({
             ) : null}
 
             <button
-              onClick={handlePostCertificates}
-              disabled={posting}
+              onClick={() => { setPostNotice(null); setConfirmingPost(true) }}
+              disabled={posting || confirmingPost}
               className="app-button-success text-sm disabled:opacity-50"
             >
               {posting ? (
@@ -316,6 +316,34 @@ export function GenerateDownloadPanel({
             </button>
           </div>
         </div>
+
+        {confirmingPost && (
+          <div className="app-alert-warning flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span className="flex items-start gap-2">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-warning" />
+              Post certificates now? Participants will be able to view and download them, and QR verification becomes active.
+            </span>
+            <div className="flex shrink-0 gap-2">
+              <button onClick={handlePostCertificates} className="app-button-success text-sm">
+                Yes, post
+              </button>
+              <button onClick={() => setConfirmingPost(false)} className="app-button-secondary text-sm">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {postNotice && (
+          <div className={`${postNotice.ok ? 'app-alert-success' : 'app-alert-warning'} flex items-start gap-2`}>
+            {postNotice.ok ? (
+              <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-success" />
+            ) : (
+              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-warning" />
+            )}
+            <span>{postNotice.text}</span>
+          </div>
+        )}
       </section>
 
       {/* Step 4: Batch Certificate Export (ZIP) */}
