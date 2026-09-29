@@ -6,15 +6,24 @@ import 'react-datepicker/dist/react-datepicker.css'
 
 interface Props {
   label: string
-  name: string
+  // Set for use inside a <form>: submits the picked time as an ISO string.
+  name?: string
+  // Pass value + onChange to control it (e.g. editing an existing event);
+  // leave them out and it keeps its own state, starting empty.
+  value?: Date | null
+  onChange?: (date: Date | null) => void
 }
 
 export default function LuxuryDatePicker({
   label,
   name,
+  value,
+  onChange,
 }: Props) {
-  const [date, setDate] =
+  const [own, setOwn] =
     useState<Date | null>(null)
+  const controlled = value !== undefined
+  const date = controlled ? value : own
 
   return (
     <div className="relative">
@@ -25,9 +34,10 @@ export default function LuxuryDatePicker({
 
       <DatePicker
         selected={date}
-        onChange={(val: Date | null) =>
-          setDate(val)
-        }
+        onChange={(val: Date | null) => {
+          if (!controlled) setOwn(val)
+          onChange?.(val)
+        }}
         showTimeSelect
         dateFormat="dd/MM/yyyy h:mm aa"
         placeholderText="Select date & time"
@@ -36,15 +46,17 @@ export default function LuxuryDatePicker({
         popperClassName="z-50"
       />
 
-      <input
-        type="hidden"
-        name={name}
-        value={
-          date
-            ? date.toISOString()
-            : ''
-        }
-      />
+      {name && (
+        <input
+          type="hidden"
+          name={name}
+          value={
+            date
+              ? date.toISOString()
+              : ''
+          }
+        />
+      )}
 
     </div>
   )
