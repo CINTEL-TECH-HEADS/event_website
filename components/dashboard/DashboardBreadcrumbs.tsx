@@ -21,6 +21,10 @@ const LABELS: Record<string, string> = {
   audit: 'Audit Log',
 }
 
+// Intermediate paths with no page.tsx — rendered as plain text, not links, so
+// Next doesn't prefetch them (which 404s) and users can't click into a 404.
+const NO_PAGE = new Set(['/dashboard/events'])
+
 const isUuid = (s: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
 
@@ -59,6 +63,8 @@ export function DashboardBreadcrumbs() {
           <span key={c.href} className="flex items-center gap-1.5">
             {c.isLast ? (
               <span className="text-foreground">{c.label}</span>
+            ) : NO_PAGE.has(c.href) ? (
+              <span>{c.label}</span>
             ) : (
               <Link href={c.href} className="transition-colors duration-200 hover:text-accent">
                 {c.label}

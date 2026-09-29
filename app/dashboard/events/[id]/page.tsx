@@ -269,7 +269,7 @@ export default function EventDetailPage() {
             onClick={() => setTab(item.key)}
             className={`rounded-full border-2 px-4 py-3 font-tech text-sm font-bold tracking-widest uppercase transition-all duration-200 ease-out ${
               tab === item.key
-               ? 'border-border bg-accent text-white shadow-sm'
+               ? 'border-border bg-accent text-background shadow-sm'
                : 'border-border bg-panel-muted text-foreground-soft hover:text-foreground'
             }`}
           >
@@ -442,7 +442,7 @@ export default function EventDetailPage() {
                         onClick={() => setFormData({ ...formData, payment_method: m })}
                         className={`rounded-full border-2 px-4 py-2 font-tech text-xs font-bold uppercase tracking-widest transition-all duration-200 ease-out ${
                           formData.payment_method === m
-                            ? 'border-border bg-accent text-white shadow-sm'
+                            ? 'border-border bg-accent text-background shadow-sm'
                             : 'border-border bg-panel-muted text-foreground-soft hover:text-foreground'
                         }`}
                       >
