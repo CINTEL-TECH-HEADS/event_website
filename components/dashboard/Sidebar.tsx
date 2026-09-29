@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { dashboardEventHref } from '@/lib/events/href'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -176,7 +177,7 @@ export function Sidebar() {
                   key={
                     event.id
                   }
-                  href={`/dashboard/events/${event.id}`}
+                  href={dashboardEventHref(event)}
                   className="block rounded-xl border-2 border-border bg-panel-muted p-4 transition-all duration-200 ease-out hover:border-accent hover:bg-panel"
                 >
 

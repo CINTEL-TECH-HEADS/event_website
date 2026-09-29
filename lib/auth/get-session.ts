@@ -70,14 +70,16 @@ export async function resolveUserAccess(
 
     const { data: orgRows } = await admin
         .from('event_organizers')
-        .select('id')
+        .select('event_id, role')
         .eq('profile_id', userId)
-        .limit(1)
 
-    const isOrganizer =
+    const isGlobalOrganizer =
         profile?.role === 'superadmin' ||
-        profile?.role === 'organizer' ||
-        (orgRows?.length ?? 0) > 0
+        profile?.role === 'organizer'
+    const memberships = orgRows ?? []
+    const isOrganizer =
+        isGlobalOrganizer ||
+        memberships.length > 0
 
     const role: UserAccess['role'] =
         profile?.role === 'superadmin'
@@ -86,11 +88,19 @@ export async function resolveUserAccess(
                 ? 'organizer'
                 : 'participant'
 
+    // Someone who only judges one event goes straight to its judge view.
+    const onlyJudging =
+        !isGlobalOrganizer &&
+        memberships.length === 1 &&
+        memberships[0].role === 'judge'
+
     return {
         user: { id: userId, email },
         role,
         isOrganizer,
-        home: isOrganizer ? '/dashboard' : '/participant/portal',
+        home: onlyJudging
+            ? `/judge/${memberships[0].event_id}/participants`
+            : isOrganizer ? '/dashboard' : '/participant/portal',
     }
 }
 

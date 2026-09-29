@@ -54,29 +54,30 @@ export function OrganizerManager({
   const [adding, setAdding] =
     useState(false)
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch(
-          `/api/events/${eventId}/organizers`
-        )
+  async function loadOrganizers() {
+    try {
+      const res = await fetch(
+        `/api/events/${eventId}/organizers`
+      )
 
-        const { data } =
-          await res.json()
+      const { data } =
+        await res.json()
 
-        setOrganizers(
-          data ?? []
-        )
-      } catch {
-        console.error(
-          'Failed loading organizers'
-        )
-      } finally {
-        setLoading(false)
-      }
+      setOrganizers(
+        data ?? []
+      )
+    } catch {
+      console.error(
+        'Failed loading organizers'
+      )
+    } finally {
+      setLoading(false)
     }
+  }
 
-    load()
+  useEffect(() => {
+    loadOrganizers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId])
 
   async function handleAddOrganizer() {
@@ -92,8 +93,9 @@ export function OrganizerManager({
     setAdding(true)
 
     try {
+      // Looks the person up by email and grants the role on this event.
       const res = await fetch(
-        `/api/events/${eventId}/organizers`,
+        '/api/organizers',
         {
           method: 'POST',
           headers: {
@@ -101,19 +103,26 @@ export function OrganizerManager({
               'application/json',
           },
           body: JSON.stringify({
+            event_id: eventId,
             email:
-              newEmail.trim(),
+              newEmail.trim().toLowerCase(),
             role: newRole,
           }),
         }
       )
 
-      const { data } =
-        await res.json()
+      const { error } =
+        await res.json().catch(() => ({ error: null }))
 
-      setOrganizers(
-        data ?? []
-      )
+      // Keep the email in the box so it can be fixed and retried.
+      if (!res.ok) {
+        alert(
+          error ?? 'Failed to add organizer'
+        )
+        return
+      }
+
+      await loadOrganizers()
 
       setNewEmail('')
       setNewRole(
@@ -129,7 +138,7 @@ export function OrganizerManager({
   }
 
   async function handleRemoveOrganizer(
-    organizerId: string
+    profileId: string
   ) {
     if (
       !confirm(
@@ -139,21 +148,30 @@ export function OrganizerManager({
       return
 
     try {
-      await fetch(
-        `/api/events/${eventId}/organizers/${organizerId}`,
+      const res = await fetch(
+        `/api/events/${eventId}/organizers/${profileId}`,
         {
           method:
             'DELETE',
         }
       )
 
+      if (!res.ok) {
+        const { error } =
+          await res.json().catch(() => ({ error: null }))
+        alert(
+          error ?? 'Failed to remove organizer'
+        )
+        return
+      }
+
       setOrganizers(
         organizers.filter(
           (
             item
           ) =>
-            item.id !==
-            organizerId
+            item.profile_id !==
+            profileId
         )
       )
     } catch {
@@ -197,7 +215,9 @@ export function OrganizerManager({
             <p className="mt-1 text-sm font-medium text-foreground-soft">
               Invite sub-admins
               or judges to this
-              event.
+              event. They need to
+              have signed in once
+              with that email.
             </p>
 
           </div>
@@ -281,6 +301,9 @@ export function OrganizerManager({
             </strong>{' '}
             Read-only access
             to participants.
+            After signing in
+            they land on this
+            event&apos;s judge view.
           </p>
 
         </div>
@@ -370,7 +393,7 @@ export function OrganizerManager({
                       <button
                         onClick={() =>
                           handleRemoveOrganizer(
-                            organizer.id
+                            organizer.profile_id
                           )
                         }
                         className="app-button-danger px-3 py-3"

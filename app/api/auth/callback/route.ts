@@ -4,11 +4,13 @@
 //
 // Landing point for email confirmation, password recovery, magic link and OAuth.
 // Exchanges the one-time code for a session, then sends the user to the right
-// place based on their role (organizer → /dashboard, participant → /portal).
+// place based on their role (organizer → /dashboard, judge of one event → its
+// judge view, participant → /portal).
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createSessionClient, createAdminClient } from '@/lib/supabase/server'
 import { isProfileComplete } from '@/lib/participants/identity'
+import { resolveUserAccess } from '@/lib/auth/get-session'
 
 // Only same-site paths: '//evil.com' or '/\\evil.com' would leave the site.
 function safeNext(next: string | null): string | null {
@@ -36,22 +38,9 @@ export async function GET(req: NextRequest) {
   const email = (user.email ?? '').toLowerCase()
   const admin = createAdminClient()
 
-  // Determine role.
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle()
-  const { data: orgRows } = await admin
-    .from('event_organizers')
-    .select('id')
-    .eq('profile_id', user.id)
-    .limit(1)
-
-  const isOrganizer =
-    profile?.role === 'superadmin' ||
-    profile?.role === 'organizer' ||
-    (orgRows?.length ?? 0) > 0
+  // Role and home page: the same rules as password login and the layout gates.
+  const access = await resolveUserAccess(user.id, email)
+  const isOrganizer = access.isOrganizer
 
   // For participants (Google sign-in): seed the profile, link their registrations
   // by email, and gate first-login until the mandatory identity is filled in.
@@ -92,5 +81,5 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${origin}${next}`)
   }
 
-  return NextResponse.redirect(`${origin}${isOrganizer ? '/dashboard' : '/participant/portal'}`)
+  return NextResponse.redirect(`${origin}${access.home}`)
 }
