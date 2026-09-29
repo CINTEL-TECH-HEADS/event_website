@@ -135,7 +135,9 @@ export async function PATCH(
       .maybeSingle()
 
     // Where/when edits: same rules as creating an event, checked against the
-    // event's current times for any that aren't being changed.
+    // event's current times for any that aren't being changed. Venue and times
+    // stay editable after publishing (events get moved); only the registration
+    // form and open_to_external lock (lib/events/form-lock.ts).
     const whereWhen = eventBaseSchema
       .pick({ venue: true, event_type: true, starts_at: true, ends_at: true, registration_closes_at: true })
       .partial()
