@@ -81,7 +81,7 @@ export function DevelopedBy() {
   const members = TECH_TEAM.filter((m) => m.role === 'member')
 
   return (
-    <section aria-labelledby="developed-by-heading" className="relative z-10 mx-auto mt-24 max-w-[1240px] px-4 sm:px-6">
+    <section aria-labelledby="developed-by-heading" className="relative z-20 mx-auto mt-24 max-w-[1240px] px-4 pb-12 sm:px-6">
       <div className="flex flex-col items-center text-center">
         <p className="flex items-center gap-3 font-tech text-[11px] font-bold uppercase tracking-[0.24em] text-primary-red">
           <span aria-hidden className="h-[2px] w-8 bg-primary-red" />

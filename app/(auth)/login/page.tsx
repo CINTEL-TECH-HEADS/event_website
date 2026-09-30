@@ -3,7 +3,7 @@
 // password form revealed by the "Organizer sign-in" link.
 'use client'
 import { useEffect, useState } from 'react'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Info } from 'lucide-react'
 import Link from 'next/link'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { PosterHeading } from '@/components/brand/PosterHeading'
@@ -86,6 +86,13 @@ export default function LoginPage() {
         <p className="mt-2 text-sm font-medium leading-6 text-foreground-soft">
           Students from SRM KTR or any other college sign in with Google. Organizers use the email and password the association gave them.
         </p>
+
+        <div role="note" className="mt-5 flex items-start gap-3 rounded-xl border-2 border-border bg-primary-yellow/15 px-4 py-3 text-sm font-medium leading-6 text-foreground">
+          <Info size={18} className="mt-0.5 shrink-0 text-brand" aria-hidden="true" />
+          <p>
+            <span className="font-bold">Use your personal email</span> (e.g. Gmail) to register — not your SRM email ID (@srmist.edu.in).
+          </p>
+        </div>
 
         <button
           type="button"
